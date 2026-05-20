@@ -1,0 +1,80 @@
+import streamlit as st
+
+from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
+from dashboard.components.tables import last_n_results
+from dashboard.data_access import (
+    DIVISION_NAMES,
+    get_seasons,
+    get_teams,
+    load_features,
+    load_matches,
+    load_xg,
+)
+
+st.set_page_config(page_title="Team Analysis", layout="wide")
+st.title("Team Analysis")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    league = st.selectbox(
+        "League",
+        list(DIVISION_NAMES.keys()),
+        format_func=lambda x: DIVISION_NAMES[x],
+    )
+with col2:
+    seasons = get_seasons(league)
+    season = st.selectbox("Season", seasons if seasons else ["No data"])
+with col3:
+    teams = get_teams(league)
+    team = st.selectbox("Team", teams if teams else ["No data"])
+
+if team and team != "No data" and season != "No data":
+    matches = load_matches(division=league, season=season)
+    features = load_features()
+
+    if not matches.empty:
+        home = matches[matches["home_team"] == team]
+        away = matches[matches["away_team"] == team]
+
+        total_p = len(home) + len(away)
+        total_w = len(home[home["ft_result"] == "H"]) + len(away[away["ft_result"] == "A"])
+        total_d = len(home[home["ft_result"] == "D"]) + len(away[away["ft_result"] == "D"])
+        total_l = total_p - total_w - total_d
+        gf = int(home["ft_home_goals"].sum() + away["ft_away_goals"].sum())
+        ga = int(home["ft_away_goals"].sum() + away["ft_home_goals"].sum())
+
+        m1, m2, m3, m4, m5, m6 = st.columns(6)
+        m1.metric("P", total_p)
+        m2.metric("W", total_w)
+        m3.metric("D", total_d)
+        m4.metric("L", total_l)
+        m5.metric("GF", gf)
+        m6.metric("GA", ga)
+
+        if not features.empty:
+            team_features = features[features["team"] == team].copy()
+            if not team_features.empty:
+                team_features["match_date"] = team_features["match_date"].astype(str)
+                start_year = int(season[:4])
+                team_features = team_features[
+                    (team_features["match_date"] >= f"{start_year}-07-01")
+                    & (team_features["match_date"] < f"{start_year + 1}-07-01")
+                ]
+                if not team_features.empty:
+                    chart_col1, chart_col2 = st.columns(2)
+                    with chart_col1:
+                        st.plotly_chart(
+                            xg_vs_goals_chart(team_features, team),
+                            use_container_width=True,
+                        )
+                    with chart_col2:
+                        st.plotly_chart(
+                            home_away_chart(team_features, team),
+                            use_container_width=True,
+                        )
+
+        st.subheader("Last 10 Results")
+        results = last_n_results(matches, team, n=10)
+        st.dataframe(results, use_container_width=True, hide_index=True)
+    else:
+        st.warning("No match data available.")
