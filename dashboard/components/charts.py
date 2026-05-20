@@ -9,7 +9,7 @@ def xg_vs_goals_chart(df: pd.DataFrame, team: str) -> go.Figure:
         go.Scatter(
             x=team_df["match_date"],
             y=team_df["goals_scored"],
-            name="Goals",
+            name="Goles",
             mode="lines+markers",
             line={"color": "#2ecc71"},
         )
@@ -24,9 +24,9 @@ def xg_vs_goals_chart(df: pd.DataFrame, team: str) -> go.Figure:
         )
     )
     fig.update_layout(
-        title=f"{team} — Goals vs xG",
-        xaxis_title="Date",
-        yaxis_title="Goals / xG",
+        title=f"{team} — Goles vs xG",
+        xaxis_title="Fecha",
+        yaxis_title="Goles / xG",
         template="plotly_dark",
         height=400,
     )
@@ -44,16 +44,17 @@ def home_away_chart(df: pd.DataFrame, team: str) -> go.Figure:
     away_d = away["draw"].sum()
     away_l = len(away) - away_w - away_d
 
+    x_labels = ["Local", "Visitante"]
     fig = go.Figure(
         data=[
-            go.Bar(name="Wins", x=["Home", "Away"], y=[home_w, away_w], marker_color="#2ecc71"),
-            go.Bar(name="Draws", x=["Home", "Away"], y=[home_d, away_d], marker_color="#f39c12"),
-            go.Bar(name="Losses", x=["Home", "Away"], y=[home_l, away_l], marker_color="#e74c3c"),
+            go.Bar(name="Victorias", x=x_labels, y=[home_w, away_w], marker_color="#2ecc71"),
+            go.Bar(name="Empates", x=x_labels, y=[home_d, away_d], marker_color="#f39c12"),
+            go.Bar(name="Derrotas", x=x_labels, y=[home_l, away_l], marker_color="#e74c3c"),
         ]
     )
     fig.update_layout(
         barmode="stack",
-        title=f"{team} — Home vs Away",
+        title=f"{team} — Local vs Visitante",
         template="plotly_dark",
         height=350,
     )

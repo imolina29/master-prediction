@@ -10,24 +10,24 @@ from dashboard.data_access import (
     load_matches,
 )
 
-st.set_page_config(page_title="Team Analysis", layout="wide")
-st.title("Team Analysis")
+st.set_page_config(page_title="Analisis de Equipo", layout="wide")
+st.title("Analisis de Equipo")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     league = st.selectbox(
-        "League",
+        "Liga",
         list(DIVISION_NAMES.keys()),
         format_func=lambda x: DIVISION_NAMES[x],
     )
 with col2:
     seasons = get_seasons(league)
-    season = st.selectbox("Season", seasons if seasons else ["No data"])
+    season = st.selectbox("Temporada", seasons if seasons else ["Sin datos"])
 with col3:
     teams = get_teams(league)
-    team = st.selectbox("Team", teams if teams else ["No data"])
+    team = st.selectbox("Equipo", teams if teams else ["Sin datos"])
 
-if team and team != "No data" and season != "No data":
+if team and team != "Sin datos" and season != "Sin datos":
     matches = load_matches(division=league, season=season)
     features = load_features()
 
@@ -43,12 +43,12 @@ if team and team != "No data" and season != "No data":
         ga = int(home["ft_away_goals"].sum() + away["ft_home_goals"].sum())
 
         m1, m2, m3, m4, m5, m6 = st.columns(6)
-        m1.metric("P", total_p)
-        m2.metric("W", total_w)
-        m3.metric("D", total_d)
-        m4.metric("L", total_l)
+        m1.metric("PJ", total_p)
+        m2.metric("PG", total_w)
+        m3.metric("PE", total_d)
+        m4.metric("PP", total_l)
         m5.metric("GF", gf)
-        m6.metric("GA", ga)
+        m6.metric("GC", ga)
 
         if not features.empty:
             team_features = features[features["team"] == team].copy()
@@ -72,8 +72,8 @@ if team and team != "No data" and season != "No data":
                             use_container_width=True,
                         )
 
-        st.subheader("Last 10 Results")
+        st.subheader("Ultimos 10 Resultados")
         results = last_n_results(matches, team, n=10)
         st.dataframe(results, use_container_width=True, hide_index=True)
     else:
-        st.warning("No match data available.")
+        st.warning("No hay datos disponibles.")

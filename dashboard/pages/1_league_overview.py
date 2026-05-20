@@ -3,19 +3,19 @@ import streamlit as st
 from dashboard.components.tables import form_indicator, standings_table
 from dashboard.data_access import DIVISION_NAMES, get_seasons, load_matches, load_xg
 
-st.set_page_config(page_title="League Overview", layout="wide")
-st.title("League Overview")
+st.set_page_config(page_title="Vista de Liga", layout="wide")
+st.title("Vista de Liga")
 
 col1, col2 = st.columns(2)
 with col1:
     league = st.selectbox(
-        "League", list(DIVISION_NAMES.keys()), format_func=lambda x: DIVISION_NAMES[x]
+        "Liga", list(DIVISION_NAMES.keys()), format_func=lambda x: DIVISION_NAMES[x]
     )
 with col2:
     seasons = get_seasons(league)
-    season = st.selectbox("Season", seasons if seasons else ["No data"])
+    season = st.selectbox("Temporada", seasons if seasons else ["Sin datos"])
 
-if season and season != "No data":
+if season and season != "Sin datos":
     matches = load_matches(division=league, season=season)
     xg = load_xg(division=league)
 
@@ -32,9 +32,9 @@ if season and season != "No data":
         table = standings_table(matches, xg if not xg.empty else None)
 
         form_col = []
-        for team in table["Team"]:
+        for team in table["Equipo"]:
             form_col.append(form_indicator(matches, team))
-        table["Form (last 5)"] = form_col
+        table["Racha (ult. 5)"] = form_col
 
         st.dataframe(
             table,
@@ -47,4 +47,4 @@ if season and season != "No data":
             },
         )
     else:
-        st.warning("No match data for this season.")
+        st.warning("No hay datos para esta temporada.")

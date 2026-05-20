@@ -7,11 +7,11 @@ st.set_page_config(
 )
 
 st.title("Master Prediction")
-st.markdown("### Betting Intelligence Platform")
+st.markdown("### Plataforma de Inteligencia Deportiva")
 st.markdown("""
-Select a page from the sidebar:
+Selecciona una pagina en la barra lateral:
 
-- **League Overview** — Enriched standings with xG and form
-- **Team Analysis** — Deep dive into a single team
-- **Match Comparator** — Head-to-head comparison
+- **Vista de Liga** — Tabla de posiciones enriquecida con xG y racha
+- **Analisis de Equipo** — Analisis profundo de un equipo
+- **Comparador de Partidos** — Comparacion cabeza a cabeza
 """)

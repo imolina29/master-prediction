@@ -3,7 +3,10 @@ from pathlib import Path
 
 import duckdb
 import pandas as pd
+from dotenv import load_dotenv
 from supabase import Client, create_client
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 FEATURES_PATH = (
     Path(__file__).resolve().parent.parent / "data" / "features" / "team_features.parquet"

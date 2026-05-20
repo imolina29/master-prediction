@@ -24,14 +24,14 @@ def standings_table(matches_df: pd.DataFrame, xg_df: pd.DataFrame | None = None)
         pts = w * 3 + d
 
         row = {
-            "Team": team,
-            "P": p,
-            "W": w,
-            "D": d,
-            "L": l_count,
+            "Equipo": team,
+            "PJ": p,
+            "PG": w,
+            "PE": d,
+            "PP": l_count,
             "GF": gf,
-            "GA": ga,
-            "GD": gf - ga,
+            "GC": ga,
+            "DG": gf - ga,
             "Pts": pts,
         }
 
@@ -48,7 +48,7 @@ def standings_table(matches_df: pd.DataFrame, xg_df: pd.DataFrame | None = None)
 
     result = pd.DataFrame(rows)
     result.sort_values("Pts", ascending=False, inplace=True)
-    result.insert(0, "Pos", range(1, len(result) + 1))
+    result.insert(0, "#", range(1, len(result) + 1))
     return result
 
 
@@ -56,10 +56,10 @@ def form_indicator(matches_df: pd.DataFrame, team: str, n: int = 5) -> str:
     all_matches = pd.concat(
         [
             matches_df[matches_df["home_team"] == team].assign(
-                result=matches_df["ft_result"].map({"H": "W", "D": "D", "A": "L"})
+                result=matches_df["ft_result"].map({"H": "G", "D": "E", "A": "P"})
             ),
             matches_df[matches_df["away_team"] == team].assign(
-                result=matches_df["ft_result"].map({"A": "W", "D": "D", "H": "L"})
+                result=matches_df["ft_result"].map({"A": "G", "D": "E", "H": "P"})
             ),
         ]
     )
@@ -72,12 +72,14 @@ def last_n_results(matches_df: pd.DataFrame, team: str, n: int = 10) -> pd.DataF
     home = matches_df[matches_df["home_team"] == team].copy()
     home["opponent"] = home["away_team"]
     home["score"] = home["ft_home_goals"].astype(str) + "-" + home["ft_away_goals"].astype(str)
-    home["venue"] = "H"
+    home["venue"] = "L"
 
     away = matches_df[matches_df["away_team"] == team].copy()
     away["opponent"] = away["home_team"]
     away["score"] = away["ft_away_goals"].astype(str) + "-" + away["ft_home_goals"].astype(str)
-    away["venue"] = "A"
+    away["venue"] = "V"
 
     combined = pd.concat([home, away]).sort_values("match_date", ascending=False)
-    return combined[["match_date", "opponent", "score", "venue", "ft_result"]].head(n)
+    result = combined[["match_date", "opponent", "score", "venue", "ft_result"]].head(n)
+    result.columns = ["Fecha", "Rival", "Marcador", "Sede", "Resultado"]
+    return result

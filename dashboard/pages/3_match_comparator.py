@@ -5,38 +5,38 @@ from backend.services.features import compute_h2h_features
 from dashboard.components.charts import radar_chart
 from dashboard.data_access import DIVISION_NAMES, get_teams, load_features, load_matches
 
-st.set_page_config(page_title="Match Comparator", layout="wide")
-st.title("Match Comparator")
+st.set_page_config(page_title="Comparador de Partidos", layout="wide")
+st.title("Comparador de Partidos")
 
 col1, col2, col3 = st.columns(3)
 with col1:
     league = st.selectbox(
-        "League",
+        "Liga",
         list(DIVISION_NAMES.keys()),
         format_func=lambda x: DIVISION_NAMES[x],
     )
 with col2:
     teams = get_teams(league)
-    team_a = st.selectbox("Team A", teams if teams else ["No data"])
+    team_a = st.selectbox("Equipo A", teams if teams else ["Sin datos"])
 with col3:
-    other_teams = [t for t in teams if t != team_a] if teams else ["No data"]
-    team_b = st.selectbox("Team B", other_teams)
+    other_teams = [t for t in teams if t != team_a] if teams else ["Sin datos"]
+    team_b = st.selectbox("Equipo B", other_teams)
 
-if team_a != "No data" and team_b != "No data":
+if team_a != "Sin datos" and team_b != "Sin datos":
     matches = load_matches(division=league)
     features = load_features()
 
     if not matches.empty:
         h2h = compute_h2h_features(matches, team_a, team_b)
 
-        st.subheader("Head to Head")
+        st.subheader("Cabeza a Cabeza")
         h_col1, h_col2, h_col3, h_col4 = st.columns(4)
-        h_col1.metric("Total Matches", h2h["total_matches"])
+        h_col1.metric("Total Partidos", h2h["total_matches"])
         a_key = f"{team_a.lower().replace(' ', '_')}_wins"
         b_key = f"{team_b.lower().replace(' ', '_')}_wins"
-        h_col2.metric(f"{team_a} Wins", h2h.get(a_key, 0))
-        h_col3.metric(f"{team_b} Wins", h2h.get(b_key, 0))
-        h_col4.metric("Draws", h2h["draws"])
+        h_col2.metric(f"Victorias {team_a}", h2h.get(a_key, 0))
+        h_col3.metric(f"Victorias {team_b}", h2h.get(b_key, 0))
+        h_col4.metric("Empates", h2h["draws"])
 
         if not features.empty:
             fa = features[features["team"] == team_a]
@@ -46,7 +46,7 @@ if team_a != "No data" and team_b != "No data":
                 latest_a = fa.sort_values("match_date").iloc[-1]
                 latest_b = fb.sort_values("match_date").iloc[-1]
 
-                st.subheader("Current Form Comparison")
+                st.subheader("Comparacion de Forma Actual")
                 compare_cols = [
                     "goals_scored_avg",
                     "xg_for_avg",
@@ -55,7 +55,7 @@ if team_a != "No data" and team_b != "No data":
                     "corners_avg",
                     "win_rate",
                 ]
-                labels = ["Goals", "xG", "Defense", "Shots", "Corners", "Win %"]
+                labels = ["Goles", "xG", "Defensa", "Tiros", "Corners", "% Victorias"]
 
                 stats_a = {}
                 stats_b = {}
@@ -70,7 +70,7 @@ if team_a != "No data" and team_b != "No data":
                     use_container_width=True,
                 )
 
-        st.subheader("H2H Match History")
+        st.subheader("Historial de Enfrentamientos")
         h2h_matches = matches[
             ((matches["home_team"] == team_a) & (matches["away_team"] == team_b))
             | ((matches["home_team"] == team_b) & (matches["away_team"] == team_a))
@@ -87,9 +87,9 @@ if team_a != "No data" and team_b != "No data":
                     "ft_result",
                 ]
             ].copy()
-            display_df.columns = ["Date", "Home", "Away", "HG", "AG", "Result"]
+            display_df.columns = ["Fecha", "Local", "Visitante", "GL", "GV", "Resultado"]
             st.dataframe(display_df, use_container_width=True, hide_index=True)
         else:
-            st.info("No head-to-head matches found.")
+            st.info("No se encontraron enfrentamientos directos.")
     else:
-        st.warning("No match data available.")
+        st.warning("No hay datos disponibles.")
