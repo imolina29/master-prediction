@@ -29,7 +29,7 @@ jobs:
         run: ruff format --check .
 
       - name: Run tests
-        run: python -m pytest tests/ -v --ignore=tests/test_pipeline_integration.py
+        run: PYTHONPATH=. python -m pytest tests/ -v --ignore=tests/test_pipeline_integration.py
         env:
           SUPABASE_URL: https://fake.supabase.co
           SUPABASE_KEY: fake-key
