@@ -8,7 +8,6 @@ from dashboard.data_access import (
     get_teams,
     load_features,
     load_matches,
-    load_xg,
 )
 
 st.set_page_config(page_title="Team Analysis", layout="wide")
