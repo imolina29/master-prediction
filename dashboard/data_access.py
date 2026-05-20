@@ -28,13 +28,25 @@ def load_features(path: Path = FEATURES_PATH) -> pd.DataFrame:
     return duckdb.sql(f"SELECT * FROM '{path}'").df()
 
 
-def load_matches(division: str | None = None, season: str | None = None) -> pd.DataFrame:
+def _fetch_all(table_name: str, division: str | None = None, page_size: int = 1000) -> list[dict]:
     client = get_supabase_client()
-    query = client.table("matches").select("*")
-    if division:
-        query = query.eq("division", division)
-    resp = query.execute()
-    df = pd.DataFrame(resp.data)
+    all_data: list[dict] = []
+    offset = 0
+    while True:
+        query = client.table(table_name).select("*").range(offset, offset + page_size - 1)
+        if division:
+            query = query.eq("division", division)
+        resp = query.execute()
+        all_data.extend(resp.data)
+        if len(resp.data) < page_size:
+            break
+        offset += page_size
+    return all_data
+
+
+def load_matches(division: str | None = None, season: str | None = None) -> pd.DataFrame:
+    data = _fetch_all("matches", division=division)
+    df = pd.DataFrame(data)
     if df.empty:
         return df
     df["match_date"] = pd.to_datetime(df["match_date"])
@@ -48,12 +60,8 @@ def load_matches(division: str | None = None, season: str | None = None) -> pd.D
 
 
 def load_xg(division: str | None = None) -> pd.DataFrame:
-    client = get_supabase_client()
-    query = client.table("match_xg").select("*")
-    if division:
-        query = query.eq("division", division)
-    resp = query.execute()
-    return pd.DataFrame(resp.data)
+    data = _fetch_all("match_xg", division=division)
+    return pd.DataFrame(data)
 
 
 def get_seasons(division: str) -> list[str]:

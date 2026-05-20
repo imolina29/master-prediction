@@ -8,6 +8,18 @@ logging.basicConfig(
 )
 
 
+def _fetch_all(client, table_name: str, page_size: int = 1000) -> list[dict]:
+    all_data: list[dict] = []
+    offset = 0
+    while True:
+        resp = client.table(table_name).select("*").range(offset, offset + page_size - 1).execute()
+        all_data.extend(resp.data)
+        if len(resp.data) < page_size:
+            break
+        offset += page_size
+    return all_data
+
+
 def main():
     from backend.db.client import get_supabase
     from backend.services.features import compute_team_features, save_features
@@ -15,13 +27,13 @@ def main():
     client = get_supabase()
 
     logging.info("Loading matches from Supabase...")
-    matches_resp = client.table("matches").select("*").execute()
-    matches_df = pd.DataFrame(matches_resp.data)
+    matches_data = _fetch_all(client, "matches")
+    matches_df = pd.DataFrame(matches_data)
     logging.info("Loaded %d matches", len(matches_df))
 
     logging.info("Loading xG data from Supabase...")
-    xg_resp = client.table("match_xg").select("*").execute()
-    xg_df = pd.DataFrame(xg_resp.data)
+    xg_data = _fetch_all(client, "match_xg")
+    xg_df = pd.DataFrame(xg_data)
     logging.info("Loaded %d xG records", len(xg_df))
 
     if not xg_df.empty:
