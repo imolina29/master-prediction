@@ -38,11 +38,11 @@ def format_picks(picks: list[dict]) -> pd.DataFrame:
             "Fecha": df["match_date"],
             "Partido": df["home_team"] + " vs " + df["away_team"],
             "Liga": df["division"],
-            "Pick": df["market"].apply(_market_label),
+            "Apuesta": df["market"].apply(_market_label),
             "Cuota": df["odd"].apply(lambda x: f"{x:.2f}"),
-            "Edge": df["edge"].apply(lambda x: f"{x:.1%}"),
-            "Stake": df["stake"].apply(_stake_badge),
-            "EV": df["expected_value"].apply(lambda x: f"{x:.1%}"),
+            "Ventaja": df["edge"].apply(lambda x: f"{x:.1%}"),
+            "Unidades": df["stake"].apply(_stake_badge),
+            "Valor Esperado": df["expected_value"].apply(lambda x: f"{x:.1%}"),
         }
     )
     return display
@@ -57,11 +57,11 @@ def format_resolved(picks: list[dict]) -> pd.DataFrame:
         {
             "Fecha": df["match_date"],
             "Partido": df["home_team"] + " vs " + df["away_team"],
-            "Pick": df["market"].apply(_market_label),
+            "Apuesta": df["market"].apply(_market_label),
             "Cuota": df["odd"].apply(lambda x: f"{x:.2f}"),
-            "Stake": df["stake"].apply(_stake_badge),
+            "Unidades": df["stake"].apply(_stake_badge),
             "Resultado": df["result"].apply(_result_badge),
-            "Profit": df["profit"].apply(lambda x: f"{x:+.2f}u"),
+            "Ganancia": df["profit"].apply(lambda x: f"{x:+.2f}u"),
         }
     )
     return display

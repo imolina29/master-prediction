@@ -12,6 +12,19 @@ from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 st.set_page_config(page_title="Value Bets", layout="wide")
 st.title("Value Bets")
 
+with st.expander("Guia de terminos"):
+    st.markdown(
+        "- **Apuesta:** Tipo de apuesta (Local, Empate, Visitante, Over/Under 2.5)\n"
+        "- **Cuota:** Precio ofrecido por las casas de apuestas\n"
+        "- **Ventaja:** Diferencia entre la probabilidad del modelo y la del mercado."
+        " A mayor ventaja, mayor oportunidad\n"
+        "- **Unidades:** Cantidad sugerida a apostar"
+        " (1u = minima, 2u = media, 3u = alta confianza)\n"
+        "- **Valor Esperado:** Ganancia esperada por unidad apostada."
+        " Positivo = apuesta rentable a largo plazo\n"
+        "- **Ganancia:** Resultado real de la apuesta en unidades"
+    )
+
 client = get_supabase_client()
 
 # --- Section 1: Picks del Dia ---
@@ -26,7 +39,7 @@ with col1:
         format_func=lambda x: "Todas las ligas" if x == "Todas" else DIVISION_NAMES.get(x, x),
     )
 with col2:
-    stake_filter = st.selectbox("Stake minimo", ["Todos", "≥2u", "3u"])
+    stake_filter = st.selectbox("Unidades minimas", ["Todos", "≥2u", "3u"])
 
 try:
     query = client.table("value_bets").select("*").is_("result", "null").order("match_date")
