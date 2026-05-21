@@ -52,3 +52,25 @@ jobs:
           git add data/features/ -f
           git diff --cached --quiet || git commit -m "data: update features [skip ci]"
           git push
+
+      - name: Train models and run backtesting
+        run: PYTHONPATH=. python scripts/run_training.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Generate predictions for upcoming matches
+        run: PYTHONPATH=. python scripts/run_predictions.py --upcoming
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Commit models and backtest results
+        run: |
+          git add models/ data/backtest_results.json -f
+          git diff --cached --quiet || git commit -m "chore: update models and backtest results [skip ci]"
+          git push
