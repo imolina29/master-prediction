@@ -29,12 +29,7 @@ with col2:
     stake_filter = st.selectbox("Stake minimo", ["Todos", "≥2u", "3u"])
 
 try:
-    query = (
-        client.table("value_bets")
-        .select("*")
-        .is_("result", "null")
-        .order("match_date")
-    )
+    query = client.table("value_bets").select("*").is_("result", "null").order("match_date")
     if league_filter != "Todas":
         query = query.eq("division", league_filter)
     resp = query.execute()

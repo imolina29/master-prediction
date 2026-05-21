@@ -31,12 +31,7 @@ def resolve_picks() -> int:
 
     client = get_supabase()
 
-    pending = (
-        client.table("value_bets")
-        .select("*")
-        .is_("result", "null")
-        .execute()
-    )
+    pending = client.table("value_bets").select("*").is_("result", "null").execute()
 
     if not pending.data:
         logger.info("No pending picks to resolve")
@@ -61,11 +56,13 @@ def resolve_picks() -> int:
         match = match_resp.data[0]
         resolution = resolve_single_pick(pick, match)
 
-        client.table("value_bets").update({
-            "result": resolution["result"],
-            "profit": resolution["profit"],
-            "resolved_at": datetime.now(timezone.utc).isoformat(),
-        }).eq("id", pick["id"]).execute()
+        client.table("value_bets").update(
+            {
+                "result": resolution["result"],
+                "profit": resolution["profit"],
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+            }
+        ).eq("id", pick["id"]).execute()
 
         resolved_count += 1
         logger.info(

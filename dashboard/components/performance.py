@@ -20,12 +20,14 @@ def market_breakdown_table(perf: dict) -> pd.DataFrame:
     rows = []
     market_labels = {"1x2": "1X2", "over_under": "Over/Under"}
     for group, data in perf.get("by_market", {}).items():
-        rows.append({
-            "Mercado": market_labels.get(group, group),
-            "Picks": data["picks"],
-            "Ganados": data["wins"],
-            "ROI": f"{data['roi']:.1f}%",
-        })
+        rows.append(
+            {
+                "Mercado": market_labels.get(group, group),
+                "Picks": data["picks"],
+                "Ganados": data["wins"],
+                "ROI": f"{data['roi']:.1f}%",
+            }
+        )
     return pd.DataFrame(rows)
 
 

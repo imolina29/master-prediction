@@ -101,19 +101,21 @@ def parse_odds(events: list[dict], division: str, normalizer: TeamNormalizer) ->
 
         totals, totals_bk = _best_odds_for_market(bookmakers, "totals")
 
-        records.append({
-            "match_date": match_date,
-            "home_team": normalizer.normalize(home_raw),
-            "away_team": normalizer.normalize(away_raw),
-            "division": division,
-            "odd_home": h2h.get(home_raw),
-            "odd_draw": h2h.get("Draw"),
-            "odd_away": h2h.get(away_raw),
-            "odd_over25": totals.get("Over") if totals else None,
-            "odd_under25": totals.get("Under") if totals else None,
-            "bookmaker_h2h": h2h_bk,
-            "bookmaker_totals": totals_bk if totals else None,
-        })
+        records.append(
+            {
+                "match_date": match_date,
+                "home_team": normalizer.normalize(home_raw),
+                "away_team": normalizer.normalize(away_raw),
+                "division": division,
+                "odd_home": h2h.get(home_raw),
+                "odd_draw": h2h.get("Draw"),
+                "odd_away": h2h.get(away_raw),
+                "odd_over25": totals.get("Over") if totals else None,
+                "odd_under25": totals.get("Under") if totals else None,
+                "bookmaker_h2h": h2h_bk,
+                "bookmaker_totals": totals_bk if totals else None,
+            }
+        )
 
     return records
 

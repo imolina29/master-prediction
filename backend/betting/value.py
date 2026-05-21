@@ -63,27 +63,29 @@ def generate_picks(predictions: list[dict], matches_with_odds: list[dict]) -> li
             if stake == 0:
                 continue
 
-            picks.append({
-                "match_date": pred["match_date"],
-                "home_team": pred["home_team"],
-                "away_team": pred["away_team"],
-                "division": pred["division"],
-                "market": market,
-                "selection": selection,
-                "model_prob": round(model_prob, 4),
-                "implied_prob": calc["implied_prob"],
-                "edge": calc["edge"],
-                "odd": odd,
-                "bookmaker": (
-                    odds.get("bookmaker_h2h")
-                    if market.startswith("1x2")
-                    else odds.get("bookmaker_totals")
-                ),
-                "stake": stake,
-                "expected_value": calc["expected_value"],
-                "confidence": pred.get("confidence", "baja"),
-                "model_variant": pred.get("model_variant", "base"),
-            })
+            picks.append(
+                {
+                    "match_date": pred["match_date"],
+                    "home_team": pred["home_team"],
+                    "away_team": pred["away_team"],
+                    "division": pred["division"],
+                    "market": market,
+                    "selection": selection,
+                    "model_prob": round(model_prob, 4),
+                    "implied_prob": calc["implied_prob"],
+                    "edge": calc["edge"],
+                    "odd": odd,
+                    "bookmaker": (
+                        odds.get("bookmaker_h2h")
+                        if market.startswith("1x2")
+                        else odds.get("bookmaker_totals")
+                    ),
+                    "stake": stake,
+                    "expected_value": calc["expected_value"],
+                    "confidence": pred.get("confidence", "baja"),
+                    "model_variant": pred.get("model_variant", "base"),
+                }
+            )
 
     logger.info("Generated %d picks from %d predictions", len(picks), len(predictions))
     return picks

@@ -73,9 +73,7 @@ def test_generate_picks_basic():
     for pick in picks:
         assert pick["edge"] > 0.05
         assert pick["stake"] >= 1
-        assert pick["market"] in [
-            "1x2_home", "1x2_draw", "1x2_away", "over25", "under25"
-        ]
+        assert pick["market"] in ["1x2_home", "1x2_draw", "1x2_away", "over25", "under25"]
 
 
 def test_generate_picks_no_edge():
