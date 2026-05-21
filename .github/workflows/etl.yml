@@ -37,6 +37,15 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      - name: Fetch upcoming fixtures
+        run: PYTHONPATH=. python scripts/run_fixtures.py
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Generate features
         run: PYTHONPATH=. python scripts/run_features.py
         env:
