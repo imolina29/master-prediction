@@ -1,6 +1,7 @@
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
+from backend.betting.value import calculate_edge
 from dashboard.components.performance import (
     market_breakdown_table,
     performance_kpis,
@@ -19,7 +20,8 @@ with st.expander("Guia de terminos"):
         "- **Ventaja:** Diferencia entre la probabilidad del modelo y la del mercado."
         " A mayor ventaja, mayor oportunidad\n"
         "- **Unidades:** Cantidad sugerida a apostar"
-        " (1u = minima, 2u = media, 3u = alta confianza)\n"
+        " (1u = minima, 2u = media, 3u = alta confianza,"
+        " Sin valor = no recomendado)\n"
         "- **Valor Esperado:** Ganancia esperada por unidad apostada."
         " Positivo = apuesta rentable a largo plazo\n"
         "- **Ganancia:** Resultado real de la apuesta en unidades"
@@ -28,7 +30,7 @@ with st.expander("Guia de terminos"):
 client = get_supabase_client()
 
 # --- Section 1: Picks del Dia ---
-st.header("Picks del Dia")
+st.header("Analisis de Partidos")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -39,29 +41,101 @@ with col1:
         format_func=lambda x: "Todas las ligas" if x == "Todas" else DIVISION_NAMES.get(x, x),
     )
 with col2:
-    stake_filter = st.selectbox("Unidades minimas", ["Todos", "≥2u", "3u"])
+    stake_filter = st.selectbox("Filtro", ["Todos los partidos", "Solo recomendados", "≥2u", "3u"])
 
+# Fetch value bets (picks with edge)
 try:
     query = client.table("value_bets").select("*").is_("result", "null").order("match_date")
     if league_filter != "Todas":
         query = query.eq("division", league_filter)
     resp = query.execute()
-    active_picks = resp.data or []
+    value_bets = resp.data or []
 except Exception:
-    active_picks = []
+    value_bets = []
 
-if stake_filter == "≥2u":
-    active_picks = [p for p in active_picks if p["stake"] >= 2]
+# Fetch predictions + odds for matches WITHOUT value bets
+try:
+    pred_query = client.table("predictions").select("*")
+    if league_filter != "Todas":
+        pred_query = pred_query.eq("division", league_filter)
+    pred_resp = pred_query.execute()
+    predictions = pred_resp.data or []
+
+    match_query = (
+        client.table("matches")
+        .select(
+            "match_date, home_team, away_team, division,"
+            " odd_home, odd_draw, odd_away, odd_over25, odd_under25"
+        )
+        .is_("ft_result", "null")
+    )
+    if league_filter != "Todas":
+        match_query = match_query.eq("division", league_filter)
+    match_resp = match_query.execute()
+    matches_with_odds = {
+        (m["match_date"], m["home_team"], m["away_team"]): m for m in (match_resp.data or [])
+    }
+except Exception:
+    predictions = []
+    matches_with_odds = {}
+
+# Build "no value" rows for predictions that have odds but no value bet
+vb_keys = {(vb["match_date"], vb["home_team"], vb["away_team"]) for vb in value_bets}
+
+no_value_rows = []
+for pred in predictions:
+    key = (pred["match_date"], pred["home_team"], pred["away_team"])
+    if key in vb_keys:
+        continue
+    odds = matches_with_odds.get(key)
+    if not odds or not odds.get("odd_home"):
+        continue
+
+    result_map = {"H": ("1x2_home", "H", pred["prob_home"], odds["odd_home"])}
+    if pred.get("predicted_result") == "D":
+        result_map = {"D": ("1x2_draw", "D", pred["prob_draw"], odds["odd_draw"])}
+    elif pred.get("predicted_result") == "A":
+        result_map = {"A": ("1x2_away", "A", pred["prob_away"], odds["odd_away"])}
+
+    for _, (market, selection, model_prob, odd) in result_map.items():
+        if not model_prob or not odd:
+            continue
+        calc = calculate_edge(model_prob, odd)
+        no_value_rows.append(
+            {
+                "match_date": pred["match_date"],
+                "home_team": pred["home_team"],
+                "away_team": pred["away_team"],
+                "division": pred["division"],
+                "market": market,
+                "selection": selection,
+                "edge": calc["edge"],
+                "odd": odd,
+                "stake": 0,
+                "expected_value": calc["expected_value"],
+            }
+        )
+
+# Combine and filter
+all_rows = value_bets + no_value_rows
+
+if stake_filter == "Solo recomendados":
+    all_rows = [p for p in all_rows if p["stake"] >= 1]
+elif stake_filter == "≥2u":
+    all_rows = [p for p in all_rows if p["stake"] >= 2]
 elif stake_filter == "3u":
-    active_picks = [p for p in active_picks if p["stake"] == 3]
+    all_rows = [p for p in all_rows if p["stake"] == 3]
 
-if active_picks:
-    active_picks.sort(key=lambda p: (-p["edge"], p["match_date"]))
-    display = format_picks(active_picks)
+if all_rows:
+    all_rows.sort(key=lambda p: (-p["stake"], -p["edge"], p["match_date"]))
+    display = format_picks(all_rows)
     st.dataframe(display, use_container_width=True, hide_index=True)
-    st.caption(f"{len(active_picks)} picks activos")
+
+    recommended = sum(1 for p in all_rows if p["stake"] >= 1)
+    total = len(all_rows)
+    st.caption(f"{recommended} recomendados de {total} partidos analizados")
 else:
-    st.info("No hay picks con valor para los proximos partidos")
+    st.info("No hay partidos con predicciones y cuotas disponibles")
 
 # --- Section 2: Rendimiento Historico ---
 st.header("Rendimiento Historico")

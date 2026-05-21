@@ -6,7 +6,9 @@ def _stake_badge(stake: int) -> str:
         return "🟢🟢🟢 3u"
     if stake == 2:
         return "🟢🟢 2u"
-    return "⚪ 1u"
+    if stake == 1:
+        return "⚪ 1u"
+    return "⛔ Sin valor"
 
 
 def _market_label(market: str) -> str:
