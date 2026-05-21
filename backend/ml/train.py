@@ -52,9 +52,7 @@ def train_all(
 ) -> dict[str, XGBClassifier]:
     models = {}
     for target in TARGETS:
-        models[f"base_{target}"] = train_model(
-            base_df, target, "base", BASE_FEATURES, models_dir
-        )
+        models[f"base_{target}"] = train_model(base_df, target, "base", BASE_FEATURES, models_dir)
         models[f"premium_{target}"] = train_model(
             premium_df, target, "premium", PREMIUM_FEATURES, models_dir
         )

@@ -40,9 +40,7 @@ def test_train_model_premium():
 
 def test_train_model_saves_joblib(tmp_path):
     df = _make_training_data(n=100)
-    train_model(
-        df, target="1x2", variant="base", feature_cols=BASE_FEATURES, models_dir=tmp_path
-    )
+    train_model(df, target="1x2", variant="base", feature_cols=BASE_FEATURES, models_dir=tmp_path)
     path = tmp_path / "base_1x2.joblib"
     assert path.exists()
     assert path.stat().st_size > 0

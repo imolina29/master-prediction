@@ -102,8 +102,7 @@ def walk_forward_backtest(
     for i, boundary in enumerate(SEASON_BOUNDARIES, 1):
         train = df[df["match_date"] < boundary["train_end"]]
         test = df[
-            (df["match_date"] >= boundary["test_start"])
-            & (df["match_date"] < boundary["test_end"])
+            (df["match_date"] >= boundary["test_start"]) & (df["match_date"] < boundary["test_end"])
         ]
         if len(train) < 50 or len(test) < 10:
             logger.warning("Fold %d skipped: train=%d, test=%d", i, len(train), len(test))
@@ -114,22 +113,14 @@ def walk_forward_backtest(
         fold_metrics["train_end"] = boundary["train_end"]
         fold_metrics["test_season"] = boundary["label"]
         folds_results.append(fold_metrics)
-        logger.info(
-            "Fold %d (%s): accuracy=%.3f", i, boundary["label"], fold_metrics["accuracy"]
-        )
+        logger.info("Fold %d (%s): accuracy=%.3f", i, boundary["label"], fold_metrics["accuracy"])
 
     result = {"folds": folds_results}
     if folds_results:
-        result["mean_accuracy"] = round(
-            float(np.mean([f["accuracy"] for f in folds_results])), 4
-        )
-        result["mean_log_loss"] = round(
-            float(np.mean([f["log_loss"] for f in folds_results])), 4
-        )
+        result["mean_accuracy"] = round(float(np.mean([f["accuracy"] for f in folds_results])), 4)
+        result["mean_log_loss"] = round(float(np.mean([f["log_loss"] for f in folds_results])), 4)
         if all("roi_pct" in f for f in folds_results):
-            result["mean_roi_pct"] = round(
-                float(np.mean([f["roi_pct"] for f in folds_results])), 2
-            )
+            result["mean_roi_pct"] = round(float(np.mean([f["roi_pct"] for f in folds_results])), 2)
 
     if output_path:
         existing = {}

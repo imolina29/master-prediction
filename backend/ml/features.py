@@ -35,9 +35,7 @@ _MATCH_MERGE_COLS = [
 ]
 
 
-def build_match_features(
-    team_features: pd.DataFrame, matches: pd.DataFrame
-) -> pd.DataFrame:
+def build_match_features(team_features: pd.DataFrame, matches: pd.DataFrame) -> pd.DataFrame:
     """Join home+away team-level rows into a single match row, then merge Elo and odds.
 
     Args:
@@ -95,12 +93,12 @@ def build_match_features(
     merged["elo_diff"] = merged["home_elo"] - merged["away_elo"]
 
     merged["target_1x2"] = merged["ft_result"].map(RESULT_MAP)
-    merged["target_over25"] = (
-        (merged["ft_home_goals"] + merged["ft_away_goals"]) > 2.5
-    ).astype(int)
-    merged["target_btts"] = (
-        (merged["ft_home_goals"] > 0) & (merged["ft_away_goals"] > 0)
-    ).astype(int)
+    merged["target_over25"] = ((merged["ft_home_goals"] + merged["ft_away_goals"]) > 2.5).astype(
+        int
+    )
+    merged["target_btts"] = ((merged["ft_home_goals"] > 0) & (merged["ft_away_goals"] > 0)).astype(
+        int
+    )
 
     logger.info("Built %d match-level feature rows", len(merged))
     return merged

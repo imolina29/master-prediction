@@ -20,9 +20,7 @@ def backtest_summary_table(results: dict) -> pd.DataFrame:
                 "Modelo": model_name,
                 "Accuracy": f"{data.get('mean_accuracy', 0):.1%}",
                 "Log Loss": f"{data.get('mean_log_loss', 0):.4f}",
-                "ROI": f"{data.get('mean_roi_pct', 'N/A')}%"
-                if "mean_roi_pct" in data
-                else "N/A",
+                "ROI": f"{data.get('mean_roi_pct', 'N/A')}%" if "mean_roi_pct" in data else "N/A",
                 "Folds": len(data.get("folds", [])),
             }
         )

@@ -34,12 +34,7 @@ def main():
     offset = 0
     page_size = 1000
     while True:
-        resp = (
-            client.table("matches")
-            .select("*")
-            .range(offset, offset + page_size - 1)
-            .execute()
-        )
+        resp = client.table("matches").select("*").range(offset, offset + page_size - 1).execute()
         all_data.extend(resp.data)
         if len(resp.data) < page_size:
             break
