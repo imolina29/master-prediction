@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    from backend.db.client import get_supabase
+    from backend.db.helpers import fetch_all
     from backend.ml.config import (
         BACKTEST_RESULTS_PATH,
         BASE_FEATURES,
         FEATURES_PATH,
-        MODELS_DIR,
         PREMIUM_FEATURES,
         TARGETS,
     )
@@ -27,19 +28,8 @@ def main():
     team_features = pd.read_parquet(FEATURES_PATH)
     logger.info("Loaded %d team-feature rows", len(team_features))
 
-    from backend.db.client import get_supabase
-
     client = get_supabase()
-    all_data: list[dict] = []
-    offset = 0
-    page_size = 1000
-    while True:
-        resp = client.table("matches").select("*").range(offset, offset + page_size - 1).execute()
-        all_data.extend(resp.data)
-        if len(resp.data) < page_size:
-            break
-        offset += page_size
-    matches = pd.DataFrame(all_data)
+    matches = pd.DataFrame(fetch_all(client, "matches"))
     logger.info("Loaded %d matches from Supabase", len(matches))
 
     logger.info("Building match-level features...")
@@ -53,7 +43,7 @@ def main():
 
     logger.info("Training all 6 models...")
     train_all(base_df, premium_df)
-    logger.info("Models saved to %s", MODELS_DIR)
+    logger.info("Models saved to %s", BACKTEST_RESULTS_PATH.parent / "models")
 
     logger.info("Running walk-forward backtesting...")
     for target in TARGETS:

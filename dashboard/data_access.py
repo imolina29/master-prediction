@@ -3,6 +3,7 @@ from pathlib import Path
 
 import duckdb
 import pandas as pd
+import streamlit as st
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
@@ -25,46 +26,71 @@ def get_supabase_client() -> Client:
     return _supabase
 
 
-def load_features(path: Path = FEATURES_PATH) -> pd.DataFrame:
-    if not path.exists():
+@st.cache_data(ttl=3600)
+def load_features(path: str | None = None) -> pd.DataFrame:
+    p = Path(path) if path else FEATURES_PATH
+    if not p.exists():
         return pd.DataFrame()
-    return duckdb.sql(f"SELECT * FROM '{path}'").df()
+    return duckdb.sql(f"SELECT * FROM '{p}'").df()
 
 
-def _fetch_all(table_name: str, division: str | None = None, page_size: int = 1000) -> list[dict]:
-    client = get_supabase_client()
-    all_data: list[dict] = []
-    offset = 0
-    while True:
-        query = client.table(table_name).select("*").range(offset, offset + page_size - 1)
-        if division:
-            query = query.eq("division", division)
-        resp = query.execute()
-        all_data.extend(resp.data)
-        if len(resp.data) < page_size:
-            break
-        offset += page_size
-    return all_data
-
-
+@st.cache_data(ttl=3600)
 def load_matches(division: str | None = None, season: str | None = None) -> pd.DataFrame:
-    data = _fetch_all("matches", division=division)
-    df = pd.DataFrame(data)
-    if df.empty:
-        return df
-    df["match_date"] = pd.to_datetime(df["match_date"])
+    features = load_features()
+    if features.empty:
+        return pd.DataFrame()
+
+    home = features[features["venue"] == "home"].copy()
+    df = pd.DataFrame(
+        {
+            "division": home["division"],
+            "match_date": pd.to_datetime(home["match_date"]),
+            "home_team": home["team"],
+            "away_team": home["opponent"],
+            "ft_home_goals": home["goals_scored"],
+            "ft_away_goals": home["goals_conceded"],
+            "ft_result": home["ft_result"],
+        }
+    )
+
+    if division:
+        df = df[df["division"] == division]
     if season:
         start_year = int(season[:4])
         df = df[
             (df["match_date"] >= f"{start_year}-07-01")
             & (df["match_date"] < f"{start_year + 1}-07-01")
         ]
-    return df
+    return df.reset_index(drop=True)
 
 
+@st.cache_data(ttl=3600)
 def load_xg(division: str | None = None) -> pd.DataFrame:
-    data = _fetch_all("match_xg", division=division)
-    return pd.DataFrame(data)
+    features = load_features()
+    if features.empty:
+        return pd.DataFrame()
+
+    home = features[features["venue"] == "home"].copy()
+    has_xg = home["xg_for"].notna()
+    xg = home[has_xg]
+
+    if xg.empty:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(
+        {
+            "division": xg["division"],
+            "match_date": xg["match_date"].astype(str),
+            "home_team": xg["team"],
+            "away_team": xg["opponent"],
+            "home_xg": xg["xg_for"],
+            "away_xg": xg["xg_against"],
+        }
+    )
+
+    if division:
+        df = df[df["division"] == division]
+    return df.reset_index(drop=True)
 
 
 def get_seasons(division: str) -> list[str]:
@@ -88,9 +114,11 @@ def get_teams(division: str) -> list[str]:
 
 DIVISION_NAMES = {
     "E0": "Premier League",
+    "E1": "Championship",
     "SP1": "La Liga",
     "I1": "Serie A",
     "D1": "Bundesliga",
     "F1": "Ligue 1",
     "EC": "Champions League",
+    "WC": "FIFA World Cup",
 }

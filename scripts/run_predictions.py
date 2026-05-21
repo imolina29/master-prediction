@@ -11,18 +11,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _fetch_all(client, table_name: str, page_size: int = 1000) -> list[dict]:
-    all_data: list[dict] = []
-    offset = 0
-    while True:
-        resp = client.table(table_name).select("*").range(offset, offset + page_size - 1).execute()
-        all_data.extend(resp.data)
-        if len(resp.data) < page_size:
-            break
-        offset += page_size
-    return all_data
-
-
 def _build_feature_row_from_national(features: dict, home: str, away: str, match: dict) -> dict:
     home_feat = features.get(home)
     away_feat = features.get(away)
