@@ -1,7 +1,10 @@
 import copy
+import time
 
 import streamlit as st
 import streamlit_authenticator as stauth
+
+SESSION_TIMEOUT_SECONDS = 30 * 60
 
 LOGIN_CSS = """
 <style>
@@ -105,6 +108,24 @@ def _deep_copy_secrets(section: str) -> dict:
     return copy.deepcopy(dict(raw))
 
 
+def _force_logout():
+    st.session_state["authentication_status"] = None
+    st.session_state["name"] = None
+    st.session_state["username"] = None
+    st.session_state.pop("session_start", None)
+
+
+def _check_session_timeout() -> bool:
+    start = st.session_state.get("session_start")
+    if start is None:
+        st.session_state["session_start"] = time.time()
+        return False
+    if time.time() - start > SESSION_TIMEOUT_SECONDS:
+        _force_logout()
+        return True
+    return False
+
+
 def check_auth() -> bool:
     credentials = _deep_copy_secrets("credentials")
     if not credentials:
@@ -116,12 +137,23 @@ def check_auth() -> bool:
         {"usernames": credentials},
         cookie.get("name", "master_prediction_auth"),
         cookie.get("key", "default_key"),
-        cookie.get("expiry_days", 30),
+        cookie.get("expiry_days", 0.0208),
     )
 
     if st.session_state.get("authentication_status"):
+        expired = _check_session_timeout()
+        if expired:
+            st.warning("Tu sesion ha expirado (30 min). Inicia sesion nuevamente.")
+            st.rerun()
+
+        remaining = SESSION_TIMEOUT_SECONDS - (
+            time.time() - st.session_state.get("session_start", time.time())
+        )
+        minutes_left = max(0, int(remaining // 60))
+
         with st.sidebar:
             st.markdown(f"**{st.session_state.get('name', '')}**")
+            st.caption(f"Sesion: {minutes_left} min restantes")
             authenticator.logout("Cerrar sesion", "sidebar")
         return True
 
@@ -130,6 +162,10 @@ def check_auth() -> bool:
 
     st.markdown('<div class="login-page">', unsafe_allow_html=True)
     authenticator.login()
+
+    if st.session_state.get("authentication_status"):
+        st.session_state["session_start"] = time.time()
+        st.rerun()
 
     if st.session_state.get("authentication_status") is False:
         st.error("Usuario o contraseña incorrectos")
