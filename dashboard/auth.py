@@ -1,5 +1,5 @@
-import copy
 import time
+from collections.abc import Mapping
 
 import streamlit as st
 import streamlit_authenticator as stauth
@@ -107,7 +107,20 @@ LOGIN_FOOTER = """
 
 def _deep_copy_secrets(section: str) -> dict:
     raw = st.secrets.get(section, {})
-    return copy.deepcopy(dict(raw))
+    return _to_plain_dict(raw)
+
+
+def _to_plain_dict(obj) -> dict:
+    result = {}
+    src = dict(obj) if isinstance(obj, Mapping) else {}
+    for k, v in src.items():
+        if isinstance(v, Mapping):
+            result[k] = _to_plain_dict(v)
+        elif isinstance(v, list):
+            result[k] = [_to_plain_dict(i) if isinstance(i, Mapping) else i for i in v]
+        else:
+            result[k] = v
+    return result
 
 
 def _force_logout():
