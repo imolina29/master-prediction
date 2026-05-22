@@ -3,7 +3,7 @@ import streamlit as st
 from dashboard.auth import check_auth
 from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
 from dashboard.components.tables import last_n_results
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -16,7 +16,11 @@ st.set_page_config(page_title="Analisis de Equipo", page_icon="🔍", layout="wi
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("🔍 Analisis de Equipo")
+
+st.markdown(
+    '<h1 style="font-size:2rem;">🔍 Analisis de Equipo</h1>',
+    unsafe_allow_html=True,
+)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -47,13 +51,29 @@ if team and team != "Sin datos" and season != "Sin datos":
         gf = int(home["ft_home_goals"].sum() + away["ft_away_goals"].sum())
         ga = int(home["ft_away_goals"].sum() + away["ft_home_goals"].sum())
 
-        m1, m2, m3, m4, m5, m6 = st.columns(6)
-        m1.metric("PJ", total_p)
-        m2.metric("PG", total_w)
-        m3.metric("PE", total_d)
-        m4.metric("PP", total_l)
-        m5.metric("GF", gf)
-        m6.metric("GC", ga)
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            win_pct = f"{total_w / total_p:.0%}" if total_p else "—"
+            record = f"{total_w}G {total_d}E {total_l}P"
+            sub = f"{win_pct} victorias en {total_p} partidos"
+            st.markdown(
+                stat_card("Rendimiento", record, sub),
+                unsafe_allow_html=True,
+            )
+        with c2:
+            diff = gf - ga
+            sign = "+" if diff > 0 else ""
+            st.markdown(
+                stat_card("Goles", f"{gf} / {ga}", f"Diferencia: {sign}{diff}"),
+                unsafe_allow_html=True,
+            )
+        with c3:
+            ppg = total_w * 3 + total_d
+            ppg_avg = f"{ppg / total_p:.2f}" if total_p else "—"
+            st.markdown(
+                stat_card("Puntos", str(ppg), f"{ppg_avg} pts/partido"),
+                unsafe_allow_html=True,
+            )
 
         if not features.empty:
             team_features = features[features["team"] == team].copy()
@@ -65,6 +85,7 @@ if team and team != "Sin datos" and season != "Sin datos":
                     & (team_features["match_date"] < f"{start_year + 1}-07-01")
                 ]
                 if not team_features.empty:
+                    st.markdown(section_header("📈", "Tendencias"), unsafe_allow_html=True)
                     chart_col1, chart_col2 = st.columns(2)
                     with chart_col1:
                         st.plotly_chart(
@@ -77,7 +98,7 @@ if team and team != "Sin datos" and season != "Sin datos":
                             use_container_width=True,
                         )
 
-        st.subheader("Ultimos 10 Resultados")
+        st.markdown(section_header("📋", "Ultimos 10 Resultados"), unsafe_allow_html=True)
         results = last_n_results(matches, team, n=10)
         st.dataframe(results, use_container_width=True, hide_index=True)
     else:

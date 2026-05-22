@@ -2,14 +2,18 @@ import streamlit as st
 
 from dashboard.auth import check_auth
 from dashboard.components.tables import form_indicator, standings_table
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header
 from dashboard.data_access import DIVISION_NAMES, get_seasons, load_matches, load_xg
 
 st.set_page_config(page_title="Vista de Liga", page_icon="📊", layout="wide")
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("📊 Vista de Liga")
+
+st.markdown(
+    '<h1 style="font-size:2rem;">📊 Vista de Liga</h1>',
+    unsafe_allow_html=True,
+)
 
 col1, col2 = st.columns(2)
 with col1:
@@ -40,6 +44,15 @@ if season and season != "Sin datos":
         for team in table["Equipo"]:
             form_col.append(form_indicator(matches, team))
         table["Racha (ult. 5)"] = form_col
+
+        total_matches = len(matches)
+        total_teams = len(table)
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Equipos", total_teams)
+        m2.metric("Partidos", total_matches)
+        m3.metric("Temporada", season)
+
+        st.markdown(section_header("🏆", "Tabla de Posiciones"), unsafe_allow_html=True)
 
         st.dataframe(
             table,

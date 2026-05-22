@@ -4,14 +4,18 @@ import streamlit as st
 from backend.services.features import compute_h2h_features
 from dashboard.auth import check_auth
 from dashboard.components.charts import radar_chart
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.data_access import DIVISION_NAMES, get_teams, load_features, load_matches
 
 st.set_page_config(page_title="Comparador de Partidos", page_icon="⚔️", layout="wide")
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("⚔️ Comparador de Partidos")
+
+st.markdown(
+    '<h1 style="font-size:2rem;">⚔️ Comparador de Partidos</h1>',
+    unsafe_allow_html=True,
+)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -34,14 +38,25 @@ if team_a != "Sin datos" and team_b != "Sin datos":
     if not matches.empty:
         h2h = compute_h2h_features(matches, team_a, team_b)
 
-        st.subheader("Cabeza a Cabeza")
-        h_col1, h_col2, h_col3, h_col4 = st.columns(4)
-        h_col1.metric("Total Partidos", h2h["total_matches"])
+        st.markdown(section_header("🤝", "Cabeza a Cabeza"), unsafe_allow_html=True)
         a_key = f"{team_a.lower().replace(' ', '_')}_wins"
         b_key = f"{team_b.lower().replace(' ', '_')}_wins"
-        h_col2.metric(f"Victorias {team_a}", h2h.get(a_key, 0))
-        h_col3.metric(f"Victorias {team_b}", h2h.get(b_key, 0))
-        h_col4.metric("Empates", h2h["draws"])
+        h1, h2, h3 = st.columns(3)
+        with h1:
+            st.markdown(
+                stat_card(team_a, str(h2h.get(a_key, 0)), "victorias"),
+                unsafe_allow_html=True,
+            )
+        with h2:
+            st.markdown(
+                stat_card("Empates", str(h2h["draws"]), f"de {h2h['total_matches']} partidos"),
+                unsafe_allow_html=True,
+            )
+        with h3:
+            st.markdown(
+                stat_card(team_b, str(h2h.get(b_key, 0)), "victorias"),
+                unsafe_allow_html=True,
+            )
 
         if not features.empty:
             fa = features[features["team"] == team_a]
@@ -51,7 +66,10 @@ if team_a != "Sin datos" and team_b != "Sin datos":
                 latest_a = fa.sort_values("match_date").iloc[-1]
                 latest_b = fb.sort_values("match_date").iloc[-1]
 
-                st.subheader("Comparacion de Forma Actual")
+                st.markdown(
+                    section_header("📊", "Comparacion de Forma Actual"),
+                    unsafe_allow_html=True,
+                )
                 compare_cols = [
                     "goals_scored_avg",
                     "xg_for_avg",
@@ -75,7 +93,7 @@ if team_a != "Sin datos" and team_b != "Sin datos":
                     use_container_width=True,
                 )
 
-        st.subheader("Historial de Enfrentamientos")
+        st.markdown(section_header("📜", "Historial de Enfrentamientos"), unsafe_allow_html=True)
         h2h_matches = matches[
             ((matches["home_team"] == team_a) & (matches["away_team"] == team_b))
             | ((matches["home_team"] == team_b) & (matches["away_team"] == team_a))

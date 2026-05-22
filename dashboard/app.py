@@ -3,7 +3,7 @@ import streamlit as st
 
 from backend.betting.tracker import calculate_performance
 from dashboard.auth import check_auth
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.components.value_bets import _market_label, _result_badge, _stake_badge
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
@@ -14,16 +14,13 @@ if not check_auth():
     st.stop()
 
 st.markdown(
-    '<h1 style="text-align:center; font-size:2.8rem;">'
-    "⚽ Master Prediction"
-    "</h1>"
-    '<p style="text-align:center; color:#81C784; font-size:1.1rem; margin-top:-10px;">'
-    "Plataforma de Inteligencia Deportiva"
-    "</p>",
+    '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'
+    '<h1 style="font-size:2.5rem; margin:0;">⚽ Master Prediction</h1>'
+    '<p style="color:#81C784; font-size:1rem; margin-top:4px; letter-spacing:2px;'
+    ' text-transform:uppercase;">Inteligencia Deportiva con IA</p>'
+    "</div>",
     unsafe_allow_html=True,
 )
-
-st.markdown("---")
 
 client = get_supabase_client()
 
@@ -48,21 +45,30 @@ except Exception:
 recommended = [p for p in active_picks if p["stake"] >= 1]
 perf = calculate_performance(resolved_picks) if resolved_picks else None
 
-# ── KPIs ──
+# ── KPIs with stat cards ──
 k1, k2, k3, k4 = st.columns(4)
 with k1:
-    st.metric("Picks Activos", len(recommended))
+    st.markdown(
+        stat_card("Picks Activos", str(len(recommended)), "recomendados hoy"),
+        unsafe_allow_html=True,
+    )
 with k2:
-    st.metric("Profit Total", f"{perf['profit']:+.1f}u" if perf else "—")
+    val = f"{perf['profit']:+.1f}u" if perf else "—"
+    sub = "unidades acumuladas" if perf else ""
+    st.markdown(stat_card("Profit Total", val, sub), unsafe_allow_html=True)
 with k3:
-    st.metric("ROI", f"{perf['roi']:.1f}%" if perf else "—")
+    val = f"{perf['roi']:.1f}%" if perf else "—"
+    sub = "retorno de inversion" if perf else ""
+    st.markdown(stat_card("ROI", val, sub), unsafe_allow_html=True)
 with k4:
-    st.metric("Tasa de Acierto", f"{perf['hit_rate']:.0%}" if perf else "—")
+    val = f"{perf['hit_rate']:.0%}" if perf else "—"
+    sub = f"{perf['wins']}/{perf['total_picks']} picks" if perf else ""
+    st.markdown(stat_card("Tasa de Acierto", val, sub), unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Picks Recomendados ──
-st.header("Picks Recomendados")
+st.markdown(section_header("🎯", "Picks Recomendados"), unsafe_allow_html=True)
 
 if recommended:
     recommended.sort(key=lambda p: (-p["stake"], -p["edge"]))
@@ -91,7 +97,7 @@ else:
 col_left, col_right = st.columns([3, 2])
 
 with col_left:
-    st.header("Ultimos Resultados")
+    st.markdown(section_header("📋", "Ultimos Resultados"), unsafe_allow_html=True)
     if resolved_picks:
         recent = resolved_picks[:8]
         rows = []
@@ -112,32 +118,28 @@ with col_left:
         st.info("Aun no hay picks resueltos.")
 
 with col_right:
-    st.header("Rendimiento")
+    st.markdown(section_header("📈", "Rendimiento"), unsafe_allow_html=True)
     if perf:
-        st.metric("Picks Resueltos", perf["total_picks"])
-        st.metric("Ganados", perf["wins"])
-        st.metric("Perdidos", perf["losses"])
+        r1, r2 = st.columns(2)
+        with r1:
+            st.metric("Resueltos", perf["total_picks"])
+        with r2:
+            st.metric("Ganados", perf["wins"])
 
         if perf.get("by_market"):
-            st.markdown("**Por mercado:**")
+            st.markdown(
+                '<p style="color:#a5d6a7; font-size:0.85rem; margin:1rem 0 0.5rem 0;'
+                ' text-transform:uppercase; letter-spacing:1px;">Por mercado</p>',
+                unsafe_allow_html=True,
+            )
             for market_name, data in perf["by_market"].items():
                 label = "1x2" if market_name == "1x2" else "Over/Under"
                 profit = data["profit"]
                 color = "#4CAF50" if profit >= 0 else "#E53935"
                 st.markdown(
-                    f"- **{label}:** {data['picks']} picks, "
-                    f'<span style="color:{color}">{profit:+.1f}u</span>',
+                    f'<p style="margin:0.3rem 0;">▸ <b>{label}:</b> {data["picks"]} picks · '
+                    f'<span style="color:{color};font-weight:600;">{profit:+.1f}u</span></p>',
                     unsafe_allow_html=True,
                 )
     else:
         st.info("El rendimiento se mostrara cuando haya picks resueltos.")
-
-# ── Navegacion rapida ──
-st.markdown("---")
-st.markdown(
-    '<p style="text-align:center; color:#81C784; font-size:0.9rem;">'
-    "📊 Vista de Liga &nbsp;•&nbsp; 🔍 Analisis de Equipo &nbsp;•&nbsp; "
-    "⚔️ Comparador &nbsp;•&nbsp; 🤖 Predicciones &nbsp;•&nbsp; 💰 Value Bets"
-    "</p>",
-    unsafe_allow_html=True,
-)

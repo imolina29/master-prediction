@@ -11,17 +11,21 @@ from dashboard.components.metrics import (
     load_backtest_results,
 )
 from dashboard.components.predictions import format_predictions
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
 st.set_page_config(page_title="Predicciones", page_icon="🤖", layout="wide")
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("🤖 Predicciones")
+
+st.markdown(
+    '<h1 style="font-size:2rem;">🤖 Predicciones</h1>',
+    unsafe_allow_html=True,
+)
 
 # --- Section 1: Upcoming predictions ---
-st.header("Proximas Predicciones")
+st.markdown(section_header("🔮", "Proximas Predicciones"), unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -55,14 +59,29 @@ except Exception:
     preds_df = pd.DataFrame()
 
 if not preds_df.empty:
+    if "confidence" in preds_df.columns:
+        high_conf = len(preds_df[preds_df["confidence"] == "alta"])
+    else:
+        high_conf = 0
+    m1, m2 = st.columns(2)
+    with m1:
+        st.markdown(
+            stat_card("Predicciones", str(len(preds_df)), "partidos analizados"),
+            unsafe_allow_html=True,
+        )
+    with m2:
+        st.markdown(
+            stat_card("Alta Confianza", str(high_conf), "predicciones"),
+            unsafe_allow_html=True,
+        )
+
     display = format_predictions(preds_df)
     st.dataframe(display, use_container_width=True, hide_index=True)
-    st.caption(f"{len(preds_df)} predicciones mostradas")
 else:
     st.info("No hay predicciones disponibles para el rango seleccionado.")
 
 # --- Section 2: Model metrics ---
-st.header("Metricas del Modelo")
+st.markdown(section_header("📊", "Metricas del Modelo"), unsafe_allow_html=True)
 
 results = load_backtest_results(BACKTEST_RESULTS_PATH)
 
@@ -75,15 +94,27 @@ if results:
     best_roi = max(roi_vals) if roi_vals else 0
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Mejor Accuracy", f"{best_acc:.1%}")
-    m2.metric("Mejor ROI", f"{best_roi:.1f}%")
-    m3.metric("Total Evaluaciones", total_folds)
+    with m1:
+        st.markdown(
+            stat_card("Mejor Accuracy", f"{best_acc:.1%}", "precision del modelo"),
+            unsafe_allow_html=True,
+        )
+    with m2:
+        st.markdown(
+            stat_card("Mejor ROI", f"{best_roi:.1f}%", "retorno simulado"),
+            unsafe_allow_html=True,
+        )
+    with m3:
+        st.markdown(
+            stat_card("Evaluaciones", str(total_folds), "folds de backtesting"),
+            unsafe_allow_html=True,
+        )
 
-    st.subheader("Resumen por Modelo")
+    st.markdown(section_header("📋", "Resumen por Modelo"), unsafe_allow_html=True)
     summary = backtest_summary_table(results)
     st.dataframe(summary, use_container_width=True, hide_index=True)
 
-    st.subheader("Rendimiento por Temporada")
+    st.markdown(section_header("📈", "Rendimiento por Temporada"), unsafe_allow_html=True)
     selected_model = st.selectbox("Modelo", model_names)
     chart = calibration_chart(results, selected_model)
     if chart:

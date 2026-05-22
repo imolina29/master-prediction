@@ -7,14 +7,14 @@ import httpx
 logger = logging.getLogger(__name__)
 
 MARKET_LABELS = {
-    "1x2_home": "Local",
+    "1x2_home": "Victoria Local",
     "1x2_draw": "Empate",
-    "1x2_away": "Visitante",
+    "1x2_away": "Victoria Visitante",
     "over25": "Over 2.5",
     "under25": "Under 2.5",
 }
 
-STAKE_ICONS = {3: "🟢🟢🟢", 2: "🟢🟢", 1: "⚪"}
+STAKE_ICONS = {3: "🟢🟢🟢", 2: "🟢🟢", 1: "🟡"}
 
 
 class TelegramNotifier:
@@ -44,31 +44,23 @@ class TelegramNotifier:
             logger.info("No picks to notify")
             return None
 
-        lines = ["⚽ <b>Master Prediction — Picks del Dia</b>\n"]
+        lines = ["⚽ <b>Master Prediction</b> · {} Picks\n".format(len(picks))]
 
-        current_date = ""
         for p in picks:
-            if p["match_date"] != current_date:
-                current_date = p["match_date"]
-                lines.append(f"\n📅 <b>{current_date}</b>")
-
-            icon = STAKE_ICONS.get(p["stake"], "⚪")
+            icon = STAKE_ICONS.get(p["stake"], "🟡")
             market = MARKET_LABELS.get(p["market"], p["market"])
             lines.append(
-                f"{icon} <b>{p['stake']}u</b> | {p['home_team']} vs {p['away_team']}\n"
-                f"   📊 {market} | Cuota: {p['odd']:.2f} | Ventaja: {p['edge']:.1%}"
+                f"{icon} <b>{p['home_team']} vs {p['away_team']}</b>\n"
+                f"   {market} · Cuota: {p['odd']:.2f} · Edge: {p['edge']:+.1%}"
             )
 
         if performance:
             profit = performance.get("profit", 0)
             roi = performance.get("roi", 0)
-            hit_rate = performance.get("hit_rate", 0)
-            total = performance.get("total_picks", 0)
             emoji = "📈" if profit >= 0 else "📉"
-            lines.append(
-                f"\n{emoji} <b>Rendimiento:</b> {profit:+.1f}u | "
-                f"ROI: {roi:.1f}% | Acierto: {hit_rate:.0%} ({total} picks)"
-            )
+            lines.append(f"\n{emoji} ROI acumulado: <b>{roi:.1f}%</b> ({profit:+.1f}u)")
+
+        lines.append("\n👉 Analisis detallado en el dashboard")
 
         text = "\n".join(lines)
 
@@ -77,10 +69,7 @@ class TelegramNotifier:
         if dashboard_url:
             reply_markup = {
                 "inline_keyboard": [
-                    [
-                        {"text": "📊 Ver Dashboard", "url": dashboard_url},
-                        {"text": "💰 Value Bets", "url": f"{dashboard_url}/value_bets"},
-                    ]
+                    [{"text": "📊 Abrir Dashboard", "url": dashboard_url}],
                 ]
             }
 
@@ -96,17 +85,21 @@ class TelegramNotifier:
 
         emoji = "🎉" if profit >= 0 else "😔"
         lines = [
-            f"{emoji} <b>Resultados del Dia</b>\n",
-            f"✅ Ganados: {wins} | ❌ Perdidos: {losses}",
-            f"💰 Profit: <b>{profit:+.2f}u</b>\n",
+            f"{emoji} <b>Resultados del Dia</b> · {wins}✅ {losses}❌\n",
+            f"Profit: <b>{profit:+.2f}u</b>",
         ]
 
         for p in resolved_today:
-            result_icon = "✅" if p.get("result") == "win" else "❌"
-            market = MARKET_LABELS.get(p["market"], p["market"])
-            lines.append(
-                f"{result_icon} {p['home_team']} vs {p['away_team']} "
-                f"| {market} | {p['profit']:+.2f}u"
-            )
+            icon = "✅" if p.get("result") == "win" else "❌"
+            lines.append(f"{icon} {p['home_team']} vs {p['away_team']} · {p['profit']:+.2f}u")
 
-        return self.send_message("\n".join(lines))
+        dashboard_url = os.environ.get("DASHBOARD_URL", "")
+        reply_markup = None
+        if dashboard_url:
+            reply_markup = {
+                "inline_keyboard": [
+                    [{"text": "📊 Ver Rendimiento", "url": dashboard_url}],
+                ]
+            }
+
+        return self.send_message("\n".join(lines), reply_markup=reply_markup)

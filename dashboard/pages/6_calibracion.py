@@ -7,13 +7,17 @@ from dashboard.components.calibration import (
     model_comparison_chart,
 )
 from dashboard.components.metrics import load_backtest_results
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 
 st.set_page_config(page_title="Calibracion", page_icon="🎯", layout="wide")
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("🎯 Calibracion del Modelo")
+
+st.markdown(
+    '<h1 style="font-size:2rem;">🎯 Calibracion del Modelo</h1>',
+    unsafe_allow_html=True,
+)
 
 results = load_backtest_results(BACKTEST_RESULTS_PATH)
 
@@ -22,27 +26,36 @@ if not results:
     st.stop()
 
 # ── Comparacion de modelos ──
-st.header("Comparacion de Modelos")
+st.markdown(section_header("📊", "Comparacion de Modelos"), unsafe_allow_html=True)
 
 comparison = model_comparison_chart(results)
 st.plotly_chart(comparison, use_container_width=True)
 
 # ── KPIs por modelo ──
-col1, col2, col3 = st.columns(3)
 best_acc = max((d.get("mean_accuracy", 0) for d in results.values()), default=0)
 best_model = max(results, key=lambda k: results[k].get("mean_accuracy", 0))
 roi_vals = [d["mean_roi_pct"] for d in results.values() if "mean_roi_pct" in d]
 best_roi = max(roi_vals) if roi_vals else 0
 
-with col1:
-    st.metric("Mejor Accuracy", f"{best_acc:.1%}")
-with col2:
-    st.metric("Mejor ROI", f"{best_roi:.1f}%")
-with col3:
-    st.metric("Mejor Modelo", best_model)
+c1, c2, c3 = st.columns(3)
+with c1:
+    st.markdown(
+        stat_card("Mejor Accuracy", f"{best_acc:.1%}", "precision global"),
+        unsafe_allow_html=True,
+    )
+with c2:
+    st.markdown(
+        stat_card("Mejor ROI", f"{best_roi:.1f}%", "retorno simulado"),
+        unsafe_allow_html=True,
+    )
+with c3:
+    st.markdown(
+        stat_card("Mejor Modelo", best_model, "por accuracy"),
+        unsafe_allow_html=True,
+    )
 
 # ── Detalle por modelo y temporada ──
-st.header("Detalle por Temporada")
+st.markdown(section_header("📋", "Detalle por Temporada"), unsafe_allow_html=True)
 
 cal_data = build_calibration_data(results)
 if not cal_data.empty:
@@ -73,7 +86,7 @@ if not cal_data.empty:
     st.caption(f"Promedio — Accuracy: {mean_acc:.1%} | Log Loss: {mean_ll:.4f}")
 
 # ── Guia de interpretacion ──
-with st.expander("Guia de interpretacion"):
+with st.expander("📖 Guia de interpretacion"):
     st.markdown(
         "- **Accuracy:** Porcentaje de predicciones correctas. Mayor es mejor.\n"
         "- **Log Loss:** Calidad de las probabilidades predichas."

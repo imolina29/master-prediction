@@ -10,7 +10,7 @@ from dashboard.components.performance import (
     performance_kpis,
     profit_chart,
 )
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.components.value_bets import format_picks, format_resolved
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
@@ -18,9 +18,13 @@ st.set_page_config(page_title="Value Bets", page_icon="💰", layout="wide")
 apply_theme()
 if not check_auth():
     st.stop()
-st.title("💰 Value Bets")
 
-with st.expander("Guia de terminos"):
+st.markdown(
+    '<h1 style="font-size:2rem;">💰 Value Bets</h1>',
+    unsafe_allow_html=True,
+)
+
+with st.expander("📖 Guia de terminos"):
     st.markdown(
         "- **Apuesta:** Tipo de apuesta (Local, Empate, Visitante, Over/Under 2.5)\n"
         "- **Cuota:** Precio ofrecido por las casas de apuestas\n"
@@ -37,7 +41,7 @@ with st.expander("Guia de terminos"):
 client = get_supabase_client()
 
 # --- Section 1: Picks del Dia ---
-st.header("Analisis de Partidos")
+st.markdown(section_header("🎯", "Analisis de Partidos"), unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -142,18 +146,29 @@ elif stake_filter == "3u":
     all_rows = [p for p in all_rows if p["stake"] == 3]
 
 if all_rows:
+    recommended = sum(1 for p in all_rows if p["stake"] >= 1)
+    total = len(all_rows)
+
+    m1, m2 = st.columns(2)
+    with m1:
+        st.markdown(
+            stat_card("Partidos Analizados", str(total), "con prediccion y cuotas"),
+            unsafe_allow_html=True,
+        )
+    with m2:
+        st.markdown(
+            stat_card("Recomendados", str(recommended), "con ventaja positiva"),
+            unsafe_allow_html=True,
+        )
+
     all_rows.sort(key=lambda p: (-p["stake"], -p["edge"], p["match_date"]))
     display = format_picks(all_rows)
     st.dataframe(display, use_container_width=True, hide_index=True)
-
-    recommended = sum(1 for p in all_rows if p["stake"] >= 1)
-    total = len(all_rows)
-    st.caption(f"{recommended} recomendados de {total} partidos analizados")
 else:
     st.info("No hay partidos con predicciones y cuotas disponibles")
 
 # --- Section 2: Rendimiento Historico ---
-st.header("Rendimiento Historico")
+st.markdown(section_header("📈", "Rendimiento Historico"), unsafe_allow_html=True)
 
 try:
     resolved_resp = (
@@ -171,17 +186,17 @@ if resolved_picks:
     perf = calculate_performance(resolved_picks)
     performance_kpis(perf)
 
-    st.subheader("Desglose por Mercado")
+    st.markdown(section_header("📊", "Desglose por Mercado"), unsafe_allow_html=True)
     breakdown = market_breakdown_table(perf)
     if not breakdown.empty:
         st.dataframe(breakdown, use_container_width=True, hide_index=True)
 
-    st.subheader("Profit Acumulado")
+    st.markdown(section_header("💰", "Profit Acumulado"), unsafe_allow_html=True)
     chart = profit_chart(resolved_picks)
     if chart:
         st.plotly_chart(chart, use_container_width=True)
 
-    st.subheader("Ultimos 20 Picks Resueltos")
+    st.markdown(section_header("📋", "Ultimos 20 Picks Resueltos"), unsafe_allow_html=True)
     recent = resolved_picks[:20]
     resolved_display = format_resolved(recent)
     if not resolved_display.empty:
