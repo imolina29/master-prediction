@@ -37,5 +37,5 @@ pydantic-settings>=2.6.0
 pytest>=8.3.0
 ruff>=0.8.0
 
-# Local packages (makes backend/ importable on Streamlit Cloud)
-.
+# Local packages (editable so hot-reload picks up changes)
+-e .

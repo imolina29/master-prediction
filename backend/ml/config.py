@@ -1,19 +1,6 @@
-import sys
 from pathlib import Path
 
-
-def _find_project_root() -> Path:
-    file_based = Path(__file__).resolve().parent.parent.parent
-    if (file_based / "pyproject.toml").exists():
-        return file_based
-    for p in sys.path:
-        candidate = Path(p)
-        if (candidate / "pyproject.toml").exists():
-            return candidate
-    return Path.cwd()
-
-
-PROJECT_ROOT = _find_project_root()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 MODELS_DIR = PROJECT_ROOT / "models"
 FEATURES_PATH = PROJECT_ROOT / "data" / "features" / "team_features.parquet"
 BACKTEST_RESULTS_PATH = PROJECT_ROOT / "data" / "backtest_results.json"

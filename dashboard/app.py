@@ -5,43 +5,13 @@ from backend.betting.tracker import calculate_performance
 from dashboard.auth import check_auth
 from dashboard.components.theme import apply_theme, section_header, stat_card
 from dashboard.components.value_bets import _market_label, _result_badge, _stake_badge
-from dashboard.data_access import (
-    DIVISION_NAMES,
-    FEATURES_PATH,
-    PROJECT_ROOT,
-    get_supabase_client,
-)
+from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
 st.set_page_config(page_title="Master Prediction", page_icon="⚽", layout="wide")
 apply_theme()
 
 if not check_auth():
     st.stop()
-
-# ── Diagnostico temporal (eliminar despues) ──
-with st.expander("🔧 Debug info"):
-    import sys
-    from pathlib import Path
-
-    st.text(f"PROJECT_ROOT: {PROJECT_ROOT}")
-    st.text(f"FEATURES_PATH: {FEATURES_PATH}")
-    st.text(f"Parquet exists: {FEATURES_PATH.exists()}")
-    st.text(f"cwd: {Path.cwd()}")
-    st.text(f"data_access.__file__: {__import__('dashboard.data_access', fromlist=['']).__file__}")
-    st.text(f"SUPABASE_URL set: {'SUPABASE_URL' in __import__('os').environ}")
-    try:
-        client = get_supabase_client()
-        r = client.table("predictions").select("id").limit(1).execute()
-        st.text(f"Supabase OK: {len(r.data)} rows from predictions")
-    except Exception as e:
-        st.text(f"Supabase error: {e}")
-    try:
-        r2 = client.table("value_bets").select("id").limit(1).execute()
-        st.text(f"value_bets OK: {len(r2.data)} rows")
-    except Exception as e:
-        st.text(f"value_bets error: {e}")
-    sp = [p for p in sys.path if "mount" in p or "master" in p]
-    st.text(f"sys.path (relevant): {sp}")
 
 st.markdown(
     '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'

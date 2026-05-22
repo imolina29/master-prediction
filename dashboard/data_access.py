@@ -1,5 +1,4 @@
 import os
-import sys
 from pathlib import Path
 
 import duckdb
@@ -8,22 +7,10 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_PROJECT_ROOT / ".env")
 
-def _find_project_root() -> Path:
-    file_based = Path(__file__).resolve().parent.parent
-    if (file_based / "pyproject.toml").exists():
-        return file_based
-    for p in sys.path:
-        candidate = Path(p)
-        if (candidate / "pyproject.toml").exists():
-            return candidate
-    return Path.cwd()
-
-
-PROJECT_ROOT = _find_project_root()
-load_dotenv(PROJECT_ROOT / ".env")
-
-FEATURES_PATH = PROJECT_ROOT / "data" / "features" / "team_features.parquet"
+FEATURES_PATH = _PROJECT_ROOT / "data" / "features" / "team_features.parquet"
 
 _supabase: Client | None = None
 
