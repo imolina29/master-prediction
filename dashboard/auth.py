@@ -1,13 +1,20 @@
+import copy
+
 import streamlit as st
 import streamlit_authenticator as stauth
 
 
+def _deep_copy_secrets(section: str) -> dict:
+    raw = st.secrets.get(section, {})
+    return copy.deepcopy(dict(raw))
+
+
 def check_auth() -> bool:
-    credentials = dict(st.secrets.get("credentials", {}))
+    credentials = _deep_copy_secrets("credentials")
     if not credentials:
         return True
 
-    cookie = dict(st.secrets.get("cookie", {}))
+    cookie = _deep_copy_secrets("cookie")
 
     authenticator = stauth.Authenticate(
         {"usernames": credentials},
