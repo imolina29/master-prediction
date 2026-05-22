@@ -2,349 +2,349 @@
   "base_1x2": {
     "folds": [
       {
-        "accuracy": 0.4607120933087784,
-        "log_loss": 1.042657048582797,
+        "accuracy": 0.4686924493554328,
+        "log_loss": 1.0370477263793618,
         "n_test": 3258,
         "n_train": 40788,
-        "roi_pct": -9.08,
-        "n_bets": 1230,
+        "roi_pct": -6.4,
+        "n_bets": 881,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.47484493452791177,
-        "log_loss": 1.0364044873264269,
+        "accuracy": 0.4764530209051229,
+        "log_loss": 1.030549801667098,
         "n_test": 4353,
         "n_train": 44046,
-        "roi_pct": -9.18,
-        "n_bets": 1945,
+        "roi_pct": -8.66,
+        "n_bets": 1556,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.48766844647851515,
-        "log_loss": 1.0258207750037882,
+        "accuracy": 0.4851258581235698,
+        "log_loss": 1.023242772103884,
         "n_test": 3933,
         "n_train": 48399,
-        "roi_pct": -7.24,
-        "n_bets": 1352,
+        "roi_pct": -10.55,
+        "n_bets": 965,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.48612538540596095,
-        "log_loss": 1.0278643531783924,
+        "accuracy": 0.48895169578622816,
+        "log_loss": 1.0210269910882461,
         "n_test": 3892,
         "n_train": 52332,
-        "roi_pct": -5.49,
-        "n_bets": 1237,
+        "roi_pct": 0.63,
+        "n_bets": 848,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.4871659169092353,
-        "log_loss": 1.0192603048117177,
+        "accuracy": 0.4874305371791479,
+        "log_loss": 1.0168967085357223,
         "n_test": 3779,
         "n_train": 56224,
-        "roi_pct": -10.11,
-        "n_bets": 1236,
+        "roi_pct": -14.62,
+        "n_bets": 831,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.4793,
-    "mean_log_loss": 1.0304,
-    "mean_roi_pct": -8.22
+    "mean_accuracy": 0.4813,
+    "mean_log_loss": 1.0258,
+    "mean_roi_pct": -7.92
   },
   "premium_1x2": {
     "folds": [
       {
-        "accuracy": 0.507557677008751,
-        "log_loss": 1.0215334402645073,
+        "accuracy": 0.5266507557677009,
+        "log_loss": 0.9912067823161937,
         "n_test": 1257,
         "n_train": 7644,
-        "roi_pct": -7.32,
-        "n_bets": 875,
+        "roi_pct": -2.59,
+        "n_bets": 496,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.5052878965922444,
-        "log_loss": 1.0379191941712382,
+        "accuracy": 0.5240893066980024,
+        "log_loss": 1.0033565651640712,
         "n_test": 1702,
         "n_train": 8901,
-        "roi_pct": -9.84,
-        "n_bets": 1229,
+        "roi_pct": -3.01,
+        "n_bets": 822,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.49183417085427134,
-        "log_loss": 1.026731183410786,
+        "accuracy": 0.5131909547738693,
+        "log_loss": 1.0018415609498477,
         "n_test": 1592,
         "n_train": 10603,
-        "roi_pct": -7.42,
-        "n_bets": 990,
+        "roi_pct": 0.27,
+        "n_bets": 586,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.5203895313451005,
-        "log_loss": 1.0047170790900894,
+        "accuracy": 0.5331710286062081,
+        "log_loss": 0.9823722306945657,
         "n_test": 1643,
         "n_train": 12195,
-        "roi_pct": -4.62,
-        "n_bets": 944,
+        "roi_pct": 2.75,
+        "n_bets": 530,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.5176767676767676,
-        "log_loss": 0.9953236235171203,
+        "accuracy": 0.5284090909090909,
+        "log_loss": 0.9813017064249959,
         "n_test": 1584,
         "n_train": 13838,
-        "roi_pct": -10.22,
-        "n_bets": 925,
+        "roi_pct": -17.48,
+        "n_bets": 522,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.5085,
-    "mean_log_loss": 1.0172,
-    "mean_roi_pct": -7.88
+    "mean_accuracy": 0.5251,
+    "mean_log_loss": 0.992,
+    "mean_roi_pct": -4.01
   },
   "base_over25": {
     "folds": [
       {
-        "accuracy": 0.5558624923265807,
-        "log_loss": 0.6847166172766944,
+        "accuracy": 0.5626151012891344,
+        "log_loss": 0.6801591765213985,
         "n_test": 3258,
         "n_train": 40788,
-        "brier_score": 0.24581822752952576,
+        "brier_score": 0.24362212419509888,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.5524925338846772,
-        "log_loss": 0.690795642650332,
+        "accuracy": 0.5642085917757869,
+        "log_loss": 0.6833398186656241,
         "n_test": 4353,
         "n_train": 44046,
-        "brier_score": 0.24858610332012177,
+        "brier_score": 0.2450992614030838,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.5395372489193999,
-        "log_loss": 0.6909031563328388,
+        "accuracy": 0.5497076023391813,
+        "log_loss": 0.6852314555309761,
         "n_test": 3933,
         "n_train": 48399,
-        "brier_score": 0.2488030642271042,
+        "brier_score": 0.24607695639133453,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.5490750256937307,
-        "log_loss": 0.6879033780308493,
+        "accuracy": 0.5637204522096608,
+        "log_loss": 0.6823743874507171,
         "n_test": 3892,
         "n_train": 52332,
-        "brier_score": 0.24734258651733398,
+        "brier_score": 0.24464455246925354,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.5490870600688013,
-        "log_loss": 0.6904186339891334,
+        "accuracy": 0.559142630325483,
+        "log_loss": 0.6847698042427,
         "n_test": 3779,
         "n_train": 56224,
-        "brier_score": 0.24847958981990814,
+        "brier_score": 0.2458033561706543,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.5492,
-    "mean_log_loss": 0.6889
+    "mean_accuracy": 0.5599,
+    "mean_log_loss": 0.6832
   },
   "premium_over25": {
     "folds": [
       {
-        "accuracy": 0.5377883850437549,
-        "log_loss": 0.6997108123248335,
+        "accuracy": 0.5934765314240255,
+        "log_loss": 0.6766535247155646,
         "n_test": 1257,
         "n_train": 7644,
-        "brier_score": 0.2522912323474884,
+        "brier_score": 0.24181751906871796,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.5481786133960047,
-        "log_loss": 0.7021749613782311,
+        "accuracy": 0.5393654524089306,
+        "log_loss": 0.6858851087381745,
         "n_test": 1702,
         "n_train": 8901,
-        "brier_score": 0.253497451543808,
+        "brier_score": 0.24638047814369202,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.539572864321608,
-        "log_loss": 0.703038077392513,
+        "accuracy": 0.5477386934673367,
+        "log_loss": 0.6862485243484091,
         "n_test": 1592,
         "n_train": 10603,
-        "brier_score": 0.2541690468788147,
+        "brier_score": 0.2465677708387375,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.5276932440657334,
-        "log_loss": 0.6965440481966911,
+        "accuracy": 0.5605599513085818,
+        "log_loss": 0.6842160509246701,
         "n_test": 1643,
         "n_train": 12195,
-        "brier_score": 0.25137367844581604,
+        "brier_score": 0.24562641978263855,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.5637626262626263,
-        "log_loss": 0.6928299103107668,
+        "accuracy": 0.5631313131313131,
+        "log_loss": 0.6768667603464463,
         "n_test": 1584,
         "n_train": 13838,
-        "brier_score": 0.24897369742393494,
+        "brier_score": 0.2419286072254181,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.5434,
-    "mean_log_loss": 0.6989
+    "mean_accuracy": 0.5609,
+    "mean_log_loss": 0.682
   },
   "base_btts": {
     "folds": [
       {
-        "accuracy": 0.5107427869858809,
-        "log_loss": 0.6993235856195253,
+        "accuracy": 0.5270104358502149,
+        "log_loss": 0.6908860681687623,
         "n_test": 3258,
         "n_train": 40788,
-        "brier_score": 0.2529486119747162,
+        "brier_score": 0.2488710880279541,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.5116011945784517,
-        "log_loss": 0.7004937445287689,
+        "accuracy": 0.5295198713530899,
+        "log_loss": 0.6905368799252173,
         "n_test": 4353,
         "n_train": 44046,
-        "brier_score": 0.25345170497894287,
+        "brier_score": 0.24869538843631744,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.5237732011187389,
-        "log_loss": 0.6929288291182643,
+        "accuracy": 0.5306381896770913,
+        "log_loss": 0.6898296860660006,
         "n_test": 3933,
         "n_train": 48399,
-        "brier_score": 0.24983112514019012,
+        "brier_score": 0.24834945797920227,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.5210688591983555,
-        "log_loss": 0.6934175378775591,
+        "accuracy": 0.5164439876670093,
+        "log_loss": 0.6911249648475203,
         "n_test": 3892,
         "n_train": 52332,
-        "brier_score": 0.25009530782699585,
+        "brier_score": 0.24899598956108093,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.5273881979359619,
-        "log_loss": 0.6928405326770068,
+        "accuracy": 0.5461762370997618,
+        "log_loss": 0.6882122822518776,
         "n_test": 3779,
         "n_train": 56224,
-        "brier_score": 0.24977970123291016,
+        "brier_score": 0.24754108488559723,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.5189,
-    "mean_log_loss": 0.6958
+    "mean_accuracy": 0.53,
+    "mean_log_loss": 0.6901
   },
   "premium_btts": {
     "folds": [
       {
-        "accuracy": 0.5035799522673031,
-        "log_loss": 0.7195553104394519,
+        "accuracy": 0.5497215592680986,
+        "log_loss": 0.6871302909669492,
         "n_test": 1257,
         "n_train": 7644,
-        "brier_score": 0.261944979429245,
+        "brier_score": 0.24700792133808136,
         "fold": 1,
         "train_end": "2019-07-01",
         "test_season": "2019/20"
       },
       {
-        "accuracy": 0.5334900117508813,
-        "log_loss": 0.7006890847115875,
+        "accuracy": 0.5493537015276145,
+        "log_loss": 0.6849094361992694,
         "n_test": 1702,
         "n_train": 8901,
-        "brier_score": 0.25315025448799133,
+        "brier_score": 0.24590802192687988,
         "fold": 2,
         "train_end": "2020-07-01",
         "test_season": "2020/21"
       },
       {
-        "accuracy": 0.542713567839196,
-        "log_loss": 0.6955582412884268,
+        "accuracy": 0.5439698492462312,
+        "log_loss": 0.6872941630144239,
         "n_test": 1592,
         "n_train": 10603,
-        "brier_score": 0.25088220834732056,
+        "brier_score": 0.24706904590129852,
         "fold": 3,
         "train_end": "2021-07-01",
         "test_season": "2021/22"
       },
       {
-        "accuracy": 0.5209981740718198,
-        "log_loss": 0.7035568649978251,
+        "accuracy": 0.5496043822276324,
+        "log_loss": 0.6881800206773359,
         "n_test": 1643,
         "n_train": 12195,
-        "brier_score": 0.254569411277771,
+        "brier_score": 0.24752047657966614,
         "fold": 4,
         "train_end": "2022-07-01",
         "test_season": "2022/23"
       },
       {
-        "accuracy": 0.5391414141414141,
-        "log_loss": 0.7029565288995039,
+        "accuracy": 0.5511363636363636,
+        "log_loss": 0.6863123558262738,
         "n_test": 1584,
         "n_train": 13838,
-        "brier_score": 0.2540328800678253,
+        "brier_score": 0.24659162759780884,
         "fold": 5,
         "train_end": "2023-07-01",
         "test_season": "2023/24"
       }
     ],
-    "mean_accuracy": 0.528,
-    "mean_log_loss": 0.7045
+    "mean_accuracy": 0.5488,
+    "mean_log_loss": 0.6868
   }
 }
