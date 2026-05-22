@@ -1,6 +1,19 @@
 import pandas as pd
 import plotly.graph_objects as go
 
+PLOTLY_LAYOUT = {
+    "template": "plotly_dark",
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(14,17,23,0.8)",
+    "font": {"color": "#e0e0e0"},
+}
+
+GREEN = "#4CAF50"
+GOLD = "#FFD700"
+LIGHT_GREEN = "#81C784"
+RED = "#E53935"
+AMBER = "#FFC107"
+
 
 def xg_vs_goals_chart(df: pd.DataFrame, team: str) -> go.Figure:
     team_df = df[df["team"] == team].sort_values("match_date")
@@ -11,7 +24,7 @@ def xg_vs_goals_chart(df: pd.DataFrame, team: str) -> go.Figure:
             y=team_df["goals_scored"],
             name="Goles",
             mode="lines+markers",
-            line={"color": "#2ecc71"},
+            line={"color": GREEN},
         )
     )
     fig.add_trace(
@@ -20,15 +33,15 @@ def xg_vs_goals_chart(df: pd.DataFrame, team: str) -> go.Figure:
             y=team_df["xg_for"],
             name="xG",
             mode="lines+markers",
-            line={"color": "#3498db", "dash": "dash"},
+            line={"color": GOLD, "dash": "dash"},
         )
     )
     fig.update_layout(
         title=f"{team} — Goles vs xG",
         xaxis_title="Fecha",
         yaxis_title="Goles / xG",
-        template="plotly_dark",
         height=400,
+        **PLOTLY_LAYOUT,
     )
     return fig
 
@@ -47,16 +60,16 @@ def home_away_chart(df: pd.DataFrame, team: str) -> go.Figure:
     x_labels = ["Local", "Visitante"]
     fig = go.Figure(
         data=[
-            go.Bar(name="Victorias", x=x_labels, y=[home_w, away_w], marker_color="#2ecc71"),
-            go.Bar(name="Empates", x=x_labels, y=[home_d, away_d], marker_color="#f39c12"),
-            go.Bar(name="Derrotas", x=x_labels, y=[home_l, away_l], marker_color="#e74c3c"),
+            go.Bar(name="Victorias", x=x_labels, y=[home_w, away_w], marker_color=GREEN),
+            go.Bar(name="Empates", x=x_labels, y=[home_d, away_d], marker_color=AMBER),
+            go.Bar(name="Derrotas", x=x_labels, y=[home_l, away_l], marker_color=RED),
         ]
     )
     fig.update_layout(
         barmode="stack",
         title=f"{team} — Local vs Visitante",
-        template="plotly_dark",
         height=350,
+        **PLOTLY_LAYOUT,
     )
     return fig
 
@@ -70,6 +83,8 @@ def radar_chart(stats_a: dict, stats_b: dict, team_a: str, team_b: str) -> go.Fi
             theta=categories,
             fill="toself",
             name=team_a,
+            line={"color": GREEN},
+            fillcolor="rgba(76, 175, 80, 0.2)",
         )
     )
     fig.add_trace(
@@ -78,12 +93,14 @@ def radar_chart(stats_a: dict, stats_b: dict, team_a: str, team_b: str) -> go.Fi
             theta=categories,
             fill="toself",
             name=team_b,
+            line={"color": GOLD},
+            fillcolor="rgba(255, 215, 0, 0.2)",
         )
     )
     fig.update_layout(
-        polar={"radialaxis": {"visible": True}},
+        polar={"radialaxis": {"visible": True, "gridcolor": "rgba(76,175,80,0.15)"}},
         title=f"{team_a} vs {team_b}",
-        template="plotly_dark",
         height=450,
+        **PLOTLY_LAYOUT,
     )
     return fig

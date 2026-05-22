@@ -7,11 +7,13 @@ from dashboard.components.performance import (
     performance_kpis,
     profit_chart,
 )
+from dashboard.components.theme import apply_theme
 from dashboard.components.value_bets import format_picks, format_resolved
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
-st.set_page_config(page_title="Value Bets", layout="wide")
-st.title("Value Bets")
+st.set_page_config(page_title="Value Bets", page_icon="💰", layout="wide")
+apply_theme()
+st.title("💰 Value Bets")
 
 with st.expander("Guia de terminos"):
     st.markdown(

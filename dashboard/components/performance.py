@@ -45,17 +45,22 @@ def profit_chart(resolved: list[dict]) -> go.Figure | None:
             x=df["match_date"],
             y=df["cumulative_profit"],
             mode="lines+markers",
-            line={"color": "#2ecc71", "width": 2},
-            marker={"size": 6},
+            line={"color": "#4CAF50", "width": 2},
+            marker={"color": "#FFD700", "size": 6},
             name="Profit acumulado",
+            fill="tozeroy",
+            fillcolor="rgba(76, 175, 80, 0.10)",
         )
     )
-    fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+    fig.add_hline(y=0, line_dash="dash", line_color="rgba(255,255,255,0.3)")
     fig.update_layout(
         title="Profit Acumulado (unidades)",
         xaxis_title="Fecha",
         yaxis_title="Profit (u)",
         template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(14,17,23,0.8)",
+        font={"color": "#e0e0e0"},
         height=400,
     )
     return fig

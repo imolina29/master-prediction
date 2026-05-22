@@ -8,10 +8,12 @@ from dashboard.components.metrics import (
     load_backtest_results,
 )
 from dashboard.components.predictions import format_predictions
+from dashboard.components.theme import apply_theme
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
-st.set_page_config(page_title="Predicciones", layout="wide")
-st.title("Predicciones")
+st.set_page_config(page_title="Predicciones", page_icon="🤖", layout="wide")
+apply_theme()
+st.title("🤖 Predicciones")
 
 # --- Section 1: Upcoming predictions ---
 st.header("Proximas Predicciones")

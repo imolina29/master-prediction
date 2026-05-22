@@ -42,7 +42,7 @@ def calibration_chart(results: dict, model_name: str) -> go.Figure | None:
         go.Bar(
             x=labels,
             y=accuracies,
-            marker_color="#3498db",
+            marker_color="#2E7D32",
             name="Accuracy",
         )
     )
@@ -56,7 +56,8 @@ def calibration_chart(results: dict, model_name: str) -> go.Figure | None:
                 mode="lines+markers",
                 name="ROI %",
                 yaxis="y2",
-                line={"color": "#2ecc71"},
+                line={"color": "#FFD700"},
+                marker={"color": "#FFD700", "size": 7},
             )
         )
         fig.update_layout(
@@ -74,6 +75,9 @@ def calibration_chart(results: dict, model_name: str) -> go.Figure | None:
         yaxis_title="Accuracy",
         yaxis_tickformat=".0%",
         template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(14,17,23,0.8)",
+        font={"color": "#e0e0e0"},
         height=400,
     )
     return fig

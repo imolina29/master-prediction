@@ -3,10 +3,12 @@ import streamlit as st
 
 from backend.services.features import compute_h2h_features
 from dashboard.components.charts import radar_chart
+from dashboard.components.theme import apply_theme
 from dashboard.data_access import DIVISION_NAMES, get_teams, load_features, load_matches
 
-st.set_page_config(page_title="Comparador de Partidos", layout="wide")
-st.title("Comparador de Partidos")
+st.set_page_config(page_title="Comparador de Partidos", page_icon="⚔️", layout="wide")
+apply_theme()
+st.title("⚔️ Comparador de Partidos")
 
 col1, col2, col3 = st.columns(3)
 with col1:

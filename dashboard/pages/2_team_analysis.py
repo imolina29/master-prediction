@@ -2,6 +2,7 @@ import streamlit as st
 
 from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
 from dashboard.components.tables import last_n_results
+from dashboard.components.theme import apply_theme
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -10,8 +11,9 @@ from dashboard.data_access import (
     load_matches,
 )
 
-st.set_page_config(page_title="Analisis de Equipo", layout="wide")
-st.title("Analisis de Equipo")
+st.set_page_config(page_title="Analisis de Equipo", page_icon="🔍", layout="wide")
+apply_theme()
+st.title("🔍 Analisis de Equipo")
 
 col1, col2, col3 = st.columns(3)
 with col1:
