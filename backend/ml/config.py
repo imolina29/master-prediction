@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 
@@ -5,6 +6,10 @@ def _find_project_root() -> Path:
     file_based = Path(__file__).resolve().parent.parent.parent
     if (file_based / "pyproject.toml").exists():
         return file_based
+    for p in sys.path:
+        candidate = Path(p)
+        if (candidate / "pyproject.toml").exists():
+            return candidate
     return Path.cwd()
 
 
