@@ -95,6 +95,26 @@ FOOTBALL_CSS = """
     font-weight: 600 !important;
 }
 
+/* ── User menu popover ── */
+[data-testid="stPopover"] > button {
+    background: rgba(27, 94, 32, 0.15) !important;
+    border: 1px solid rgba(76, 175, 80, 0.25) !important;
+    border-radius: 8px !important;
+    color: #c8e6c9 !important;
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.8rem !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="stPopover"] > button:hover {
+    background: rgba(46, 125, 50, 0.25) !important;
+    border-color: #4CAF50 !important;
+}
+[data-testid="stPopoverBody"] {
+    background: #1a1a2e !important;
+    border: 1px solid rgba(76, 175, 80, 0.2) !important;
+    border-radius: 10px !important;
+}
+
 /* ── Sidebar footer ── */
 .sidebar-footer {
     position: fixed;

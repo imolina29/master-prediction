@@ -1,6 +1,6 @@
 import streamlit as st
 
-from dashboard.auth import check_auth
+from dashboard.auth import check_auth, render_user_menu
 from dashboard.components.theme import apply_theme
 
 st.set_page_config(page_title="Master Prediction", page_icon="⚽", layout="wide")
@@ -8,6 +8,8 @@ apply_theme()
 
 if not check_auth():
     st.stop()
+
+render_user_menu()
 
 nav = st.navigation(
     {
