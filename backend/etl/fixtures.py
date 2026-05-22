@@ -16,7 +16,6 @@ API_BASE = "https://api.football-data.org/v4"
 
 COMPETITION_MAP = {
     "PL": "E0",
-    "ELC": "E1",
     "PD": "SP1",
     "BL1": "D1",
     "SA": "I1",

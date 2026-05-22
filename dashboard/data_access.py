@@ -123,7 +123,6 @@ def get_teams(division: str) -> list[str]:
 
 DIVISION_NAMES = {
     "E0": "Premier League",
-    "E1": "Championship",
     "SP1": "La Liga",
     "I1": "Serie A",
     "D1": "Bundesliga",

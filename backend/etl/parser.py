@@ -5,7 +5,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-TARGET_DIVISIONS = {"E0", "E1", "SP1", "SP2", "I1", "I2", "D1", "D2", "F1", "F2", "EC"}
+TARGET_DIVISIONS = {"E0", "SP1", "I1", "D1", "F1", "EC"}
 
 CSV_TO_FIELD = {
     "Division": "division",
