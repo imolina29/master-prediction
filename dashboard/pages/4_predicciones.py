@@ -4,20 +4,14 @@ import pandas as pd
 import streamlit as st
 
 from backend.ml.config import BACKTEST_RESULTS_PATH
-from dashboard.auth import check_auth
 from dashboard.components.metrics import (
     backtest_summary_table,
     calibration_chart,
     load_backtest_results,
 )
 from dashboard.components.predictions import format_predictions
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.components.theme import section_header, stat_card
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
-
-st.set_page_config(page_title="Predicciones", page_icon="🤖", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 
 st.markdown(
     '<h1 style="font-size:2rem;">🤖 Predicciones</h1>',

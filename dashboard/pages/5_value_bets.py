@@ -4,20 +4,14 @@ import streamlit as st
 
 from backend.betting.tracker import calculate_performance
 from backend.betting.value import calculate_edge
-from dashboard.auth import check_auth
 from dashboard.components.performance import (
     market_breakdown_table,
     performance_kpis,
     profit_chart,
 )
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.components.theme import section_header, stat_card
 from dashboard.components.value_bets import format_picks, format_resolved
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
-
-st.set_page_config(page_title="Value Bets", page_icon="💰", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 
 st.markdown(
     '<h1 style="font-size:2rem;">💰 Value Bets</h1>',

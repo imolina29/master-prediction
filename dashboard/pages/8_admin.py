@@ -1,13 +1,9 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 
-from dashboard.auth import _deep_copy_secrets, check_auth, require_admin
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.auth import _deep_copy_secrets, require_admin
+from dashboard.components.theme import section_header, stat_card
 
-st.set_page_config(page_title="Admin", page_icon="⚙️", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 if not require_admin():
     st.stop()
 

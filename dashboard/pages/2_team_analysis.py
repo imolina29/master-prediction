@@ -1,9 +1,8 @@
 import streamlit as st
 
-from dashboard.auth import check_auth
 from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
 from dashboard.components.tables import last_n_results
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.components.theme import section_header, stat_card
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -11,11 +10,6 @@ from dashboard.data_access import (
     load_features,
     load_matches,
 )
-
-st.set_page_config(page_title="Analisis de Equipo", page_icon="🔍", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 
 st.markdown(
     '<h1 style="font-size:2rem;">🔍 Analisis de Equipo</h1>',
