@@ -1,5 +1,25 @@
 import streamlit as st
 
+SIDEBAR_HEADER = """
+<div class="sidebar-brand">
+    <div class="sidebar-brand-icon">⚽</div>
+    <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">MASTER</span>
+        <span class="sidebar-brand-name">PREDICTION</span>
+    </div>
+    <div class="sidebar-brand-accent"></div>
+    <div class="sidebar-brand-tagline">Inteligencia Deportiva con IA</div>
+</div>
+"""
+
+SIDEBAR_FOOTER = """
+<div class="sidebar-footer">
+    <span>v1.0</span>
+    <span class="sidebar-footer-dot">·</span>
+    <span>Master Prediction</span>
+</div>
+"""
+
 FOOTBALL_CSS = """
 <style>
 /* ── Sidebar: dark-to-green gradient ── */
@@ -8,6 +28,90 @@ FOOTBALL_CSS = """
 }
 [data-testid="stSidebar"] [data-testid="stMarkdown"] p {
     color: #c8e6c9;
+}
+
+/* ── Sidebar brand header ── */
+.sidebar-brand {
+    text-align: center;
+    padding: 1.5rem 1rem 1rem 1rem;
+    margin-bottom: 0.5rem;
+}
+.sidebar-brand-icon {
+    font-size: 2.4rem;
+    margin-bottom: 0.3rem;
+    filter: drop-shadow(0 2px 8px rgba(76, 175, 80, 0.4));
+}
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+}
+.sidebar-brand-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #e8f5e9;
+    text-transform: uppercase;
+}
+.sidebar-brand-accent {
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #FFD700, transparent);
+    margin: 0.6rem auto;
+    border-radius: 1px;
+}
+.sidebar-brand-tagline {
+    font-size: 0.65rem;
+    color: rgba(165, 214, 167, 0.7);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* ── Sidebar navigation items ── */
+[data-testid="stSidebarNav"] {
+    padding-top: 0.5rem;
+}
+[data-testid="stSidebarNav"] a {
+    border-radius: 8px !important;
+    margin: 2px 8px !important;
+    padding: 0.45rem 0.8rem !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="stSidebarNav"] a:hover {
+    background: rgba(46, 125, 50, 0.2) !important;
+}
+[data-testid="stSidebarNav"] a[aria-selected="true"] {
+    background: rgba(46, 125, 50, 0.25) !important;
+    border-left: 3px solid #FFD700 !important;
+}
+[data-testid="stSidebarNav"] a span {
+    color: #c8e6c9 !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+}
+[data-testid="stSidebarNav"] a[aria-selected="true"] span {
+    color: #FFD700 !important;
+    font-weight: 600 !important;
+}
+
+/* ── Sidebar footer ── */
+.sidebar-footer {
+    position: fixed;
+    bottom: 0;
+    width: inherit;
+    text-align: center;
+    padding: 0.8rem 1rem;
+    font-size: 0.7rem;
+    color: rgba(165, 214, 167, 0.4);
+    letter-spacing: 1px;
+    border-top: 1px solid rgba(76, 175, 80, 0.1);
+    background: rgba(14, 17, 23, 0.8);
+    backdrop-filter: blur(4px);
+}
+.sidebar-footer-dot {
+    margin: 0 0.3rem;
+    color: rgba(255, 215, 0, 0.3);
 }
 
 /* ── Metric cards: elevated with glow ── */
@@ -201,6 +305,8 @@ hr {
 
 def apply_theme():
     st.markdown(FOOTBALL_CSS, unsafe_allow_html=True)
+    st.sidebar.markdown(SIDEBAR_HEADER, unsafe_allow_html=True)
+    st.sidebar.markdown(SIDEBAR_FOOTER, unsafe_allow_html=True)
 
 
 def stat_card(title: str, value: str, subtitle: str = "") -> str:
