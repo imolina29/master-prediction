@@ -6,6 +6,8 @@ import streamlit_authenticator as stauth
 
 SESSION_TIMEOUT_SECONDS = 30 * 60
 
+ROLE_LABELS = {"admin": "Administrador", "viewer": "Viewer"}
+
 LOGIN_CSS = """
 <style>
 /* ── Hide sidebar on login ── */
@@ -126,6 +128,31 @@ def _check_session_timeout() -> bool:
     return False
 
 
+def _get_user_role(username: str) -> str:
+    credentials = _deep_copy_secrets("credentials")
+    user_data = credentials.get(username, {})
+    return user_data.get("role", "viewer")
+
+
+def get_current_user() -> dict | None:
+    if not st.session_state.get("authentication_status"):
+        return None
+    username = st.session_state.get("username", "")
+    return {
+        "username": username,
+        "name": st.session_state.get("name", ""),
+        "role": _get_user_role(username),
+    }
+
+
+def require_admin() -> bool:
+    user = get_current_user()
+    if not user or user["role"] != "admin":
+        st.error("Acceso restringido. Se requiere rol de administrador.")
+        return False
+    return True
+
+
 def check_auth() -> bool:
     credentials = _deep_copy_secrets("credentials")
     if not credentials:
@@ -151,9 +178,12 @@ def check_auth() -> bool:
         )
         minutes_left = max(0, int(remaining // 60))
 
+        user = get_current_user()
+        role_label = ROLE_LABELS.get(user["role"], user["role"]) if user else ""
+
         with st.sidebar:
             st.markdown(f"**{st.session_state.get('name', '')}**")
-            st.caption(f"Sesion: {minutes_left} min restantes")
+            st.caption(f"{role_label} · {minutes_left} min restantes")
             authenticator.logout("Cerrar sesion", "sidebar")
         return True
 

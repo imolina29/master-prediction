@@ -1,6 +1,7 @@
 """Send daily Telegram notification with recommended picks and resolved results."""
 
 import logging
+from datetime import date
 
 from backend.betting.tracker import calculate_performance
 from backend.db.client import get_supabase
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     client = get_supabase()
     notifier = TelegramNotifier()
+
+    logger.info("Sending to %d chat(s)", len(notifier.chat_ids))
 
     active_resp = (
         client.table("value_bets")
@@ -29,23 +32,21 @@ def main() -> None:
     performance = calculate_performance(resolved) if resolved else None
 
     if picks:
-        result = notifier.send_daily_picks(picks, performance)
-        if result and result.get("ok"):
-            logger.info("Daily picks notification sent (%d picks)", len(picks))
-        else:
-            logger.warning("Failed to send picks notification: %s", result)
+        results = notifier.send_daily_picks(picks, performance)
+        ok_count = sum(1 for r in results if r.get("ok"))
+        logger.info(
+            "Daily picks sent to %d/%d chats (%d picks)", ok_count, len(results), len(picks)
+        )
     else:
         logger.info("No recommended picks today, skipping notification")
 
     today_resolved = [
-        p
-        for p in resolved
-        if p.get("resolved_at", "").startswith(__import__("datetime").date.today().isoformat())
+        p for p in resolved if p.get("resolved_at", "").startswith(date.today().isoformat())
     ]
     if today_resolved:
-        result = notifier.send_resolved_summary(today_resolved)
-        if result and result.get("ok"):
-            logger.info("Resolved summary sent (%d picks)", len(today_resolved))
+        results = notifier.send_resolved_summary(today_resolved)
+        ok_count = sum(1 for r in results if r.get("ok"))
+        logger.info("Resolved summary sent to %d/%d chats", ok_count, len(results))
 
 
 if __name__ == "__main__":
