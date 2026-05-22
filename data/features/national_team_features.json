@@ -1,23 +1,12 @@
 {
-  "Switzerland": {
-    "goals_scored_avg": 1.9,
-    "goals_conceded_avg": 1.25,
+  "Netherlands": {
+    "goals_scored_avg": 2.55,
+    "goals_conceded_avg": 1.05,
     "shots_target_avg": null,
     "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.35,
-    "btts_rate": 0.55,
-    "over25_rate": 0.5,
-    "matches_used": 20
-  },
-  "Turkey": {
-    "goals_scored_avg": 1.95,
-    "goals_conceded_avg": 1.2,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.65,
-    "draw_rate": 0.15,
-    "btts_rate": 0.55,
+    "win_rate": 0.5,
+    "draw_rate": 0.4,
+    "btts_rate": 0.65,
     "over25_rate": 0.65,
     "matches_used": 20
   },
@@ -30,72 +19,6 @@
     "draw_rate": 0.4,
     "btts_rate": 0.3,
     "over25_rate": 0.35,
-    "matches_used": 20
-  },
-  "Algeria": {
-    "goals_scored_avg": 2.15,
-    "goals_conceded_avg": 0.6,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.7,
-    "draw_rate": 0.2,
-    "btts_rate": 0.35,
-    "over25_rate": 0.45,
-    "matches_used": 20
-  },
-  "Cape Verde Islands": {
-    "goals_scored_avg": 1.25,
-    "goals_conceded_avg": 0.95,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.35,
-    "btts_rate": 0.4,
-    "over25_rate": 0.3,
-    "matches_used": 20
-  },
-  "Haiti": {
-    "goals_scored_avg": 2.5,
-    "goals_conceded_avg": 1.1,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.55,
-    "draw_rate": 0.2,
-    "btts_rate": 0.4,
-    "over25_rate": 0.65,
-    "matches_used": 20
-  },
-  "Saudi Arabia": {
-    "goals_scored_avg": 1.1,
-    "goals_conceded_avg": 1.15,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.45,
-    "draw_rate": 0.15,
-    "btts_rate": 0.45,
-    "over25_rate": 0.4,
-    "matches_used": 20
-  },
-  "Senegal": {
-    "goals_scored_avg": 2.35,
-    "goals_conceded_avg": 0.6,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.75,
-    "draw_rate": 0.15,
-    "btts_rate": 0.3,
-    "over25_rate": 0.5,
-    "matches_used": 20
-  },
-  "Jordan": {
-    "goals_scored_avg": 1.65,
-    "goals_conceded_avg": 1.3,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.25,
-    "btts_rate": 0.55,
-    "over25_rate": 0.6,
     "matches_used": 20
   },
   "Curacao": {
@@ -120,81 +43,15 @@
     "over25_rate": 0.6,
     "matches_used": 20
   },
-  "Czechia": {
-    "goals_scored_avg": 1.75,
-    "goals_conceded_avg": 1.2,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.45,
-    "draw_rate": 0.35,
-    "btts_rate": 0.6,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "England": {
-    "goals_scored_avg": 2.3,
-    "goals_conceded_avg": 0.55,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.75,
-    "draw_rate": 0.05,
-    "btts_rate": 0.3,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "Belgium": {
-    "goals_scored_avg": 2.25,
+  "Saudi Arabia": {
+    "goals_scored_avg": 1.1,
     "goals_conceded_avg": 1.15,
     "shots_target_avg": null,
     "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.3,
-    "btts_rate": 0.5,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "Ghana": {
-    "goals_scored_avg": 1.6,
-    "goals_conceded_avg": 1.2,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.2,
-    "btts_rate": 0.45,
-    "over25_rate": 0.5,
-    "matches_used": 20
-  },
-  "Sweden": {
-    "goals_scored_avg": 2.05,
-    "goals_conceded_avg": 1.45,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.5,
+    "win_rate": 0.45,
     "draw_rate": 0.15,
-    "btts_rate": 0.55,
-    "over25_rate": 0.7,
-    "matches_used": 20
-  },
-  "South Africa": {
-    "goals_scored_avg": 1.8,
-    "goals_conceded_avg": 0.85,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.55,
-    "draw_rate": 0.25,
     "btts_rate": 0.45,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "Colombia": {
-    "goals_scored_avg": 1.7,
-    "goals_conceded_avg": 1.1,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.4,
-    "draw_rate": 0.25,
-    "btts_rate": 0.5,
-    "over25_rate": 0.6,
+    "over25_rate": 0.4,
     "matches_used": 20
   },
   "France": {
@@ -208,70 +65,15 @@
     "over25_rate": 0.65,
     "matches_used": 20
   },
-  "Ecuador": {
-    "goals_scored_avg": 0.8,
-    "goals_conceded_avg": 0.35,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.3,
-    "draw_rate": 0.65,
-    "btts_rate": 0.3,
-    "over25_rate": 0.1,
-    "matches_used": 20
-  },
-  "United States": {
-    "goals_scored_avg": 1.75,
-    "goals_conceded_avg": 1.45,
+  "Iraq": {
+    "goals_scored_avg": 1.0,
+    "goals_conceded_avg": 0.95,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.5,
-    "draw_rate": 0.1,
-    "btts_rate": 0.6,
-    "over25_rate": 0.7,
-    "matches_used": 20
-  },
-  "Bosnia Herzegovina": {
-    "goals_scored_avg": 1.4,
-    "goals_conceded_avg": 1.65,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.3,
-    "draw_rate": 0.3,
-    "btts_rate": 0.6,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "Ivory Coast": {
-    "goals_scored_avg": 1.7,
-    "goals_conceded_avg": 0.5,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.6,
-    "draw_rate": 0.15,
-    "btts_rate": 0.15,
-    "over25_rate": 0.35,
-    "matches_used": 20
-  },
-  "Australia": {
-    "goals_scored_avg": 1.75,
-    "goals_conceded_avg": 0.75,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.6,
     "draw_rate": 0.2,
     "btts_rate": 0.4,
-    "over25_rate": 0.45,
-    "matches_used": 20
-  },
-  "Japan": {
-    "goals_scored_avg": 2.6,
-    "goals_conceded_avg": 0.45,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.7,
-    "draw_rate": 0.2,
-    "btts_rate": 0.2,
-    "over25_rate": 0.5,
+    "over25_rate": 0.35,
     "matches_used": 20
   },
   "Brazil": {
@@ -285,15 +87,26 @@
     "over25_rate": 0.45,
     "matches_used": 20
   },
-  "New Zealand": {
-    "goals_scored_avg": 2.55,
-    "goals_conceded_avg": 1.0,
+  "Bosnia Herzegovina": {
+    "goals_scored_avg": 1.4,
+    "goals_conceded_avg": 1.65,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.3,
+    "draw_rate": 0.3,
+    "btts_rate": 0.6,
+    "over25_rate": 0.55,
+    "matches_used": 20
+  },
+  "Uzbekistan": {
+    "goals_scored_avg": 1.35,
+    "goals_conceded_avg": 0.65,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.5,
-    "draw_rate": 0.1,
+    "draw_rate": 0.4,
     "btts_rate": 0.35,
-    "over25_rate": 0.65,
+    "over25_rate": 0.4,
     "matches_used": 20
   },
   "Tunisia": {
@@ -307,15 +120,70 @@
     "over25_rate": 0.4,
     "matches_used": 20
   },
-  "Qatar": {
-    "goals_scored_avg": 1.3,
-    "goals_conceded_avg": 1.95,
+  "Haiti": {
+    "goals_scored_avg": 2.5,
+    "goals_conceded_avg": 1.1,
     "shots_target_avg": null,
     "corners_avg": null,
-    "win_rate": 0.25,
+    "win_rate": 0.55,
+    "draw_rate": 0.2,
+    "btts_rate": 0.4,
+    "over25_rate": 0.65,
+    "matches_used": 20
+  },
+  "Austria": {
+    "goals_scored_avg": 2.35,
+    "goals_conceded_avg": 0.85,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.6,
+    "draw_rate": 0.2,
+    "btts_rate": 0.55,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "Paraguay": {
+    "goals_scored_avg": 1.1,
+    "goals_conceded_avg": 1.1,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
     "draw_rate": 0.3,
-    "btts_rate": 0.7,
-    "over25_rate": 0.7,
+    "btts_rate": 0.5,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "South Africa": {
+    "goals_scored_avg": 1.8,
+    "goals_conceded_avg": 0.85,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.55,
+    "draw_rate": 0.25,
+    "btts_rate": 0.45,
+    "over25_rate": 0.55,
+    "matches_used": 20
+  },
+  "Turkey": {
+    "goals_scored_avg": 1.95,
+    "goals_conceded_avg": 1.2,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.65,
+    "draw_rate": 0.15,
+    "btts_rate": 0.55,
+    "over25_rate": 0.65,
+    "matches_used": 20
+  },
+  "Germany": {
+    "goals_scored_avg": 2.45,
+    "goals_conceded_avg": 1.05,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.65,
+    "draw_rate": 0.15,
+    "btts_rate": 0.5,
+    "over25_rate": 0.65,
     "matches_used": 20
   },
   "Spain": {
@@ -329,36 +197,80 @@
     "over25_rate": 0.8,
     "matches_used": 20
   },
-  "Norway": {
-    "goals_scored_avg": 2.95,
-    "goals_conceded_avg": 0.9,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.7,
-    "draw_rate": 0.15,
-    "btts_rate": 0.5,
-    "over25_rate": 0.75,
-    "matches_used": 20
-  },
-  "Panama": {
-    "goals_scored_avg": 1.7,
-    "goals_conceded_avg": 1.1,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.5,
-    "draw_rate": 0.35,
-    "btts_rate": 0.6,
-    "over25_rate": 0.45,
-    "matches_used": 20
-  },
-  "Scotland": {
-    "goals_scored_avg": 1.35,
+  "Switzerland": {
+    "goals_scored_avg": 1.9,
     "goals_conceded_avg": 1.25,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.4,
-    "draw_rate": 0.15,
+    "draw_rate": 0.35,
+    "btts_rate": 0.55,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "Jordan": {
+    "goals_scored_avg": 1.65,
+    "goals_conceded_avg": 1.3,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
+    "draw_rate": 0.25,
+    "btts_rate": 0.55,
+    "over25_rate": 0.6,
+    "matches_used": 20
+  },
+  "Belgium": {
+    "goals_scored_avg": 2.25,
+    "goals_conceded_avg": 1.15,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
+    "draw_rate": 0.3,
     "btts_rate": 0.5,
+    "over25_rate": 0.55,
+    "matches_used": 20
+  },
+  "Sweden": {
+    "goals_scored_avg": 2.05,
+    "goals_conceded_avg": 1.45,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.5,
+    "draw_rate": 0.15,
+    "btts_rate": 0.55,
+    "over25_rate": 0.7,
+    "matches_used": 20
+  },
+  "Ghana": {
+    "goals_scored_avg": 1.6,
+    "goals_conceded_avg": 1.2,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
+    "draw_rate": 0.2,
+    "btts_rate": 0.45,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "Senegal": {
+    "goals_scored_avg": 2.35,
+    "goals_conceded_avg": 0.6,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.75,
+    "draw_rate": 0.15,
+    "btts_rate": 0.3,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "Portugal": {
+    "goals_scored_avg": 2.2,
+    "goals_conceded_avg": 0.9,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.55,
+    "draw_rate": 0.35,
+    "btts_rate": 0.55,
     "over25_rate": 0.55,
     "matches_used": 20
   },
@@ -371,6 +283,17 @@
     "draw_rate": 0.25,
     "btts_rate": 0.35,
     "over25_rate": 0.4,
+    "matches_used": 20
+  },
+  "Qatar": {
+    "goals_scored_avg": 1.3,
+    "goals_conceded_avg": 1.95,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.25,
+    "draw_rate": 0.3,
+    "btts_rate": 0.7,
+    "over25_rate": 0.7,
     "matches_used": 20
   },
   "Mexico": {
@@ -395,70 +318,15 @@
     "over25_rate": 0.25,
     "matches_used": 20
   },
-  "Congo DR": {
-    "goals_scored_avg": 1.45,
-    "goals_conceded_avg": 0.55,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.7,
-    "draw_rate": 0.1,
-    "btts_rate": 0.3,
-    "over25_rate": 0.25,
-    "matches_used": 20
-  },
-  "Uzbekistan": {
+  "Scotland": {
     "goals_scored_avg": 1.35,
-    "goals_conceded_avg": 0.65,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.5,
-    "draw_rate": 0.4,
-    "btts_rate": 0.35,
-    "over25_rate": 0.4,
-    "matches_used": 20
-  },
-  "Egypt": {
-    "goals_scored_avg": 1.25,
-    "goals_conceded_avg": 0.65,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.5,
-    "draw_rate": 0.35,
-    "btts_rate": 0.3,
-    "over25_rate": 0.3,
-    "matches_used": 20
-  },
-  "Iraq": {
-    "goals_scored_avg": 1.0,
-    "goals_conceded_avg": 0.95,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.5,
-    "draw_rate": 0.2,
-    "btts_rate": 0.4,
-    "over25_rate": 0.35,
-    "matches_used": 20
-  },
-  "Paraguay": {
-    "goals_scored_avg": 1.1,
-    "goals_conceded_avg": 1.1,
+    "goals_conceded_avg": 1.25,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.4,
-    "draw_rate": 0.3,
-    "btts_rate": 0.5,
-    "over25_rate": 0.5,
-    "matches_used": 20
-  },
-  "Argentina": {
-    "goals_scored_avg": 2.15,
-    "goals_conceded_avg": 0.5,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.7,
     "draw_rate": 0.15,
-    "btts_rate": 0.35,
-    "over25_rate": 0.45,
+    "btts_rate": 0.5,
+    "over25_rate": 0.55,
     "matches_used": 20
   },
   "Morocco": {
@@ -472,37 +340,37 @@
     "over25_rate": 0.35,
     "matches_used": 20
   },
-  "Portugal": {
-    "goals_scored_avg": 2.2,
+  "Norway": {
+    "goals_scored_avg": 2.95,
     "goals_conceded_avg": 0.9,
     "shots_target_avg": null,
     "corners_avg": null,
-    "win_rate": 0.55,
-    "draw_rate": 0.35,
-    "btts_rate": 0.55,
-    "over25_rate": 0.55,
-    "matches_used": 20
-  },
-  "Germany": {
-    "goals_scored_avg": 2.45,
-    "goals_conceded_avg": 1.05,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.65,
+    "win_rate": 0.7,
     "draw_rate": 0.15,
     "btts_rate": 0.5,
-    "over25_rate": 0.65,
+    "over25_rate": 0.75,
     "matches_used": 20
   },
-  "Austria": {
-    "goals_scored_avg": 2.35,
-    "goals_conceded_avg": 0.85,
+  "Australia": {
+    "goals_scored_avg": 1.75,
+    "goals_conceded_avg": 0.75,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.6,
     "draw_rate": 0.2,
-    "btts_rate": 0.55,
-    "over25_rate": 0.5,
+    "btts_rate": 0.4,
+    "over25_rate": 0.45,
+    "matches_used": 20
+  },
+  "Egypt": {
+    "goals_scored_avg": 1.25,
+    "goals_conceded_avg": 0.65,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.5,
+    "draw_rate": 0.35,
+    "btts_rate": 0.3,
+    "over25_rate": 0.3,
     "matches_used": 20
   },
   "Iran": {
@@ -516,15 +384,147 @@
     "over25_rate": 0.5,
     "matches_used": 20
   },
-  "Netherlands": {
-    "goals_scored_avg": 2.55,
-    "goals_conceded_avg": 1.05,
+  "Panama": {
+    "goals_scored_avg": 1.7,
+    "goals_conceded_avg": 1.1,
     "shots_target_avg": null,
     "corners_avg": null,
     "win_rate": 0.5,
-    "draw_rate": 0.4,
-    "btts_rate": 0.65,
+    "draw_rate": 0.35,
+    "btts_rate": 0.6,
+    "over25_rate": 0.45,
+    "matches_used": 20
+  },
+  "Japan": {
+    "goals_scored_avg": 2.6,
+    "goals_conceded_avg": 0.45,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.7,
+    "draw_rate": 0.2,
+    "btts_rate": 0.2,
+    "over25_rate": 0.5,
+    "matches_used": 20
+  },
+  "Congo DR": {
+    "goals_scored_avg": 1.45,
+    "goals_conceded_avg": 0.55,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.7,
+    "draw_rate": 0.1,
+    "btts_rate": 0.3,
+    "over25_rate": 0.25,
+    "matches_used": 20
+  },
+  "England": {
+    "goals_scored_avg": 2.3,
+    "goals_conceded_avg": 0.55,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.75,
+    "draw_rate": 0.05,
+    "btts_rate": 0.3,
+    "over25_rate": 0.55,
+    "matches_used": 20
+  },
+  "United States": {
+    "goals_scored_avg": 1.75,
+    "goals_conceded_avg": 1.45,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.5,
+    "draw_rate": 0.1,
+    "btts_rate": 0.6,
+    "over25_rate": 0.7,
+    "matches_used": 20
+  },
+  "Cape Verde Islands": {
+    "goals_scored_avg": 1.25,
+    "goals_conceded_avg": 0.95,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
+    "draw_rate": 0.35,
+    "btts_rate": 0.4,
+    "over25_rate": 0.3,
+    "matches_used": 20
+  },
+  "Argentina": {
+    "goals_scored_avg": 2.15,
+    "goals_conceded_avg": 0.5,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.7,
+    "draw_rate": 0.15,
+    "btts_rate": 0.35,
+    "over25_rate": 0.45,
+    "matches_used": 20
+  },
+  "Czechia": {
+    "goals_scored_avg": 1.75,
+    "goals_conceded_avg": 1.2,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.45,
+    "draw_rate": 0.35,
+    "btts_rate": 0.6,
+    "over25_rate": 0.55,
+    "matches_used": 20
+  },
+  "Colombia": {
+    "goals_scored_avg": 1.7,
+    "goals_conceded_avg": 1.1,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.4,
+    "draw_rate": 0.25,
+    "btts_rate": 0.5,
+    "over25_rate": 0.6,
+    "matches_used": 20
+  },
+  "Ecuador": {
+    "goals_scored_avg": 0.8,
+    "goals_conceded_avg": 0.35,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.3,
+    "draw_rate": 0.65,
+    "btts_rate": 0.3,
+    "over25_rate": 0.1,
+    "matches_used": 20
+  },
+  "New Zealand": {
+    "goals_scored_avg": 2.55,
+    "goals_conceded_avg": 1.0,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.5,
+    "draw_rate": 0.1,
+    "btts_rate": 0.35,
     "over25_rate": 0.65,
+    "matches_used": 20
+  },
+  "Algeria": {
+    "goals_scored_avg": 2.15,
+    "goals_conceded_avg": 0.6,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.7,
+    "draw_rate": 0.2,
+    "btts_rate": 0.35,
+    "over25_rate": 0.45,
+    "matches_used": 20
+  },
+  "Ivory Coast": {
+    "goals_scored_avg": 1.7,
+    "goals_conceded_avg": 0.5,
+    "shots_target_avg": null,
+    "corners_avg": null,
+    "win_rate": 0.6,
+    "draw_rate": 0.15,
+    "btts_rate": 0.15,
+    "over25_rate": 0.35,
     "matches_used": 20
   }
 }
