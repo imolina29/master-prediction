@@ -5,7 +5,15 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-FEATURES_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "features"
+
+def _find_project_root() -> Path:
+    file_based = Path(__file__).resolve().parent.parent.parent
+    if (file_based / "pyproject.toml").exists():
+        return file_based
+    return Path.cwd()
+
+
+FEATURES_DIR = _find_project_root() / "data" / "features"
 
 
 def _expand_to_team_rows(df: pd.DataFrame) -> pd.DataFrame:

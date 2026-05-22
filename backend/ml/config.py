@@ -1,6 +1,14 @@
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
+def _find_project_root() -> Path:
+    file_based = Path(__file__).resolve().parent.parent.parent
+    if (file_based / "pyproject.toml").exists():
+        return file_based
+    return Path.cwd()
+
+
+PROJECT_ROOT = _find_project_root()
 MODELS_DIR = PROJECT_ROOT / "models"
 FEATURES_PATH = PROJECT_ROOT / "data" / "features" / "team_features.parquet"
 BACKTEST_RESULTS_PATH = PROJECT_ROOT / "data" / "backtest_results.json"

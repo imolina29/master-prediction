@@ -7,21 +7,38 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-FEATURES_PATH = (
-    Path(__file__).resolve().parent.parent / "data" / "features" / "team_features.parquet"
-)
+def _find_project_root() -> Path:
+    file_based = Path(__file__).resolve().parent.parent
+    if (file_based / "pyproject.toml").exists():
+        return file_based
+    return Path.cwd()
+
+
+PROJECT_ROOT = _find_project_root()
+load_dotenv(PROJECT_ROOT / ".env")
+
+FEATURES_PATH = PROJECT_ROOT / "data" / "features" / "team_features.parquet"
 
 _supabase: Client | None = None
+
+
+def _get_secret(key: str, default: str = "") -> str:
+    val = os.environ.get(key, "")
+    if val:
+        return val
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
 
 
 def get_supabase_client() -> Client:
     global _supabase
     if _supabase is None:
         _supabase = create_client(
-            os.environ["SUPABASE_URL"],
-            os.environ.get("SUPABASE_SERVICE_KEY", os.environ.get("SUPABASE_KEY", "")),
+            _get_secret("SUPABASE_URL"),
+            _get_secret("SUPABASE_SERVICE_KEY") or _get_secret("SUPABASE_KEY"),
         )
     return _supabase
 
