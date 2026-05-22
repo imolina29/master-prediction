@@ -64,7 +64,7 @@ def form_indicator(matches_df: pd.DataFrame, team: str, n: int = 5) -> str:
         ]
     )
     all_matches = all_matches.sort_values("match_date", ascending=False)
-    last_n = all_matches.head(n)["result"].tolist()
+    last_n = all_matches.head(n)["result"].dropna().tolist()
     return " ".join(last_n)
 
 
