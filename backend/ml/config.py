@@ -34,11 +34,21 @@ _HOME_BASE = [
     "home_over25_rate",
 ]
 
+_HOME_MULTI_WINDOW = [
+    "home_goals_scored_avg_3",
+    "home_goals_conceded_avg_3",
+    "home_win_rate_3",
+    "home_goals_scored_avg_10",
+    "home_goals_conceded_avg_10",
+    "home_win_rate_10",
+]
+
 _AWAY_BASE = [c.replace("home_", "away_") for c in _HOME_BASE]
+_AWAY_MULTI_WINDOW = [c.replace("home_", "away_") for c in _HOME_MULTI_WINDOW]
 
 _CONTEXT = ["home_elo", "away_elo", "elo_diff"]
 
-BASE_FEATURES = _HOME_BASE + _AWAY_BASE + _CONTEXT
+BASE_FEATURES = _HOME_BASE + _HOME_MULTI_WINDOW + _AWAY_BASE + _AWAY_MULTI_WINDOW + _CONTEXT
 
 _HOME_XG = [
     "home_xg_for_avg",
@@ -48,7 +58,15 @@ _HOME_XG = [
 ]
 _AWAY_XG = [c.replace("home_", "away_") for c in _HOME_XG]
 
-PREMIUM_FEATURES = _HOME_BASE + _HOME_XG + _AWAY_BASE + _AWAY_XG + _CONTEXT
+PREMIUM_FEATURES = (
+    _HOME_BASE
+    + _HOME_MULTI_WINDOW
+    + _HOME_XG
+    + _AWAY_BASE
+    + _AWAY_MULTI_WINDOW
+    + _AWAY_XG
+    + _CONTEXT
+)
 
 SEASON_BOUNDARIES = [
     {

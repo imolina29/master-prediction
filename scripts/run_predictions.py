@@ -27,6 +27,12 @@ def _build_feature_row_from_national(features: dict, home: str, away: str, match
         "draw_rate",
         "btts_rate",
         "over25_rate",
+        "goals_scored_avg_3",
+        "goals_conceded_avg_3",
+        "win_rate_3",
+        "goals_scored_avg_10",
+        "goals_conceded_avg_10",
+        "win_rate_10",
     ]
     for col in rolling_cols:
         feature_row[f"home_{col}"] = home_feat.get(col)
@@ -122,6 +128,12 @@ def main():
                 "xg_against_avg",
                 "xg_diff_avg",
                 "xg_overperformance",
+                "goals_scored_avg_3",
+                "goals_conceded_avg_3",
+                "win_rate_3",
+                "goals_scored_avg_10",
+                "goals_conceded_avg_10",
+                "win_rate_10",
             ]
             for col in rolling_cols:
                 feature_row[f"home_{col}"] = latest_home.get(col, float("nan"))

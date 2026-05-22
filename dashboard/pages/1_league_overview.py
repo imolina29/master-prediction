@@ -1,11 +1,14 @@
 import streamlit as st
 
+from dashboard.auth import check_auth
 from dashboard.components.tables import form_indicator, standings_table
 from dashboard.components.theme import apply_theme
 from dashboard.data_access import DIVISION_NAMES, get_seasons, load_matches, load_xg
 
 st.set_page_config(page_title="Vista de Liga", page_icon="📊", layout="wide")
 apply_theme()
+if not check_auth():
+    st.stop()
 st.title("📊 Vista de Liga")
 
 col1, col2 = st.columns(2)

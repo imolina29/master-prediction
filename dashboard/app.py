@@ -2,12 +2,16 @@ import pandas as pd
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
+from dashboard.auth import check_auth
 from dashboard.components.theme import apply_theme
 from dashboard.components.value_bets import _market_label, _result_badge, _stake_badge
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
 st.set_page_config(page_title="Master Prediction", page_icon="⚽", layout="wide")
 apply_theme()
+
+if not check_auth():
+    st.stop()
 
 st.markdown(
     '<h1 style="text-align:center; font-size:2.8rem;">'

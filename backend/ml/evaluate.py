@@ -33,8 +33,8 @@ def evaluate_fold(
     x_test = x_test[valid_test]
     y_test = y_test[valid_test].astype(int)
 
-    model = XGBClassifier(**params)
-    model.fit(x_train, y_train)
+    model = XGBClassifier(**params, early_stopping_rounds=20)
+    model.fit(x_train, y_train, eval_set=[(x_test, y_test)], verbose=False)
 
     y_pred = model.predict(x_test)
     y_proba = model.predict_proba(x_test)

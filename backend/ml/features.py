@@ -19,6 +19,12 @@ _TEAM_ROLLING_COLS = [
     "xg_against_avg",
     "xg_diff_avg",
     "xg_overperformance",
+    "goals_scored_avg_3",
+    "goals_conceded_avg_3",
+    "win_rate_3",
+    "goals_scored_avg_10",
+    "goals_conceded_avg_10",
+    "win_rate_10",
 ]
 
 _MATCH_MERGE_COLS = [

@@ -1,5 +1,6 @@
 import streamlit as st
 
+from dashboard.auth import check_auth
 from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
 from dashboard.components.tables import last_n_results
 from dashboard.components.theme import apply_theme
@@ -13,6 +14,8 @@ from dashboard.data_access import (
 
 st.set_page_config(page_title="Analisis de Equipo", page_icon="🔍", layout="wide")
 apply_theme()
+if not check_auth():
+    st.stop()
 st.title("🔍 Analisis de Equipo")
 
 col1, col2, col3 = st.columns(3)

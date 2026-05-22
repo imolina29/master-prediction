@@ -1,7 +1,10 @@
+from datetime import date, timedelta
+
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
 from backend.betting.value import calculate_edge
+from dashboard.auth import check_auth
 from dashboard.components.performance import (
     market_breakdown_table,
     performance_kpis,
@@ -13,6 +16,8 @@ from dashboard.data_access import DIVISION_NAMES, get_supabase_client
 
 st.set_page_config(page_title="Value Bets", page_icon="💰", layout="wide")
 apply_theme()
+if not check_auth():
+    st.stop()
 st.title("💰 Value Bets")
 
 with st.expander("Guia de terminos"):
@@ -34,7 +39,7 @@ client = get_supabase_client()
 # --- Section 1: Picks del Dia ---
 st.header("Analisis de Partidos")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     leagues = ["Todas"] + list(DIVISION_NAMES.keys())
     league_filter = st.selectbox(
@@ -44,12 +49,20 @@ with col1:
     )
 with col2:
     stake_filter = st.selectbox("Filtro", ["Todos los partidos", "Solo recomendados", "≥2u", "3u"])
+with col3:
+    date_range = st.date_input(
+        "Rango de fechas",
+        value=(date.today(), date.today() + timedelta(days=7)),
+        format="YYYY-MM-DD",
+    )
 
 # Fetch value bets (picks with edge)
 try:
     query = client.table("value_bets").select("*").is_("result", "null").order("match_date")
     if league_filter != "Todas":
         query = query.eq("division", league_filter)
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        query = query.gte("match_date", str(date_range[0])).lte("match_date", str(date_range[1]))
     resp = query.execute()
     value_bets = resp.data or []
 except Exception:

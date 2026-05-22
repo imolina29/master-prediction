@@ -113,6 +113,18 @@ def compute_team_features(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
         include_groups=False,
     ).reset_index(level=0, drop=True)
 
+    for w in (3, 10):
+        s = f"_{w}"
+        expanded[f"goals_scored_avg{s}"] = grouped["goals_scored"].transform(
+            lambda col: col.shift(1).rolling(w, min_periods=1).mean()
+        )
+        expanded[f"goals_conceded_avg{s}"] = grouped["goals_conceded"].transform(
+            lambda col: col.shift(1).rolling(w, min_periods=1).mean()
+        )
+        expanded[f"win_rate{s}"] = grouped["win"].transform(
+            lambda col: col.shift(1).astype(float).rolling(w, min_periods=1).mean()
+        )
+
     logger.info("Computed features for %d team-match rows", len(expanded))
     return expanded
 
