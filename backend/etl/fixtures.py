@@ -63,6 +63,59 @@ def _api_get(path: str, token: str, params: dict | None = None) -> dict:
     return resp.json()
 
 
+def _current_season_year() -> int:
+    from datetime import date
+
+    today = date.today()
+    return today.year if today.month >= 7 else today.year - 1
+
+
+def fetch_finished_matches(
+    competition_code: str, token: str, season: int | None = None
+) -> list[dict]:
+    season = season or _current_season_year()
+    data = _api_get(
+        f"/competitions/{competition_code}/matches",
+        token,
+        params={"status": "FINISHED", "season": season},
+    )
+    matches = data.get("matches", [])
+    logger.info(
+        "Fetched %d finished matches for %s (season %d)", len(matches), competition_code, season
+    )
+    return matches
+
+
+def parse_finished_match(raw: dict, division: str, normalizer: TeamNormalizer) -> dict | None:
+    home_raw = raw["homeTeam"].get("name")
+    away_raw = raw["awayTeam"].get("name")
+    if not home_raw or not away_raw:
+        return None
+
+    score = raw.get("score", {}).get("fullTime", {})
+    home_goals = score.get("home")
+    away_goals = score.get("away")
+    if home_goals is None or away_goals is None:
+        return None
+
+    if home_goals > away_goals:
+        result = "H"
+    elif away_goals > home_goals:
+        result = "A"
+    else:
+        result = "D"
+
+    return {
+        "division": division,
+        "match_date": raw["utcDate"][:10],
+        "home_team": normalizer.normalize(home_raw),
+        "away_team": normalizer.normalize(away_raw),
+        "ft_home_goals": home_goals,
+        "ft_away_goals": away_goals,
+        "ft_result": result,
+    }
+
+
 def fetch_fixtures(competition_code: str, token: str) -> list[dict]:
     data = _api_get(
         f"/competitions/{competition_code}/matches",
@@ -259,3 +312,29 @@ def run_fixtures_sync() -> dict:
         "total_fixtures": total_fixtures,
         "national_teams_with_features": len(national_features),
     }
+
+
+def run_current_season_sync() -> dict:
+    token = _get_token()
+    normalizer = TeamNormalizer()
+    season = _current_season_year()
+
+    total_loaded = 0
+    for api_code, division in COMPETITION_MAP.items():
+        try:
+            raw = fetch_finished_matches(api_code, token, season)
+        except httpx.HTTPStatusError as e:
+            logger.warning("Failed to fetch finished for %s: %s", api_code, e)
+            time.sleep(RATE_LIMIT_DELAY)
+            continue
+
+        records = [
+            r for m in raw if (r := parse_finished_match(m, division, normalizer)) is not None
+        ]
+
+        loaded = load_fixtures(records)
+        total_loaded += loaded
+        logger.info("%s → %s: %d results loaded (season %d)", api_code, division, loaded, season)
+        time.sleep(RATE_LIMIT_DELAY)
+
+    return {"season": season, "total_results": total_loaded}
