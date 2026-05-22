@@ -33,7 +33,8 @@ with col2:
     seasons = get_seasons(league)
     season = st.selectbox("Temporada", seasons if seasons else ["Sin datos"])
 with col3:
-    teams = get_teams(league)
+    sel_season = season if season != "Sin datos" else None
+    teams = get_teams(league, season=sel_season)
     team = st.selectbox("Equipo", teams if teams else ["Sin datos"])
 
 if team and team != "Sin datos" and season != "Sin datos":

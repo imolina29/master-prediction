@@ -5,7 +5,13 @@ from backend.services.features import compute_h2h_features
 from dashboard.auth import check_auth
 from dashboard.components.charts import radar_chart
 from dashboard.components.theme import apply_theme, section_header, stat_card
-from dashboard.data_access import DIVISION_NAMES, get_teams, load_features, load_matches
+from dashboard.data_access import (
+    DIVISION_NAMES,
+    get_seasons,
+    get_teams,
+    load_features,
+    load_matches,
+)
 
 st.set_page_config(page_title="Comparador de Partidos", page_icon="⚔️", layout="wide")
 apply_theme()
@@ -25,7 +31,9 @@ with col1:
         format_func=lambda x: DIVISION_NAMES[x],
     )
 with col2:
-    teams = get_teams(league)
+    seasons = get_seasons(league)
+    current_season = seasons[0] if seasons else None
+    teams = get_teams(league, season=current_season)
     team_a = st.selectbox("Equipo A", teams if teams else ["Sin datos"])
 with col3:
     other_teams = [t for t in teams if t != team_a] if teams else ["Sin datos"]

@@ -113,8 +113,8 @@ def get_seasons(division: str) -> list[str]:
     return [f"{y}/{y + 1}" for y in starts]
 
 
-def get_teams(division: str) -> list[str]:
-    df = load_matches(division)
+def get_teams(division: str, season: str | None = None) -> list[str]:
+    df = load_matches(division, season=season)
     if df.empty:
         return []
     teams = sorted(set(df["home_team"].unique()) | set(df["away_team"].unique()))
