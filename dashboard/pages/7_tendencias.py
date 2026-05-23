@@ -1,8 +1,7 @@
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
-from dashboard.auth import check_auth
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.components.theme import section_header, stat_card
 from dashboard.components.trends import (
     league_heatmap,
     market_comparison_chart,
@@ -10,11 +9,6 @@ from dashboard.components.trends import (
     stake_analysis_table,
 )
 from dashboard.data_access import get_supabase_client
-
-st.set_page_config(page_title="Tendencias", page_icon="📈", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 
 st.markdown(
     '<h1 style="font-size:2rem;">📈 Tendencias</h1>',

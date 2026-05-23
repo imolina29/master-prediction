@@ -1,18 +1,12 @@
 import streamlit as st
 
 from backend.ml.config import BACKTEST_RESULTS_PATH
-from dashboard.auth import check_auth
 from dashboard.components.calibration import (
     build_calibration_data,
     model_comparison_chart,
 )
 from dashboard.components.metrics import load_backtest_results
-from dashboard.components.theme import apply_theme, section_header, stat_card
-
-st.set_page_config(page_title="Calibracion", page_icon="🎯", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
+from dashboard.components.theme import section_header, stat_card
 
 st.markdown(
     '<h1 style="font-size:2rem;">🎯 Calibracion del Modelo</h1>',

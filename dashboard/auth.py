@@ -185,19 +185,6 @@ def check_auth() -> bool:
         if expired:
             st.warning("Tu sesion ha expirado (30 min). Inicia sesion nuevamente.")
             st.rerun()
-
-        remaining = SESSION_TIMEOUT_SECONDS - (
-            time.time() - st.session_state.get("session_start", time.time())
-        )
-        minutes_left = max(0, int(remaining // 60))
-
-        user = get_current_user()
-        role_label = ROLE_LABELS.get(user["role"], user["role"]) if user else ""
-
-        with st.sidebar:
-            st.markdown(f"**{st.session_state.get('name', '')}**")
-            st.caption(f"{role_label} · {minutes_left} min restantes")
-            authenticator.logout("Cerrar sesion", "sidebar")
         return True
 
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
@@ -220,3 +207,30 @@ def check_auth() -> bool:
     st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
 
     return False
+
+
+def render_user_menu():
+    user = get_current_user()
+    if not user:
+        return
+
+    remaining = SESSION_TIMEOUT_SECONDS - (
+        time.time() - st.session_state.get("session_start", time.time())
+    )
+    minutes_left = max(0, int(remaining // 60))
+    role_label = ROLE_LABELS.get(user["role"], user["role"])
+
+    _, col_user = st.columns([8, 2])
+    with col_user:
+        with st.popover(f"👤 {user['name']}", use_container_width=True):
+            st.markdown(
+                f'<p style="margin:0;color:#e0e0e0;font-weight:600;">{user["name"]}</p>'
+                f'<p style="margin:0.2rem 0 0 0;color:#81C784;font-size:0.8rem;">'
+                f"{role_label}</p>",
+                unsafe_allow_html=True,
+            )
+            st.divider()
+            st.caption(f"⏱ {minutes_left} min restantes")
+            if st.button("🚪 Cerrar sesion", use_container_width=True):
+                _force_logout()
+                st.rerun()

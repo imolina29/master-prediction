@@ -2,9 +2,8 @@ import pandas as pd
 import streamlit as st
 
 from backend.services.features import compute_h2h_features
-from dashboard.auth import check_auth
 from dashboard.components.charts import radar_chart
-from dashboard.components.theme import apply_theme, section_header, stat_card
+from dashboard.components.theme import section_header, stat_card
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -12,11 +11,6 @@ from dashboard.data_access import (
     load_features,
     load_matches,
 )
-
-st.set_page_config(page_title="Comparador de Partidos", page_icon="⚔️", layout="wide")
-apply_theme()
-if not check_auth():
-    st.stop()
 
 st.markdown(
     '<h1 style="font-size:2rem;">⚔️ Comparador de Partidos</h1>',
