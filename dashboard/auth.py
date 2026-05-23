@@ -1,8 +1,10 @@
 import time
 from collections.abc import Mapping
 
+import bcrypt
 import streamlit as st
-import streamlit_authenticator as stauth
+
+from dashboard.data_access import get_supabase_client
 
 SESSION_TIMEOUT_SECONDS = 30 * 60
 
@@ -124,11 +126,69 @@ def _to_plain_dict(obj) -> dict:
     return result
 
 
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+
+
+def _authenticate_secrets(username: str, password: str) -> dict | None:
+    """Authenticate against Streamlit Secrets (admin fallback)."""
+    credentials = _deep_copy_secrets("credentials")
+    user_data = credentials.get(username)
+    if not user_data:
+        return None
+    stored_hash = user_data.get("password", "")
+    if not _verify_password(password, stored_hash):
+        return None
+    return {
+        "username": username,
+        "name": user_data.get("name", username),
+        "role": user_data.get("role", "viewer"),
+        "source": "secrets",
+        "must_change_password": False,
+    }
+
+
+def _authenticate_supabase(username: str, password: str) -> dict | None:
+    """Authenticate against app_users table in Supabase."""
+    try:
+        client = get_supabase_client()
+        resp = (
+            client.table("app_users")
+            .select("*")
+            .eq("username", username)
+            .eq("is_active", True)
+            .execute()
+        )
+        if not resp.data:
+            return None
+        user = resp.data[0]
+        if not _verify_password(password, user["password_hash"]):
+            return None
+        return {
+            "username": user["username"],
+            "name": user["name"],
+            "role": user["role"],
+            "source": "supabase",
+            "must_change_password": user.get("must_change_password", False),
+            "user_id": user["id"],
+        }
+    except Exception:
+        return None
+
+
 def _force_logout():
     st.session_state["authentication_status"] = None
     st.session_state["name"] = None
     st.session_state["username"] = None
     st.session_state.pop("session_start", None)
+    st.session_state.pop("user_source", None)
+    st.session_state.pop("user_role", None)
+    st.session_state.pop("must_change_password", None)
+    st.session_state.pop("user_id", None)
 
 
 def _check_session_timeout() -> bool:
@@ -142,20 +202,13 @@ def _check_session_timeout() -> bool:
     return False
 
 
-def _get_user_role(username: str) -> str:
-    credentials = _deep_copy_secrets("credentials")
-    user_data = credentials.get(username, {})
-    return user_data.get("role", "viewer")
-
-
 def get_current_user() -> dict | None:
     if not st.session_state.get("authentication_status"):
         return None
-    username = st.session_state.get("username", "")
     return {
-        "username": username,
+        "username": st.session_state.get("username", ""),
         "name": st.session_state.get("name", ""),
-        "role": _get_user_role(username),
+        "role": st.session_state.get("user_role", "viewer"),
     }
 
 
@@ -167,42 +220,85 @@ def require_admin() -> bool:
     return True
 
 
+def _do_login(username: str, password: str) -> dict | None:
+    """Try Secrets first, then Supabase."""
+    result = _authenticate_secrets(username, password)
+    if result:
+        return result
+    return _authenticate_supabase(username, password)
+
+
+def _handle_password_change():
+    """Force password change dialog for first-time users."""
+    st.warning("Debes cambiar tu contraseña antes de continuar.")
+    with st.form("change_password_form"):
+        new_pass = st.text_input("Nueva contraseña", type="password")
+        confirm_pass = st.text_input("Confirmar contraseña", type="password")
+        submitted = st.form_submit_button("Cambiar contraseña", use_container_width=True)
+
+    if submitted:
+        if not new_pass or len(new_pass) < 6:
+            st.error("La contraseña debe tener al menos 6 caracteres.")
+            return False
+        if new_pass != confirm_pass:
+            st.error("Las contraseñas no coinciden.")
+            return False
+        try:
+            client = get_supabase_client()
+            client.table("app_users").update(
+                {
+                    "password_hash": _hash_password(new_pass),
+                    "must_change_password": False,
+                }
+            ).eq("id", st.session_state["user_id"]).execute()
+            st.session_state["must_change_password"] = False
+            st.success("Contraseña actualizada correctamente.")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error al cambiar contraseña: {e}")
+            return False
+    return False
+
+
 def check_auth() -> bool:
-    credentials = _deep_copy_secrets("credentials")
-    if not credentials:
-        return True
-
-    cookie = _deep_copy_secrets("cookie")
-
-    authenticator = stauth.Authenticate(
-        {"usernames": credentials},
-        cookie.get("name", "master_prediction_auth"),
-        cookie.get("key", "default_key"),
-        cookie.get("expiry_days", 0.0208),
-    )
-
     if st.session_state.get("authentication_status"):
         expired = _check_session_timeout()
         if expired:
             st.warning("Tu sesion ha expirado (30 min). Inicia sesion nuevamente.")
             st.rerun()
+        if st.session_state.get("must_change_password"):
+            _handle_password_change()
+            return False
         return True
 
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
     st.markdown(LOGIN_HEADER, unsafe_allow_html=True)
 
-    authenticator.login()
+    with st.form("login_form"):
+        username = st.text_input("Usuario")
+        password = st.text_input("Contraseña", type="password")
+        submitted = st.form_submit_button("Iniciar sesion", use_container_width=True)
 
-    if st.session_state.get("authentication_status"):
-        st.session_state["session_start"] = time.time()
-        st.rerun()
+    if submitted and username and password:
+        user = _do_login(username, password)
+        if user:
+            st.session_state["authentication_status"] = True
+            st.session_state["username"] = user["username"]
+            st.session_state["name"] = user["name"]
+            st.session_state["user_role"] = user["role"]
+            st.session_state["user_source"] = user["source"]
+            st.session_state["must_change_password"] = user["must_change_password"]
+            st.session_state["session_start"] = time.time()
+            if user.get("user_id"):
+                st.session_state["user_id"] = user["user_id"]
+            st.rerun()
 
     _, center, _ = st.columns([1.5, 2, 1.5])
     with center:
-        if st.session_state.get("authentication_status") is False:
+        if submitted and username and password:
             st.error("Usuario o contraseña incorrectos")
 
-        if st.session_state.get("authentication_status") is None:
+        if not submitted:
             st.info("Ingresa tus credenciales para acceder")
 
         if st.button("📋 Solicitar acceso", key="btn_register", use_container_width=True):
@@ -229,8 +325,6 @@ def _show_access_request():
             st.warning("Nombre y email son obligatorios.")
             return
         try:
-            from dashboard.data_access import get_supabase_client
-
             client = get_supabase_client()
             client.table("access_requests").insert(
                 {"name": name, "email": email, "reason": reason}
