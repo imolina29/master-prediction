@@ -13,21 +13,8 @@ LOGIN_CSS = """
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
-/* ── Remove top padding from main block ── */
-.stMainBlockContainer { padding-top: 1rem !important; }
-
-/* ── Center the entire login page ── */
-.login-wrapper {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-.login-wrapper [data-testid="stAlert"],
-.login-wrapper [data-testid="stButton"] {
-    max-width: 420px;
-    margin-left: auto;
-    margin-right: auto;
-}
+/* ── Compact main block for login ── */
+.stMainBlockContainer { padding-top: 1rem !important; padding-bottom: 0 !important; }
 
 /* ── Login container ── */
 [data-testid="stForm"] {
@@ -77,36 +64,8 @@ LOGIN_CSS = """
     font-weight: 500 !important;
 }
 
-/* ── Alerts centered ── */
-.login-wrapper [data-testid="stAlert"] {
-    border-radius: 10px;
-}
-
-/* ── Register link ── */
-.register-link {
-    text-align: center;
-    margin-top: 1.5rem;
-}
-.register-link button {
-    background: none !important;
-    border: 1px solid rgba(76, 175, 80, 0.25) !important;
-    border-radius: 8px !important;
-    color: #81C784 !important;
-    font-size: 0.85rem !important;
-    padding: 0.5rem 1.5rem !important;
-    cursor: pointer;
-    transition: all 0.2s ease !important;
-    width: 100%;
-}
-.register-link button:hover {
-    border-color: #4CAF50 !important;
-    color: #a5d6a7 !important;
-    background: rgba(46, 125, 50, 0.1) !important;
-}
-
 /* ── Responsive ── */
 @media (max-width: 480px) {
-    .login-wrapper { padding: 0 0.5rem; }
     [data-testid="stForm"] { padding: 1.5rem 1.2rem; }
 }
 </style>
@@ -139,7 +98,7 @@ LOGIN_HEADER = """
 """
 
 LOGIN_FOOTER = """
-<div style="text-align: center; padding: 2rem 0 1rem 0;">
+<div style="text-align: center; padding: 0.8rem 0 0;">
     <p style="color: rgba(160, 160, 160, 0.6); font-size: 0.75rem; letter-spacing: 0.5px;">
         Powered by AI &middot; v1.0
     </p>
@@ -232,24 +191,24 @@ def check_auth() -> bool:
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
     st.markdown(LOGIN_HEADER, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
     authenticator.login()
 
     if st.session_state.get("authentication_status"):
         st.session_state["session_start"] = time.time()
         st.rerun()
 
-    if st.session_state.get("authentication_status") is False:
-        st.error("Usuario o contraseña incorrectos")
+    _, center, _ = st.columns([1.5, 2, 1.5])
+    with center:
+        if st.session_state.get("authentication_status") is False:
+            st.error("Usuario o contraseña incorrectos")
 
-    if st.session_state.get("authentication_status") is None:
-        st.info("Ingresa tus credenciales para acceder")
+        if st.session_state.get("authentication_status") is None:
+            st.info("Ingresa tus credenciales para acceder")
 
-    if st.button("📋 Solicitar acceso", key="btn_register"):
-        _show_access_request()
+        if st.button("📋 Solicitar acceso", key="btn_register", use_container_width=True):
+            _show_access_request()
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
+        st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
 
     return False
 
