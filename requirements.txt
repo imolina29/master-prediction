@@ -23,6 +23,7 @@ streamlit>=1.40.0
 plotly>=5.24.0
 streamlit-authenticator>=0.4.0
 bcrypt>=4.0.0
+resend>=2.0.0
 
 # ETL / Scraping
 requests>=2.32.0

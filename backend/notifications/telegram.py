@@ -17,6 +17,16 @@ MARKET_LABELS = {
 
 STAKE_ICONS = {3: "🟢🟢🟢", 2: "🟢🟢", 1: "🟡"}
 
+DIVISION_FLAGS = {
+    "E0": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "SP1": "🇪🇸",
+    "I1": "🇮🇹",
+    "D1": "🇩🇪",
+    "F1": "🇫🇷",
+    "EC": "🏆",
+    "WC": "🌍",
+}
+
 
 def _get_chat_ids() -> list[str]:
     authorized = os.environ.get("TELEGRAM_AUTHORIZED_CHATS", "")
@@ -76,23 +86,43 @@ class TelegramNotifier:
             logger.info("No picks to notify")
             return []
 
-        lines = ["⚽ <b>Master Prediction</b> · {} Picks\n".format(len(picks))]
+        sorted_picks = sorted(picks, key=lambda p: (-p["stake"], -p["edge"]))
+        top5 = sorted_picks[:5]
 
-        for p in picks:
+        lines = [
+            "⚽ <b>Master Prediction</b>",
+            f"📅 Top {len(top5)} Picks del Dia",
+            "",
+        ]
+
+        for i, p in enumerate(top5, 1):
             icon = STAKE_ICONS.get(p["stake"], "🟡")
             market = MARKET_LABELS.get(p["market"], p["market"])
+            flag = DIVISION_FLAGS.get(p.get("division", ""), "")
+            conf_bar = "█" * p["stake"] + "░" * (3 - p["stake"])
+
+            lines.append(f"<b>{i}.</b> {flag} <b>{p['home_team']} vs {p['away_team']}</b>")
             lines.append(
-                f"{icon} <b>{p['home_team']} vs {p['away_team']}</b>\n"
-                f"   {market} · Cuota: {p['odd']:.2f} · Edge: {p['edge']:+.1%}"
+                f"   {icon} {market} · Cuota: <b>{p['odd']:.2f}</b> · Edge: <b>{p['edge']:+.1%}</b>"
             )
+            lines.append(f"   Confianza: [{conf_bar}] {p['stake']}u")
+            lines.append("")
+
+        if len(sorted_picks) > 5:
+            lines.append(f"📋 +{len(sorted_picks) - 5} picks mas en el dashboard")
+            lines.append("")
 
         if performance:
             profit = performance.get("profit", 0)
             roi = performance.get("roi", 0)
+            wins = performance.get("wins", 0)
+            total = performance.get("total_picks", 0)
+            hit_rate = performance.get("hit_rate", 0)
             emoji = "📈" if profit >= 0 else "📉"
-            lines.append(f"\n{emoji} ROI acumulado: <b>{roi:.1f}%</b> ({profit:+.1f}u)")
-
-        lines.append("\n👉 Analisis detallado en el dashboard")
+            lines.append("━━━━━━━━━━━━━━━━━━━━")
+            lines.append(f"{emoji} <b>Rendimiento Acumulado</b>")
+            lines.append(f"   Profit: <b>{profit:+.1f}u</b> · ROI: <b>{roi:.1f}%</b>")
+            lines.append(f"   Record: {wins}/{total} ({hit_rate:.0%} acierto)")
 
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
 
@@ -106,12 +136,15 @@ class TelegramNotifier:
 
         emoji = "🎉" if profit >= 0 else "😔"
         lines = [
-            f"{emoji} <b>Resultados del Dia</b> · {wins}✅ {losses}❌\n",
-            f"Profit: <b>{profit:+.2f}u</b>",
+            f"{emoji} <b>Resultados del Dia</b>",
+            f"✅ {wins} ganados · ❌ {losses} perdidos · Profit: <b>{profit:+.2f}u</b>",
+            "",
         ]
 
         for p in resolved_today:
             icon = "✅" if p.get("result") == "win" else "❌"
-            lines.append(f"{icon} {p['home_team']} vs {p['away_team']} · {p['profit']:+.2f}u")
+            lines.append(
+                f"{icon} {p['home_team']} vs {p['away_team']} · <b>{p['profit']:+.2f}u</b>"
+            )
 
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())

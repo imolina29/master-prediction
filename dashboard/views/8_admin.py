@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import streamlit as st
 
+from backend.notifications.email import send_welcome_email
 from dashboard.auth import _deep_copy_secrets, _hash_password, get_current_user, require_admin
 from dashboard.components.theme import section_header, stat_card
 from dashboard.data_access import get_supabase_client
@@ -78,12 +79,20 @@ def _approve_request(req: dict):
             ).eq("id", req["id"]).execute()
 
             st.success(f"Usuario **{username}** creado exitosamente.")
-            st.markdown(
-                f"**Credenciales para compartir:**\n\n"
-                f"- Usuario: `{username}`\n"
-                f"- Contraseña: `{temp_password}`"
-            )
-            st.caption("Copia estas credenciales antes de cerrar este dialogo.")
+
+            email_sent = send_welcome_email(req["email"], req["name"], username, temp_password)
+            if email_sent:
+                st.info(f"📧 Email con credenciales enviado a {req['email']}")
+            else:
+                st.markdown(
+                    f"**Credenciales para compartir manualmente:**\n\n"
+                    f"- Usuario: `{username}`\n"
+                    f"- Contraseña: `{temp_password}`"
+                )
+                st.caption(
+                    "No se pudo enviar email. Copia estas credenciales"
+                    " antes de cerrar este dialogo."
+                )
         except Exception as e:
             err = str(e).lower()
             if "duplicate" in err or "unique" in err:
