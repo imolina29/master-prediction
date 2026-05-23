@@ -11,7 +11,7 @@ from dashboard.components.performance import (
 )
 from dashboard.components.theme import section_header, stat_card
 from dashboard.components.value_bets import format_picks, format_resolved
-from dashboard.data_access import DIVISION_NAMES, get_supabase_client
+from dashboard.data_access import DIVISION_NAMES, get_resolved_picks, get_supabase_client
 
 st.markdown(
     '<h1 style="font-size:2rem;">💰 Value Bets</h1>',
@@ -63,7 +63,8 @@ try:
         query = query.gte("match_date", str(date_range[0])).lte("match_date", str(date_range[1]))
     resp = query.execute()
     value_bets = resp.data or []
-except Exception:
+except Exception as e:
+    st.error(f"Error al cargar value bets: {e}")
     value_bets = []
 
 # Fetch predictions + odds for matches WITHOUT value bets
@@ -88,7 +89,8 @@ try:
     matches_with_odds = {
         (m["match_date"], m["home_team"], m["away_team"]): m for m in (match_resp.data or [])
     }
-except Exception:
+except Exception as e:
+    st.error(f"Error al cargar predicciones: {e}")
     predictions = []
     matches_with_odds = {}
 
@@ -165,15 +167,9 @@ else:
 st.markdown(section_header("📈", "Rendimiento Historico"), unsafe_allow_html=True)
 
 try:
-    resolved_resp = (
-        client.table("value_bets")
-        .select("*")
-        .not_.is_("result", "null")
-        .order("match_date", desc=True)
-        .execute()
-    )
-    resolved_picks = resolved_resp.data or []
-except Exception:
+    resolved_picks = get_resolved_picks()
+except Exception as e:
+    st.error(f"Error al cargar historial: {e}")
     resolved_picks = []
 
 if resolved_picks:

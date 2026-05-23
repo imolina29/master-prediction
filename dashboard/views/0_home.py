@@ -4,7 +4,7 @@ import streamlit as st
 from backend.betting.tracker import calculate_performance
 from dashboard.components.theme import section_header, stat_card
 from dashboard.components.value_bets import _market_label, _result_badge, _stake_badge
-from dashboard.data_access import DIVISION_NAMES, get_supabase_client
+from dashboard.data_access import DIVISION_NAMES, get_active_picks, get_resolved_picks
 
 st.markdown(
     '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'
@@ -15,24 +15,16 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-client = get_supabase_client()
-
 try:
-    active_resp = client.table("value_bets").select("*").is_("result", "null").execute()
-    active_picks = active_resp.data or []
-except Exception:
+    active_picks = get_active_picks()
+except Exception as e:
+    st.error(f"Error al cargar picks activos: {e}")
     active_picks = []
 
 try:
-    resolved_resp = (
-        client.table("value_bets")
-        .select("*")
-        .not_.is_("result", "null")
-        .order("match_date", desc=True)
-        .execute()
-    )
-    resolved_picks = resolved_resp.data or []
-except Exception:
+    resolved_picks = get_resolved_picks()
+except Exception as e:
+    st.error(f"Error al cargar picks resueltos: {e}")
     resolved_picks = []
 
 recommended = [p for p in active_picks if p["stake"] >= 1]

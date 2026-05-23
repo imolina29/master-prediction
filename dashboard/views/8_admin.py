@@ -1,8 +1,10 @@
+import pandas as pd
 import streamlit as st
 import streamlit_authenticator as stauth
 
 from dashboard.auth import _deep_copy_secrets, require_admin
 from dashboard.components.theme import section_header, stat_card
+from dashboard.data_access import get_supabase_client
 
 if not require_admin():
     st.stop()
@@ -11,6 +13,42 @@ st.markdown(
     '<h1 style="font-size:2rem;">⚙️ Panel de Administracion</h1>',
     unsafe_allow_html=True,
 )
+
+# ── Solicitudes de acceso ──
+st.markdown(section_header("📋", "Solicitudes de Acceso"), unsafe_allow_html=True)
+
+try:
+    client = get_supabase_client()
+    req_resp = (
+        client.table("access_requests")
+        .select("*")
+        .order("created_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+    requests_data = req_resp.data or []
+except Exception:
+    requests_data = []
+
+if requests_data:
+    pending = [r for r in requests_data if r.get("status", "pending") == "pending"]
+    if pending:
+        st.warning(f"{len(pending)} solicitud(es) pendiente(s) de revision")
+
+    rows = []
+    for r in requests_data:
+        rows.append(
+            {
+                "Fecha": r.get("created_at", "")[:10],
+                "Nombre": r.get("name", "—"),
+                "Email": r.get("email", "—"),
+                "Motivo": r.get("reason", "—") or "—",
+                "Estado": r.get("status", "pending"),
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+else:
+    st.info("No hay solicitudes de acceso.")
 
 # ── Usuarios registrados ──
 st.markdown(section_header("👥", "Usuarios Registrados"), unsafe_allow_html=True)

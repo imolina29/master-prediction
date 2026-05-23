@@ -121,6 +121,26 @@ def get_teams(division: str, season: str | None = None) -> list[str]:
     return teams
 
 
+@st.cache_data(ttl=300)
+def get_active_picks() -> list[dict]:
+    client = get_supabase_client()
+    resp = client.table("value_bets").select("*").is_("result", "null").execute()
+    return resp.data or []
+
+
+@st.cache_data(ttl=300)
+def get_resolved_picks() -> list[dict]:
+    client = get_supabase_client()
+    resp = (
+        client.table("value_bets")
+        .select("*")
+        .not_.is_("result", "null")
+        .order("match_date", desc=True)
+        .execute()
+    )
+    return resp.data or []
+
+
 DIVISION_NAMES = {
     "E0": "Premier League",
     "SP1": "La Liga",

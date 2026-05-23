@@ -49,7 +49,8 @@ try:
         query = query.gte("match_date", str(date_range[0])).lte("match_date", str(date_range[1]))
     resp = query.limit(200).execute()
     preds_df = pd.DataFrame(resp.data)
-except Exception:
+except Exception as e:
+    st.error(f"Error al cargar predicciones: {e}")
     preds_df = pd.DataFrame()
 
 if not preds_df.empty:
