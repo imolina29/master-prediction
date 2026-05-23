@@ -13,9 +13,12 @@ LOGIN_CSS = """
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
+/* ── Compact main block for login ── */
+.stMainBlockContainer { padding-top: 1rem !important; padding-bottom: 0 !important; }
+
 /* ── Login container ── */
 [data-testid="stForm"] {
-    max-width: 380px;
+    max-width: 420px;
     margin: 0 auto;
     background: linear-gradient(145deg, rgba(27, 94, 32, 0.15), rgba(14, 17, 23, 0.95));
     border: 1px solid rgba(76, 175, 80, 0.25);
@@ -61,17 +64,15 @@ LOGIN_CSS = """
     font-weight: 500 !important;
 }
 
-/* ── Error/info alerts on login ── */
-.login-page [data-testid="stAlert"] {
-    max-width: 380px;
-    margin: 1rem auto;
-    border-radius: 10px;
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    [data-testid="stForm"] { padding: 1.5rem 1.2rem; }
 }
 </style>
 """
 
 LOGIN_HEADER = """
-<div style="text-align: center; padding: 3rem 0 1.5rem 0;">
+<div style="text-align: center; padding: 1rem 0 1.2rem 0;">
     <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚽</div>
     <h1 style="
         color: #4CAF50;
@@ -97,7 +98,7 @@ LOGIN_HEADER = """
 """
 
 LOGIN_FOOTER = """
-<div style="text-align: center; padding: 2rem 0 1rem 0;">
+<div style="text-align: center; padding: 0.8rem 0 0;">
     <p style="color: rgba(160, 160, 160, 0.6); font-size: 0.75rem; letter-spacing: 0.5px;">
         Powered by AI &middot; v1.0
     </p>
@@ -190,23 +191,56 @@ def check_auth() -> bool:
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
     st.markdown(LOGIN_HEADER, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-page">', unsafe_allow_html=True)
     authenticator.login()
 
     if st.session_state.get("authentication_status"):
         st.session_state["session_start"] = time.time()
         st.rerun()
 
-    if st.session_state.get("authentication_status") is False:
-        st.error("Usuario o contraseña incorrectos")
+    _, center, _ = st.columns([1.5, 2, 1.5])
+    with center:
+        if st.session_state.get("authentication_status") is False:
+            st.error("Usuario o contraseña incorrectos")
 
-    if st.session_state.get("authentication_status") is None:
-        st.info("Ingresa tus credenciales para acceder")
+        if st.session_state.get("authentication_status") is None:
+            st.info("Ingresa tus credenciales para acceder")
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
+        if st.button("📋 Solicitar acceso", key="btn_register", use_container_width=True):
+            _show_access_request()
+
+        st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
 
     return False
+
+
+@st.dialog("Solicitar Acceso")
+def _show_access_request():
+    st.markdown(
+        '<p style="color:#a5d6a7; font-size:0.9rem;">'
+        "Completa el formulario para solicitar acceso como Viewer.</p>",
+        unsafe_allow_html=True,
+    )
+    name = st.text_input("Nombre completo")
+    email = st.text_input("Email")
+    reason = st.text_area("Motivo (opcional)", height=80)
+
+    if st.button("Enviar solicitud", use_container_width=True, type="primary"):
+        if not name or not email:
+            st.warning("Nombre y email son obligatorios.")
+            return
+        try:
+            from dashboard.data_access import get_supabase_client
+
+            client = get_supabase_client()
+            client.table("access_requests").insert(
+                {"name": name, "email": email, "reason": reason}
+            ).execute()
+        except Exception:
+            pass
+        st.success(
+            "Solicitud enviada correctamente. "
+            "El administrador revisara tu solicitud y te contactara por email."
+        )
 
 
 def render_user_menu():
