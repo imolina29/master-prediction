@@ -14,29 +14,29 @@ def test_calculate_edge_negative():
 
 
 def test_classify_stake_3u():
-    assert classify_stake(0.12, "alta") == 3
+    assert classify_stake(0.16, "alta") == 3
 
 
 def test_classify_stake_2u():
-    assert classify_stake(0.08, "media") == 2
-    assert classify_stake(0.08, "alta") == 2
+    assert classify_stake(0.12, "media") == 2
+    assert classify_stake(0.12, "alta") == 2
 
 
 def test_classify_stake_1u():
-    assert classify_stake(0.06, "baja") == 1
+    assert classify_stake(0.09, "baja") == 1
 
 
 def test_classify_stake_skip():
-    assert classify_stake(0.04, "alta") == 0
-    assert classify_stake(0.05, "media") == 0
+    assert classify_stake(0.05, "alta") == 0
+    assert classify_stake(0.07, "media") == 0
 
 
 def test_classify_stake_2u_requires_media():
-    assert classify_stake(0.08, "baja") == 1
+    assert classify_stake(0.12, "baja") == 1
 
 
 def test_classify_stake_3u_requires_alta():
-    assert classify_stake(0.12, "media") == 2
+    assert classify_stake(0.16, "media") == 2
 
 
 def test_generate_picks_basic():
@@ -46,10 +46,10 @@ def test_generate_picks_basic():
             "home_team": "Arsenal",
             "away_team": "Chelsea",
             "division": "E0",
-            "prob_home": 0.55,
-            "prob_draw": 0.25,
-            "prob_away": 0.20,
-            "prob_over25": 0.65,
+            "prob_home": 0.60,
+            "prob_draw": 0.22,
+            "prob_away": 0.18,
+            "prob_over25": 0.70,
             "prob_btts": 0.50,
             "confidence": "alta",
             "model_variant": "premium",
@@ -71,7 +71,7 @@ def test_generate_picks_basic():
     picks = generate_picks(predictions, matches_with_odds)
     assert len(picks) > 0
     for pick in picks:
-        assert pick["edge"] > 0.05
+        assert pick["edge"] > 0.08
         assert pick["stake"] >= 1
         assert pick["market"] in ["1x2_home", "1x2_draw", "1x2_away", "over25", "under25"]
 

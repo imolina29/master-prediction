@@ -2,7 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-MIN_EDGE = 0.05
+MIN_EDGE = 0.08
 
 
 def calculate_edge(model_prob: float, odd: float) -> dict:
@@ -17,9 +17,9 @@ def calculate_edge(model_prob: float, odd: float) -> dict:
 
 
 def classify_stake(edge: float, confidence: str) -> int:
-    if edge > 0.10 and confidence == "alta":
+    if edge > 0.15 and confidence == "alta":
         return 3
-    if edge > 0.07 and confidence in ("alta", "media"):
+    if edge > 0.10 and confidence in ("alta", "media"):
         return 2
     if edge > MIN_EDGE:
         return 1

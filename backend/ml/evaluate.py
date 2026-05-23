@@ -63,7 +63,7 @@ def simulate_roi(
     probs: np.ndarray,
     actuals: np.ndarray,
     odds: pd.DataFrame,
-    threshold: float = 0.05,
+    threshold: float = 0.08,
 ) -> dict:
     total_bets = 0
     total_profit = 0.0
