@@ -13,9 +13,16 @@ LOGIN_CSS = """
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
+/* ── Center the entire login page ── */
+.login-wrapper {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
 /* ── Login container ── */
 [data-testid="stForm"] {
-    max-width: 380px;
+    max-width: 420px;
     margin: 0 auto;
     background: linear-gradient(145deg, rgba(27, 94, 32, 0.15), rgba(14, 17, 23, 0.95));
     border: 1px solid rgba(76, 175, 80, 0.25);
@@ -61,11 +68,37 @@ LOGIN_CSS = """
     font-weight: 500 !important;
 }
 
-/* ── Error/info alerts on login ── */
-.login-page [data-testid="stAlert"] {
-    max-width: 380px;
-    margin: 1rem auto;
+/* ── Alerts centered ── */
+.login-wrapper [data-testid="stAlert"] {
     border-radius: 10px;
+}
+
+/* ── Register link ── */
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+.register-link button {
+    background: none !important;
+    border: 1px solid rgba(76, 175, 80, 0.25) !important;
+    border-radius: 8px !important;
+    color: #81C784 !important;
+    font-size: 0.85rem !important;
+    padding: 0.5rem 1.5rem !important;
+    cursor: pointer;
+    transition: all 0.2s ease !important;
+    width: 100%;
+}
+.register-link button:hover {
+    border-color: #4CAF50 !important;
+    color: #a5d6a7 !important;
+    background: rgba(46, 125, 50, 0.1) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .login-wrapper { padding: 0 0.5rem; }
+    [data-testid="stForm"] { padding: 1.5rem 1.2rem; }
 }
 </style>
 """
@@ -190,7 +223,7 @@ def check_auth() -> bool:
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
     st.markdown(LOGIN_HEADER, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-page">', unsafe_allow_html=True)
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
     authenticator.login()
 
     if st.session_state.get("authentication_status"):
@@ -203,10 +236,43 @@ def check_auth() -> bool:
     if st.session_state.get("authentication_status") is None:
         st.info("Ingresa tus credenciales para acceder")
 
+    if st.button("📋 Solicitar acceso", use_container_width=True, key="btn_register"):
+        _show_access_request()
+
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown(LOGIN_FOOTER, unsafe_allow_html=True)
 
     return False
+
+
+@st.dialog("Solicitar Acceso")
+def _show_access_request():
+    st.markdown(
+        '<p style="color:#a5d6a7; font-size:0.9rem;">'
+        "Completa el formulario para solicitar acceso como Viewer.</p>",
+        unsafe_allow_html=True,
+    )
+    name = st.text_input("Nombre completo")
+    email = st.text_input("Email")
+    reason = st.text_area("Motivo (opcional)", height=80)
+
+    if st.button("Enviar solicitud", use_container_width=True, type="primary"):
+        if not name or not email:
+            st.warning("Nombre y email son obligatorios.")
+            return
+        try:
+            from dashboard.data_access import get_supabase_client
+
+            client = get_supabase_client()
+            client.table("access_requests").insert(
+                {"name": name, "email": email, "reason": reason}
+            ).execute()
+        except Exception:
+            pass
+        st.success(
+            "Solicitud enviada correctamente. "
+            "El administrador revisara tu solicitud y te contactara por email."
+        )
 
 
 def render_user_menu():
