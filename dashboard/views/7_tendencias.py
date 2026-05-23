@@ -8,25 +8,17 @@ from dashboard.components.trends import (
     profit_timeline,
     stake_analysis_table,
 )
-from dashboard.data_access import get_supabase_client
+from dashboard.data_access import get_resolved_picks
 
 st.markdown(
     '<h1 style="font-size:2rem;">📈 Tendencias</h1>',
     unsafe_allow_html=True,
 )
 
-client = get_supabase_client()
-
 try:
-    resp = (
-        client.table("value_bets")
-        .select("*")
-        .not_.is_("result", "null")
-        .order("match_date", desc=True)
-        .execute()
-    )
-    resolved = resp.data or []
-except Exception:
+    resolved = get_resolved_picks()
+except Exception as e:
+    st.error(f"Error al cargar tendencias: {e}")
     resolved = []
 
 if not resolved:
