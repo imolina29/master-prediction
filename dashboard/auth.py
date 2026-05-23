@@ -13,11 +13,20 @@ LOGIN_CSS = """
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
+/* ── Remove top padding from main block ── */
+.stMainBlockContainer { padding-top: 1rem !important; }
+
 /* ── Center the entire login page ── */
 .login-wrapper {
     max-width: 420px;
     margin: 0 auto;
     padding: 0 1rem;
+}
+.login-wrapper [data-testid="stAlert"],
+.login-wrapper [data-testid="stButton"] {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ── Login container ── */
@@ -104,7 +113,7 @@ LOGIN_CSS = """
 """
 
 LOGIN_HEADER = """
-<div style="text-align: center; padding: 3rem 0 1.5rem 0;">
+<div style="text-align: center; padding: 1rem 0 1.2rem 0;">
     <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚽</div>
     <h1 style="
         color: #4CAF50;
@@ -236,7 +245,7 @@ def check_auth() -> bool:
     if st.session_state.get("authentication_status") is None:
         st.info("Ingresa tus credenciales para acceder")
 
-    if st.button("📋 Solicitar acceso", use_container_width=True, key="btn_register"):
+    if st.button("📋 Solicitar acceso", key="btn_register"):
         _show_access_request()
 
     st.markdown("</div>", unsafe_allow_html=True)
