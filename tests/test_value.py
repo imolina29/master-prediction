@@ -1,15 +1,42 @@
-from backend.betting.value import calculate_edge, classify_stake, generate_picks
+from backend.betting.value import calculate_edge, classify_stake, generate_picks, remove_vig
+
+
+def test_remove_vig_three_way():
+    odds = [2.10, 3.50, 4.50]
+    fair = remove_vig(odds)
+    assert len(fair) == 3
+    assert abs(sum(fair) - 1.0) < 1e-9
+    raw = [1 / o for o in odds]
+    overround = sum(raw)
+    for i in range(3):
+        assert abs(fair[i] - raw[i] / overround) < 1e-9
+
+
+def test_remove_vig_two_way():
+    odds = [1.85, 1.95]
+    fair = remove_vig(odds)
+    assert len(fair) == 2
+    assert abs(sum(fair) - 1.0) < 1e-9
+
+
+def test_remove_vig_single_fallback():
+    odds = [2.50]
+    fair = remove_vig(odds)
+    assert len(fair) == 1
+    assert abs(fair[0] - 1 / 2.50) < 1e-9
 
 
 def test_calculate_edge_positive():
-    result = calculate_edge(0.55, 2.10)
-    assert round(result["implied_prob"], 4) == round(1 / 2.10, 4)
-    assert round(result["edge"], 4) == round(0.55 - 1 / 2.10, 4)
-    assert round(result["expected_value"], 4) == round((0.55 * 2.10) - 1, 4)
+    market_odds = [2.10, 3.50, 4.50]
+    result = calculate_edge(0.55, 0, market_odds)
+    fair_probs = remove_vig(market_odds)
+    assert abs(result["implied_prob"] - round(fair_probs[0], 4)) < 1e-4
+    assert abs(result["edge"] - round(0.55 - fair_probs[0], 4)) < 1e-4
+    assert abs(result["expected_value"] - round((0.55 * market_odds[0]) - 1, 4)) < 1e-4
 
 
 def test_calculate_edge_negative():
-    result = calculate_edge(0.30, 2.10)
+    result = calculate_edge(0.30, 0, [2.10, 3.50, 4.50])
     assert result["edge"] < 0
 
 

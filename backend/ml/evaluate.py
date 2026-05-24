@@ -7,6 +7,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, brier_score_loss, log_loss
 from xgboost import XGBClassifier
 
+from backend.betting.value import remove_vig
 from backend.ml.config import BASE_PARAMS, SEASON_BOUNDARIES, TARGETS
 
 logger = logging.getLogger(__name__)
@@ -70,11 +71,21 @@ def simulate_roi(
 
     odd_cols = ["odd_home", "odd_draw", "odd_away"]
     for i in range(len(actuals)):
-        for cls_idx, odd_col in enumerate(odd_cols):
-            odd_val = odds.iloc[i][odd_col]
-            if pd.isna(odd_val) or odd_val <= 1.0:
-                continue
-            implied_prob = 1.0 / odd_val
+        row_odds = odds.iloc[i]
+        valid = [
+            (cls_idx, row_odds[col])
+            for cls_idx, col in enumerate(odd_cols)
+            if not pd.isna(row_odds[col]) and row_odds[col] > 1.0
+        ]
+        if len(valid) < 2:
+            continue
+        mkt_odds = [
+            row_odds[col] for col in odd_cols if not pd.isna(row_odds[col]) and row_odds[col] > 1.0
+        ]
+        fair_probs = remove_vig(mkt_odds)
+        fair_map = {cls_idx: fair_probs[j] for j, (cls_idx, _) in enumerate(valid)}
+        for cls_idx, odd_val in valid:
+            implied_prob = fair_map[cls_idx]
             model_prob = probs[i][cls_idx]
             edge = model_prob - implied_prob
             if edge > threshold:

@@ -106,16 +106,17 @@ for pred in predictions:
     if not odds or not odds.get("odd_home"):
         continue
 
-    result_map = {"H": ("1x2_home", "H", pred["prob_home"], odds["odd_home"])}
+    h2h_odds = [odds.get("odd_home"), odds.get("odd_draw"), odds.get("odd_away")]
+    result_map = {"H": ("1x2_home", "H", pred["prob_home"], h2h_odds, 0)}
     if pred.get("predicted_result") == "D":
-        result_map = {"D": ("1x2_draw", "D", pred["prob_draw"], odds["odd_draw"])}
+        result_map = {"D": ("1x2_draw", "D", pred["prob_draw"], h2h_odds, 1)}
     elif pred.get("predicted_result") == "A":
-        result_map = {"A": ("1x2_away", "A", pred["prob_away"], odds["odd_away"])}
+        result_map = {"A": ("1x2_away", "A", pred["prob_away"], h2h_odds, 2)}
 
-    for _, (market, selection, model_prob, odd) in result_map.items():
-        if not model_prob or not odd:
+    for _, (market, selection, model_prob, mkt_odds, sel_idx) in result_map.items():
+        if not model_prob or not mkt_odds[sel_idx]:
             continue
-        calc = calculate_edge(model_prob, odd)
+        calc = calculate_edge(model_prob, sel_idx, mkt_odds)
         no_value_rows.append(
             {
                 "match_date": pred["match_date"],
@@ -125,7 +126,7 @@ for pred in predictions:
                 "market": market,
                 "selection": selection,
                 "edge": calc["edge"],
-                "odd": odd,
+                "odd": mkt_odds[sel_idx],
                 "stake": 0,
                 "expected_value": calc["expected_value"],
             }

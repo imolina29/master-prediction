@@ -5,8 +5,18 @@ logger = logging.getLogger(__name__)
 MIN_EDGE = 0.08
 
 
-def calculate_edge(model_prob: float, odd: float) -> dict:
-    implied_prob = 1 / odd
+def remove_vig(odds: list[float]) -> list[float]:
+    if len(odds) < 2:
+        return [1 / odds[0]]
+    raw = [1 / o for o in odds]
+    overround = sum(raw)
+    return [p / overround for p in raw]
+
+
+def calculate_edge(model_prob: float, selection_index: int, market_odds: list[float]) -> dict:
+    fair_probs = remove_vig(market_odds)
+    implied_prob = fair_probs[selection_index]
+    odd = market_odds[selection_index]
     edge = model_prob - implied_prob
     expected_value = (model_prob * odd) - 1
     return {
@@ -41,24 +51,39 @@ def generate_picks(predictions: list[dict], matches_with_odds: list[dict]) -> li
 
         candidates = []
 
-        if odds.get("odd_home"):
-            candidates.append(("1x2_home", "H", pred["prob_home"], odds["odd_home"]))
-        if odds.get("odd_draw"):
-            candidates.append(("1x2_draw", "D", pred["prob_draw"], odds["odd_draw"]))
-        if odds.get("odd_away"):
-            candidates.append(("1x2_away", "A", pred["prob_away"], odds["odd_away"]))
-        if odds.get("odd_over25"):
-            candidates.append(("over25", "Over", pred["prob_over25"], odds["odd_over25"]))
-        if odds.get("odd_under25"):
-            prob_under = 1 - pred["prob_over25"] if pred.get("prob_over25") else None
-            if prob_under is not None:
-                candidates.append(("under25", "Under", prob_under, odds["odd_under25"]))
+        h2h_odds = [
+            o
+            for o in [odds.get("odd_home"), odds.get("odd_draw"), odds.get("odd_away")]
+            if o is not None and o > 1.0
+        ]
+        if len(h2h_odds) >= 2:
+            full_h2h = [odds.get("odd_home"), odds.get("odd_draw"), odds.get("odd_away")]
+            if odds.get("odd_home") and odds["odd_home"] > 1.0:
+                candidates.append(("1x2_home", "H", pred["prob_home"], full_h2h, 0))
+            if odds.get("odd_draw") and odds["odd_draw"] > 1.0:
+                candidates.append(("1x2_draw", "D", pred["prob_draw"], full_h2h, 1))
+            if odds.get("odd_away") and odds["odd_away"] > 1.0:
+                candidates.append(("1x2_away", "A", pred["prob_away"], full_h2h, 2))
 
-        for market, selection, model_prob, odd in candidates:
-            if model_prob is None or odd is None:
+        totals_odds = [
+            o
+            for o in [odds.get("odd_over25"), odds.get("odd_under25")]
+            if o is not None and o > 1.0
+        ]
+        if len(totals_odds) >= 2:
+            full_totals = [odds.get("odd_over25"), odds.get("odd_under25")]
+            if odds.get("odd_over25") and odds["odd_over25"] > 1.0:
+                candidates.append(("over25", "Over", pred["prob_over25"], full_totals, 0))
+            if odds.get("odd_under25") and odds["odd_under25"] > 1.0:
+                prob_under = 1 - pred["prob_over25"] if pred.get("prob_over25") else None
+                if prob_under is not None:
+                    candidates.append(("under25", "Under", prob_under, full_totals, 1))
+
+        for market, selection, model_prob, mkt_odds, sel_idx in candidates:
+            if model_prob is None:
                 continue
 
-            calc = calculate_edge(model_prob, odd)
+            calc = calculate_edge(model_prob, sel_idx, mkt_odds)
             stake = classify_stake(calc["edge"], pred.get("confidence", "baja"))
             if stake == 0:
                 continue
@@ -74,7 +99,7 @@ def generate_picks(predictions: list[dict], matches_with_odds: list[dict]) -> li
                     "model_prob": round(model_prob, 4),
                     "implied_prob": calc["implied_prob"],
                     "edge": calc["edge"],
-                    "odd": odd,
+                    "odd": mkt_odds[sel_idx],
                     "bookmaker": (
                         odds.get("bookmaker_h2h")
                         if market.startswith("1x2")
