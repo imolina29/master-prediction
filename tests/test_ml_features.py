@@ -44,6 +44,13 @@ def _make_team_features():
                 "draw": False,
                 "btts": True,
                 "over25": True,
+                "rest_days": 7,
+                "venue_win_rate": 0.6,
+                "venue_goals_avg": 1.5,
+                "league_pos": 0.2,
+                "h2h_win_rate": 0.6,
+                "h2h_avg_goals": 2.8,
+                "h2h_matches": 5,
             },
             {
                 "division": "E0",
@@ -80,6 +87,13 @@ def _make_team_features():
                 "draw": False,
                 "btts": True,
                 "over25": True,
+                "rest_days": 4,
+                "venue_win_rate": 0.3,
+                "venue_goals_avg": 0.8,
+                "league_pos": 0.4,
+                "h2h_win_rate": 0.4,
+                "h2h_avg_goals": 2.8,
+                "h2h_matches": 5,
             },
             {
                 "division": "E0",
@@ -116,6 +130,13 @@ def _make_team_features():
                 "draw": True,
                 "btts": False,
                 "over25": False,
+                "rest_days": 14,
+                "venue_win_rate": 0.4,
+                "venue_goals_avg": 1.0,
+                "league_pos": 0.35,
+                "h2h_win_rate": 0.35,
+                "h2h_avg_goals": 2.5,
+                "h2h_matches": 4,
             },
             {
                 "division": "E0",
@@ -152,6 +173,13 @@ def _make_team_features():
                 "draw": True,
                 "btts": False,
                 "over25": False,
+                "rest_days": 14,
+                "venue_win_rate": 0.5,
+                "venue_goals_avg": 1.2,
+                "league_pos": 0.15,
+                "h2h_win_rate": 0.65,
+                "h2h_avg_goals": 2.5,
+                "h2h_matches": 4,
             },
         ]
     )
@@ -262,3 +290,37 @@ def test_odds_columns_present():
     assert "odd_away" in result.columns
     assert "odd_over25" in result.columns
     assert "odd_under25" in result.columns
+
+
+def test_build_match_features_has_new_features():
+    team_feat = _make_team_features()
+    matches = _make_matches_df()
+    result = build_match_features(team_feat, matches)
+    new_cols = [
+        "home_rest_days",
+        "away_rest_days",
+        "home_league_pos",
+        "away_league_pos",
+        "league_pos_diff",
+        "home_h2h_win_rate",
+        "home_h2h_avg_goals",
+        "home_h2h_matches",
+        "away_h2h_win_rate",
+        "away_h2h_avg_goals",
+        "away_h2h_matches",
+        "home_venue_win_rate",
+        "home_venue_goals_avg",
+        "away_venue_win_rate",
+        "away_venue_goals_avg",
+    ]
+    for col in new_cols:
+        assert col in result.columns, f"Missing column: {col}"
+
+
+def test_league_pos_diff():
+    team_feat = _make_team_features()
+    matches = _make_matches_df()
+    result = build_match_features(team_feat, matches)
+    row = result.iloc[0]
+    expected = row["home_league_pos"] - row["away_league_pos"]
+    assert row["league_pos_diff"] == pytest.approx(expected)

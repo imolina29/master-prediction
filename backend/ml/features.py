@@ -25,6 +25,13 @@ _TEAM_ROLLING_COLS = [
     "goals_scored_avg_10",
     "goals_conceded_avg_10",
     "win_rate_10",
+    "rest_days",
+    "venue_win_rate",
+    "venue_goals_avg",
+    "league_pos",
+    "h2h_win_rate",
+    "h2h_avg_goals",
+    "h2h_matches",
 ]
 
 _MATCH_MERGE_COLS = [
@@ -97,6 +104,7 @@ def build_match_features(team_features: pd.DataFrame, matches: pd.DataFrame) -> 
     )
 
     merged["elo_diff"] = merged["home_elo"] - merged["away_elo"]
+    merged["league_pos_diff"] = merged["home_league_pos"] - merged["away_league_pos"]
 
     merged["target_1x2"] = merged["ft_result"].map(RESULT_MAP)
     merged["target_over25"] = ((merged["ft_home_goals"] + merged["ft_away_goals"]) > 2.5).astype(

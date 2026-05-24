@@ -48,7 +48,37 @@ _AWAY_MULTI_WINDOW = [c.replace("home_", "away_") for c in _HOME_MULTI_WINDOW]
 
 _CONTEXT = ["home_elo", "away_elo", "elo_diff"]
 
-BASE_FEATURES = _HOME_BASE + _HOME_MULTI_WINDOW + _AWAY_BASE + _AWAY_MULTI_WINDOW + _CONTEXT
+_MATCHDAY = ["home_rest_days", "away_rest_days"]
+
+_STANDINGS = ["home_league_pos", "away_league_pos", "league_pos_diff"]
+
+_H2H = [
+    "home_h2h_win_rate",
+    "home_h2h_avg_goals",
+    "home_h2h_matches",
+    "away_h2h_win_rate",
+    "away_h2h_avg_goals",
+    "away_h2h_matches",
+]
+
+_VENUE = [
+    "home_venue_win_rate",
+    "home_venue_goals_avg",
+    "away_venue_win_rate",
+    "away_venue_goals_avg",
+]
+
+BASE_FEATURES = (
+    _HOME_BASE
+    + _HOME_MULTI_WINDOW
+    + _AWAY_BASE
+    + _AWAY_MULTI_WINDOW
+    + _CONTEXT
+    + _MATCHDAY
+    + _STANDINGS
+    + _H2H
+    + _VENUE
+)
 
 _HOME_XG = [
     "home_xg_for_avg",
@@ -66,6 +96,10 @@ PREMIUM_FEATURES = (
     + _AWAY_MULTI_WINDOW
     + _AWAY_XG
     + _CONTEXT
+    + _MATCHDAY
+    + _STANDINGS
+    + _H2H
+    + _VENUE
 )
 
 SEASON_BOUNDARIES = [
