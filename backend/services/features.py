@@ -129,6 +129,14 @@ def compute_team_features(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
         lambda s: s.diff().dt.days.fillna(7).astype(int)
     )
 
+    venue_grouped = expanded.groupby(["team", "venue"])
+    expanded["venue_win_rate"] = venue_grouped["win"].transform(
+        lambda s: s.shift(1).astype(float).rolling(window, min_periods=1).mean()
+    )
+    expanded["venue_goals_avg"] = venue_grouped["goals_scored"].transform(
+        lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+    )
+
     logger.info("Computed features for %d team-match rows", len(expanded))
     return expanded
 

@@ -156,3 +156,15 @@ def test_rest_days_computed():
     assert arsenal.iloc[1]["rest_days"] == 14
     # Third match (Feb 01): 17 days after Jan 15
     assert arsenal.iloc[2]["rest_days"] == 17
+
+
+def test_venue_splits_computed():
+    df = _make_matches_df()
+    result = compute_team_features(df, window=3)
+    assert "venue_win_rate" in result.columns
+    assert "venue_goals_avg" in result.columns
+    # All values should be floats or NaN (first match has no prior venue data)
+    arsenal_home = result[(result["team"] == "Arsenal") & (result["venue"] == "home")].sort_values(
+        "match_date"
+    )
+    assert len(arsenal_home) >= 2
