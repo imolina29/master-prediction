@@ -168,3 +168,26 @@ def test_venue_splits_computed():
         "match_date"
     )
     assert len(arsenal_home) >= 2
+
+
+def test_league_position_computed():
+    df = _make_matches_df()
+    result = compute_team_features(df, window=3)
+    assert "league_pos" in result.columns
+    # Positions should be normalized between 0 and 1
+    positions = result["league_pos"].dropna()
+    assert (positions >= 0).all()
+    assert (positions <= 1).all()
+
+
+def test_h2h_features_computed():
+    df = _make_matches_df()
+    result = compute_team_features(df, window=3)
+    assert "h2h_win_rate" in result.columns
+    assert "h2h_avg_goals" in result.columns
+    assert "h2h_matches" in result.columns
+    # First match of Arsenal vs Chelsea: no prior H2H, defaults expected
+    arsenal = result[result["team"] == "Arsenal"].sort_values("match_date")
+    first = arsenal.iloc[0]
+    assert first["h2h_win_rate"] == 0.5
+    assert first["h2h_matches"] == 0

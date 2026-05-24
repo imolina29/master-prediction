@@ -70,6 +70,70 @@ def _expand_to_team_rows(df: pd.DataFrame) -> pd.DataFrame:
     return combined
 
 
+def _compute_league_position(expanded: pd.DataFrame) -> pd.Series:
+    df = expanded.copy()
+    df["match_date"] = pd.to_datetime(df["match_date"])
+    df["season"] = df["match_date"].apply(lambda d: d.year if d.month >= 7 else d.year - 1)
+    df["points"] = df["win"].astype(int) * 3 + df["draw"].astype(int)
+
+    df["cum_points"] = df.groupby(["division", "season", "team"])["points"].cumsum()
+    df["cum_points_prior"] = df.groupby(["division", "season", "team"])["cum_points"].shift(1)
+    df["cum_points_prior"] = df["cum_points_prior"].fillna(0)
+
+    def _rank_in_group(group):
+        ranked = group["cum_points_prior"].rank(ascending=False, method="min")
+        n_teams = group.groupby("team").ngroups
+        if n_teams <= 1:
+            return pd.Series(0.5, index=group.index)
+        return ((ranked - 1) / (n_teams - 1)).round(4)
+
+    result = df.groupby(["division", "season", "match_date"], group_keys=False).apply(
+        _rank_in_group
+    )
+    return result.reindex(expanded.index, fill_value=0.5)
+
+
+def _compute_h2h_features(expanded: pd.DataFrame) -> pd.DataFrame:
+    df = expanded.copy()
+    df["match_date"] = pd.to_datetime(df["match_date"])
+
+    h2h_win_rate = []
+    h2h_avg_goals = []
+    h2h_matches_count = []
+
+    global_avg_goals = (df["goals_scored"] + df["goals_conceded"]).mean() / 2
+    if pd.isna(global_avg_goals):
+        global_avg_goals = 2.5
+
+    for _, row in df.iterrows():
+        team = row["team"]
+        opponent = row["opponent"]
+        date = row["match_date"]
+
+        prior = df[(df["team"] == team) & (df["opponent"] == opponent) & (df["match_date"] < date)]
+
+        if prior.empty:
+            h2h_win_rate.append(0.5)
+            h2h_avg_goals.append(round(global_avg_goals, 2))
+            h2h_matches_count.append(0)
+        else:
+            wins = prior["win"].sum()
+            total = len(prior)
+            h2h_win_rate.append(round(wins / total, 4))
+            avg_g = (prior["goals_scored"] + prior["goals_conceded"]).mean()
+            h2h_avg_goals.append(round(float(avg_g), 2))
+            h2h_matches_count.append(min(total, 10))
+
+    return pd.DataFrame(
+        {
+            "h2h_win_rate": h2h_win_rate,
+            "h2h_avg_goals": h2h_avg_goals,
+            "h2h_matches": h2h_matches_count,
+        },
+        index=expanded.index,
+    )
+
+
 def compute_team_features(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
     expanded = _expand_to_team_rows(df)
 
@@ -136,6 +200,13 @@ def compute_team_features(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
     expanded["venue_goals_avg"] = venue_grouped["goals_scored"].transform(
         lambda s: s.shift(1).rolling(window, min_periods=1).mean()
     )
+
+    expanded["league_pos"] = _compute_league_position(expanded)
+
+    h2h = _compute_h2h_features(expanded)
+    expanded["h2h_win_rate"] = h2h["h2h_win_rate"]
+    expanded["h2h_avg_goals"] = h2h["h2h_avg_goals"]
+    expanded["h2h_matches"] = h2h["h2h_matches"]
 
     logger.info("Computed features for %d team-match rows", len(expanded))
     return expanded
