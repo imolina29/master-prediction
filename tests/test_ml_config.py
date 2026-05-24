@@ -10,11 +10,11 @@ from backend.ml.config import (
 
 
 def test_base_features_count():
-    assert len(BASE_FEATURES) == 31
+    assert len(BASE_FEATURES) == 46
 
 
 def test_premium_features_count():
-    assert len(PREMIUM_FEATURES) == 39
+    assert len(PREMIUM_FEATURES) == 54
 
 
 def test_premium_includes_base():
