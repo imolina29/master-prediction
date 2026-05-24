@@ -2,9 +2,16 @@ import json
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from backend.ml.config import BASE_FEATURES
-from backend.ml.evaluate import evaluate_fold, simulate_roi, walk_forward_backtest
+from backend.ml.evaluate import (
+    _compute_drawdown,
+    _compute_max_streak,
+    evaluate_fold,
+    simulate_roi,
+    walk_forward_backtest,
+)
 
 
 def _make_multiyear_data(n_per_year=100):
@@ -74,3 +81,92 @@ def test_walk_forward_backtest_returns_all_folds(tmp_path):
     with open(tmp_path / "bt.json") as f:
         saved = json.load(f)
     assert "base_1x2" in saved
+
+
+def test_compute_drawdown_empty():
+    assert _compute_drawdown([]) == 0.0
+
+
+def test_compute_drawdown_no_drawdown():
+    assert _compute_drawdown([1.0, 2.0, 3.0]) == 0.0
+
+
+def test_compute_drawdown_simple():
+    curve = [0.0, 5.0, 3.0, 7.0, 2.0]
+    result = _compute_drawdown(curve)
+    assert result == pytest.approx(5.0)
+
+
+def test_compute_drawdown_all_decline():
+    curve = [10.0, 8.0, 5.0, 1.0]
+    result = _compute_drawdown(curve)
+    assert result == pytest.approx(9.0)
+
+
+def test_compute_max_streak_empty():
+    assert _compute_max_streak([], True) == 0
+    assert _compute_max_streak([], False) == 0
+
+
+def test_compute_max_streak_wins():
+    results = [True, True, False, True, True, True, False]
+    assert _compute_max_streak(results, True) == 3
+
+
+def test_compute_max_streak_losses():
+    results = [False, True, False, False, False, True]
+    assert _compute_max_streak(results, False) == 3
+
+
+def test_compute_max_streak_all_same():
+    assert _compute_max_streak([True, True, True], True) == 3
+    assert _compute_max_streak([False, False], False) == 2
+
+
+def test_simulate_roi_extended_fields():
+    probs = np.array([[0.60, 0.20, 0.20], [0.30, 0.30, 0.40], [0.20, 0.50, 0.30]])
+    actuals = np.array([0, 2, 1])
+    odds = pd.DataFrame(
+        {"odd_home": [2.0, 3.0, 5.0], "odd_draw": [3.5, 3.2, 2.0], "odd_away": [4.0, 2.5, 3.5]}
+    )
+    result = simulate_roi(probs, actuals, odds, threshold=0.05)
+    assert "max_drawdown" in result
+    assert "max_losing_streak" in result
+    assert "profit_curve" in result
+    assert "kelly_roi_pct" in result
+    assert isinstance(result["max_drawdown"], float)
+    assert isinstance(result["max_losing_streak"], int)
+    assert isinstance(result["profit_curve"], list)
+    assert isinstance(result["kelly_roi_pct"], float)
+
+
+def test_simulate_roi_profit_curve_length():
+    probs = np.array([[0.60, 0.20, 0.20], [0.30, 0.30, 0.40], [0.20, 0.50, 0.30]])
+    actuals = np.array([0, 2, 1])
+    odds = pd.DataFrame(
+        {"odd_home": [2.0, 3.0, 5.0], "odd_draw": [3.5, 3.2, 2.0], "odd_away": [4.0, 2.5, 3.5]}
+    )
+    result = simulate_roi(probs, actuals, odds, threshold=0.05)
+    assert len(result["profit_curve"]) == result["n_bets"]
+
+
+def test_simulate_roi_no_bets():
+    probs = np.array([[0.33, 0.33, 0.34]])
+    actuals = np.array([0])
+    odds = pd.DataFrame({"odd_home": [2.0], "odd_draw": [3.5], "odd_away": [4.0]})
+    result = simulate_roi(probs, actuals, odds, threshold=0.99)
+    assert result["n_bets"] == 0
+    assert result["max_drawdown"] == 0.0
+    assert result["max_losing_streak"] == 0
+    assert result["profit_curve"] == []
+    assert result["kelly_roi_pct"] == 0.0
+
+
+def test_walk_forward_backtest_summary_metrics(tmp_path):
+    df = _make_multiyear_data()
+    results = walk_forward_backtest(
+        df, "1x2", "base", BASE_FEATURES, output_path=tmp_path / "bt2.json"
+    )
+    assert "mean_max_drawdown" in results
+    assert "mean_max_losing_streak" in results
+    assert "mean_kelly_roi_pct" in results

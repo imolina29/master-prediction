@@ -13,6 +13,35 @@ from backend.ml.config import BASE_PARAMS, SEASON_BOUNDARIES, TARGETS
 logger = logging.getLogger(__name__)
 
 
+def _compute_drawdown(profit_curve: list[float]) -> float:
+    if not profit_curve:
+        return 0.0
+    peak = profit_curve[0]
+    max_dd = 0.0
+    for value in profit_curve:
+        if value > peak:
+            peak = value
+        dd = peak - value
+        if dd > max_dd:
+            max_dd = dd
+    return max_dd
+
+
+def _compute_max_streak(results: list[bool], target: bool) -> int:
+    if not results:
+        return 0
+    max_streak = 0
+    current = 0
+    for r in results:
+        if r == target:
+            current += 1
+            if current > max_streak:
+                max_streak = current
+        else:
+            current = 0
+    return max_streak
+
+
 def evaluate_fold(
     train_df: pd.DataFrame,
     test_df: pd.DataFrame,
@@ -68,6 +97,10 @@ def simulate_roi(
 ) -> dict:
     total_bets = 0
     total_profit = 0.0
+    profit_curve: list[float] = []
+    win_results: list[bool] = []
+    kelly_bankroll = 100.0
+    kelly_profit = 0.0
 
     odd_cols = ["odd_home", "odd_draw", "odd_away"]
     for i in range(len(actuals)):
@@ -90,13 +123,33 @@ def simulate_roi(
             edge = model_prob - implied_prob
             if edge > threshold:
                 total_bets += 1
-                if actuals[i] == cls_idx:
+                won = actuals[i] == cls_idx
+                win_results.append(won)
+                if won:
                     total_profit += odd_val - 1.0
                 else:
                     total_profit -= 1.0
+                profit_curve.append(total_profit)
+
+                kelly_f = max(0.0, 0.25 * (edge / (odd_val - 1.0)))
+                kelly_stake = kelly_bankroll * kelly_f
+                if won:
+                    kelly_profit += kelly_stake * (odd_val - 1.0)
+                    kelly_bankroll += kelly_stake * (odd_val - 1.0)
+                else:
+                    kelly_profit -= kelly_stake
+                    kelly_bankroll -= kelly_stake
 
     roi_pct = (total_profit / total_bets * 100) if total_bets > 0 else 0.0
-    return {"roi_pct": round(roi_pct, 2), "n_bets": total_bets}
+    kelly_roi_pct = (kelly_profit / 100.0 * 100) if total_bets > 0 else 0.0
+    return {
+        "roi_pct": round(roi_pct, 2),
+        "n_bets": total_bets,
+        "max_drawdown": round(_compute_drawdown(profit_curve), 4),
+        "max_losing_streak": _compute_max_streak(win_results, False),
+        "profit_curve": profit_curve,
+        "kelly_roi_pct": round(kelly_roi_pct, 2),
+    }
 
 
 def walk_forward_backtest(
@@ -132,6 +185,15 @@ def walk_forward_backtest(
         result["mean_log_loss"] = round(float(np.mean([f["log_loss"] for f in folds_results])), 4)
         if all("roi_pct" in f for f in folds_results):
             result["mean_roi_pct"] = round(float(np.mean([f["roi_pct"] for f in folds_results])), 2)
+            result["mean_max_drawdown"] = round(
+                float(np.mean([f["max_drawdown"] for f in folds_results])), 4
+            )
+            result["mean_max_losing_streak"] = round(
+                float(np.mean([f["max_losing_streak"] for f in folds_results])), 2
+            )
+            result["mean_kelly_roi_pct"] = round(
+                float(np.mean([f["kelly_roi_pct"] for f in folds_results])), 2
+            )
 
     if output_path:
         existing = {}
