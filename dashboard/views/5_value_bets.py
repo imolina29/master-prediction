@@ -174,24 +174,69 @@ except Exception as e:
     resolved_picks = []
 
 if resolved_picks:
-    perf = calculate_performance(resolved_picks)
-    performance_kpis(perf)
+    st.markdown("**Filtrar rendimiento:**")
+    fc1, fc2, fc3, fc4 = st.columns(4)
+    with fc1:
+        perf_league = st.selectbox(
+            "Liga",
+            ["Todas"] + list(DIVISION_NAMES.keys()),
+            format_func=lambda x: "Todas" if x == "Todas" else DIVISION_NAMES.get(x, x),
+            key="perf_league",
+        )
+    with fc2:
+        perf_market = st.selectbox(
+            "Mercado",
+            ["Todos", "1X2", "Over/Under"],
+            key="perf_market",
+        )
+    with fc3:
+        perf_confidence = st.selectbox(
+            "Confianza",
+            ["Todas", "alta", "media", "baja"],
+            format_func=lambda x: x.capitalize(),
+            key="perf_confidence",
+        )
+    with fc4:
+        perf_model = st.selectbox(
+            "Modelo",
+            ["Todos", "base", "premium"],
+            format_func=lambda x: x.capitalize(),
+            key="perf_model",
+        )
 
-    st.markdown(section_header("📊", "Desglose por Mercado"), unsafe_allow_html=True)
-    breakdown = market_breakdown_table(perf)
-    if not breakdown.empty:
-        st.dataframe(breakdown, use_container_width=True, hide_index=True)
+    filtered = resolved_picks
+    if perf_league != "Todas":
+        filtered = [p for p in filtered if p.get("division") == perf_league]
+    if perf_market == "1X2":
+        filtered = [p for p in filtered if p.get("market", "").startswith("1x2")]
+    elif perf_market == "Over/Under":
+        filtered = [p for p in filtered if p.get("market") in ("over25", "under25")]
+    if perf_confidence != "Todas":
+        filtered = [p for p in filtered if p.get("confidence") == perf_confidence]
+    if perf_model != "Todos":
+        filtered = [p for p in filtered if p.get("model_variant") == perf_model]
 
-    st.markdown(section_header("💰", "Profit Acumulado"), unsafe_allow_html=True)
-    chart = profit_chart(resolved_picks)
-    if chart:
-        st.plotly_chart(chart, use_container_width=True)
+    if not filtered:
+        st.info("No hay picks resueltos con los filtros seleccionados.")
+    else:
+        perf = calculate_performance(filtered)
+        performance_kpis(perf)
 
-    st.markdown(section_header("📋", "Ultimos 20 Picks Resueltos"), unsafe_allow_html=True)
-    recent = resolved_picks[:20]
-    resolved_display = format_resolved(recent)
-    if not resolved_display.empty:
-        st.dataframe(resolved_display, use_container_width=True, hide_index=True)
+        st.markdown(section_header("📊", "Desglose por Mercado"), unsafe_allow_html=True)
+        breakdown = market_breakdown_table(perf)
+        if not breakdown.empty:
+            st.dataframe(breakdown, use_container_width=True, hide_index=True)
+
+        st.markdown(section_header("💰", "Profit Acumulado"), unsafe_allow_html=True)
+        chart = profit_chart(filtered)
+        if chart:
+            st.plotly_chart(chart, use_container_width=True)
+
+        st.markdown(section_header("📋", "Ultimos 20 Picks Resueltos"), unsafe_allow_html=True)
+        recent = filtered[:20]
+        resolved_display = format_resolved(recent)
+        if not resolved_display.empty:
+            st.dataframe(resolved_display, use_container_width=True, hide_index=True)
 else:
     st.info(
         "No hay picks resueltos aun. Los picks se resuelven automaticamente"
