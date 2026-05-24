@@ -79,6 +79,9 @@ def generate_picks(predictions: list[dict], matches_with_odds: list[dict]) -> li
                 if prob_under is not None:
                     candidates.append(("under25", "Under", prob_under, full_totals, 1))
 
+        best_h2h = None
+        best_totals = None
+
         for market, selection, model_prob, mkt_odds, sel_idx in candidates:
             if model_prob is None:
                 continue
@@ -88,29 +91,39 @@ def generate_picks(predictions: list[dict], matches_with_odds: list[dict]) -> li
             if stake == 0:
                 continue
 
-            picks.append(
-                {
-                    "match_date": pred["match_date"],
-                    "home_team": pred["home_team"],
-                    "away_team": pred["away_team"],
-                    "division": pred["division"],
-                    "market": market,
-                    "selection": selection,
-                    "model_prob": round(model_prob, 4),
-                    "implied_prob": calc["implied_prob"],
-                    "edge": calc["edge"],
-                    "odd": mkt_odds[sel_idx],
-                    "bookmaker": (
-                        odds.get("bookmaker_h2h")
-                        if market.startswith("1x2")
-                        else odds.get("bookmaker_totals")
-                    ),
-                    "stake": stake,
-                    "expected_value": calc["expected_value"],
-                    "confidence": pred.get("confidence", "baja"),
-                    "model_variant": pred.get("model_variant", "base"),
-                }
-            )
+            pick = {
+                "match_date": pred["match_date"],
+                "home_team": pred["home_team"],
+                "away_team": pred["away_team"],
+                "division": pred["division"],
+                "market": market,
+                "selection": selection,
+                "model_prob": round(model_prob, 4),
+                "implied_prob": calc["implied_prob"],
+                "edge": calc["edge"],
+                "odd": mkt_odds[sel_idx],
+                "bookmaker": (
+                    odds.get("bookmaker_h2h")
+                    if market.startswith("1x2")
+                    else odds.get("bookmaker_totals")
+                ),
+                "stake": stake,
+                "expected_value": calc["expected_value"],
+                "confidence": pred.get("confidence", "baja"),
+                "model_variant": pred.get("model_variant", "base"),
+            }
+
+            if market.startswith("1x2"):
+                if best_h2h is None or calc["edge"] > best_h2h["edge"]:
+                    best_h2h = pick
+            else:
+                if best_totals is None or calc["edge"] > best_totals["edge"]:
+                    best_totals = pick
+
+        if best_h2h:
+            picks.append(best_h2h)
+        if best_totals:
+            picks.append(best_totals)
 
     logger.info("Generated %d picks from %d predictions", len(picks), len(predictions))
     return picks

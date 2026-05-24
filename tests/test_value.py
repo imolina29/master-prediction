@@ -136,6 +136,43 @@ def test_generate_picks_no_edge():
     assert len(picks) == 0
 
 
+def test_generate_picks_no_contradictory():
+    predictions = [
+        {
+            "match_date": "2026-06-01",
+            "home_team": "Arsenal",
+            "away_team": "Chelsea",
+            "division": "E0",
+            "prob_home": 0.60,
+            "prob_draw": 0.22,
+            "prob_away": 0.18,
+            "prob_over25": 0.70,
+            "prob_btts": 0.50,
+            "confidence": "alta",
+            "model_variant": "premium",
+        }
+    ]
+    matches_with_odds = [
+        {
+            "match_date": "2026-06-01",
+            "home_team": "Arsenal",
+            "away_team": "Chelsea",
+            "division": "E0",
+            "odd_home": 2.10,
+            "odd_draw": 3.50,
+            "odd_away": 4.50,
+            "odd_over25": 1.70,
+            "odd_under25": 2.15,
+        }
+    ]
+    picks = generate_picks(predictions, matches_with_odds)
+    h2h_picks = [p for p in picks if p["market"].startswith("1x2")]
+    totals_picks = [p for p in picks if p["market"] in ("over25", "under25")]
+    assert len(h2h_picks) <= 1, "Should have at most 1 pick per 1x2 market"
+    assert len(totals_picks) <= 1, "Should have at most 1 pick per totals market"
+    assert len(picks) <= 2, "Should have at most 2 picks per match"
+
+
 def test_generate_picks_skips_missing_odds():
     predictions = [
         {
