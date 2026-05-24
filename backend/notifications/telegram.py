@@ -126,6 +126,20 @@ class TelegramNotifier:
 
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
 
+    def send_training_summary(self, results: dict) -> list[dict]:
+        lines = ["📊 <b>Modelos re-entrenados</b>", ""]
+        for model_name, data in results.items():
+            acc = data.get("mean_accuracy", 0)
+            roi = data.get("mean_roi_pct")
+            dd = data.get("mean_max_drawdown")
+            line = f"  {model_name}: acc <b>{acc:.1%}</b>"
+            if roi is not None:
+                line += f" | ROI <b>{roi:+.1f}%</b>"
+            if dd is not None:
+                line += f" | DD <b>{dd:.1f}u</b>"
+            lines.append(line)
+        return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
+
     def send_resolved_summary(self, resolved_today: list[dict]) -> list[dict]:
         if not resolved_today:
             return []

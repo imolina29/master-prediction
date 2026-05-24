@@ -74,14 +74,6 @@ jobs:
           git diff --cached --quiet || git commit -m "data: update features [skip ci]"
           git push
 
-      - name: Train models and run backtesting
-        run: PYTHONPATH=. python scripts/run_training.py
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
       - name: Generate predictions for upcoming matches
         run: PYTHONPATH=. python scripts/run_predictions.py --upcoming
         env:
@@ -138,12 +130,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_AUTHORIZED_CHATS: ${{ secrets.TELEGRAM_AUTHORIZED_CHATS }}
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
-
-      - name: Commit backtest results
-        run: |
-          git add data/backtest_results.json -f
-          git diff --cached --quiet || git commit -m "chore: update backtest results [skip ci]"
-          git push
 
       - name: Notify pipeline failure via Telegram
         if: failure()
