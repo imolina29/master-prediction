@@ -125,6 +125,10 @@ def compute_team_features(df: pd.DataFrame, window: int = 5) -> pd.DataFrame:
             lambda col: col.shift(1).astype(float).rolling(w, min_periods=1).mean()
         )
 
+    expanded["rest_days"] = grouped["match_date"].transform(
+        lambda s: s.diff().dt.days.fillna(7).astype(int)
+    )
+
     logger.info("Computed features for %d team-match rows", len(expanded))
     return expanded
 

@@ -143,3 +143,16 @@ def test_compute_h2h_features():
     assert "chelsea_wins" in h2h
     assert "draws" in h2h
     assert "avg_total_goals" in h2h
+
+
+def test_rest_days_computed():
+    df = _make_matches_df()
+    result = compute_team_features(df, window=3)
+    assert "rest_days" in result.columns
+    arsenal = result[result["team"] == "Arsenal"].sort_values("match_date")
+    # First match: default 7
+    assert arsenal.iloc[0]["rest_days"] == 7
+    # Second match (Jan 15): 14 days after Jan 01
+    assert arsenal.iloc[1]["rest_days"] == 14
+    # Third match (Feb 01): 17 days after Jan 15
+    assert arsenal.iloc[2]["rest_days"] == 17
