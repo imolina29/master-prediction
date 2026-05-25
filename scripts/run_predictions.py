@@ -47,6 +47,20 @@ def _build_feature_row_from_national(features: dict, home: str, away: str, match
     feature_row["home_elo"] = home_elo
     feature_row["away_elo"] = away_elo
     feature_row["elo_diff"] = home_elo - away_elo
+
+    for col in [
+        "rest_days",
+        "venue_win_rate",
+        "venue_goals_avg",
+        "league_pos",
+        "h2h_win_rate",
+        "h2h_avg_goals",
+        "h2h_matches",
+    ]:
+        feature_row[f"home_{col}"] = float("nan")
+        feature_row[f"away_{col}"] = float("nan")
+    feature_row["league_pos_diff"] = float("nan")
+
     return feature_row
 
 
@@ -134,16 +148,37 @@ def main():
                 "goals_scored_avg_10",
                 "goals_conceded_avg_10",
                 "win_rate_10",
+                "venue_win_rate",
+                "venue_goals_avg",
+                "league_pos",
+                "h2h_win_rate",
+                "h2h_avg_goals",
+                "h2h_matches",
             ]
             for col in rolling_cols:
                 feature_row[f"home_{col}"] = latest_home.get(col, float("nan"))
                 feature_row[f"away_{col}"] = latest_away.get(col, float("nan"))
+
+            upcoming_date = pd.to_datetime(match["match_date"])
+            last_home_date = pd.to_datetime(latest_home.get("match_date"))
+            last_away_date = pd.to_datetime(latest_away.get("match_date"))
+            home_rest = (upcoming_date - last_home_date).days if pd.notna(last_home_date) else 7
+            away_rest = (upcoming_date - last_away_date).days if pd.notna(last_away_date) else 7
+            feature_row["home_rest_days"] = home_rest
+            feature_row["away_rest_days"] = away_rest
 
             home_elo = match.get("home_elo") or 1500.0
             away_elo = match.get("away_elo") or 1500.0
             feature_row["home_elo"] = home_elo
             feature_row["away_elo"] = away_elo
             feature_row["elo_diff"] = home_elo - away_elo
+
+            home_lp = feature_row.get("home_league_pos", float("nan"))
+            away_lp = feature_row.get("away_league_pos", float("nan"))
+            if pd.notna(home_lp) and pd.notna(away_lp):
+                feature_row["league_pos_diff"] = home_lp - away_lp
+            else:
+                feature_row["league_pos_diff"] = float("nan")
 
         feature_df = pd.DataFrame([feature_row])
         preds = predict_upcoming(feature_df, division)

@@ -47,6 +47,9 @@ def predict_match(
 ) -> dict:
     model = _load_model(variant, target, models_dir)
     features = PREMIUM_FEATURES if variant == "premium" else BASE_FEATURES
+    for f in features:
+        if f not in feature_row.columns:
+            feature_row[f] = float("nan")
     x = feature_row[features]
     proba = model.predict_proba(x)[0]
 
