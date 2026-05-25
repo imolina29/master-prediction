@@ -4,6 +4,7 @@ import time
 
 import httpx
 
+from backend.etl.http import get_with_retry
 from backend.services.teams import TeamNormalizer
 
 logger = logging.getLogger(__name__)
@@ -36,8 +37,7 @@ def fetch_odds(sport_key: str, token: str) -> list[dict]:
         "markets": "h2h,totals",
         "oddsFormat": "decimal",
     }
-    resp = httpx.get(url, params=params, timeout=30)
-    resp.raise_for_status()
+    resp = get_with_retry(url, params=params)
     events = resp.json()
     logger.info("Fetched %d events for %s", len(events), sport_key)
     return events

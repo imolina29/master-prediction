@@ -2,9 +2,8 @@ import logging
 import time
 from typing import Any
 
-import httpx
-
 from backend.db.client import get_supabase
+from backend.etl.http import get_with_retry
 from backend.services.teams import TeamNormalizer
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ REQUEST_DELAY = 1.5
 
 def fetch_league_season(league: str, season: int) -> dict[str, Any]:
     url = f"{UNDERSTAT_BASE}/getLeagueData/{league}/{season}"
-    response = httpx.get(
+    response = get_with_retry(
         url,
         headers={
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
@@ -33,7 +32,6 @@ def fetch_league_season(league: str, season: int) -> dict[str, Any]:
         follow_redirects=True,
         timeout=30.0,
     )
-    response.raise_for_status()
     return response.json()
 
 

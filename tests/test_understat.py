@@ -85,7 +85,9 @@ def test_fetch_league_season():
     mock_response.status_code = 200
     mock_response.json.return_value = SAMPLE_API_RESPONSE
 
-    with patch("backend.etl.understat.httpx.get", return_value=mock_response) as mock_get:
+    with patch(
+        "backend.etl.understat.get_with_retry", return_value=mock_response
+    ) as mock_get:
         result = fetch_league_season("EPL", 2024)
 
     assert result == SAMPLE_API_RESPONSE

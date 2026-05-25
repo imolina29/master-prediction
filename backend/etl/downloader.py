@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pathlib import Path
 
@@ -10,15 +11,34 @@ MATCHES_URL = (
 
 logger = logging.getLogger(__name__)
 
+MAX_RETRIES = 3
+BACKOFF = 5.0
+RETRYABLE = (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ConnectError)
+
 
 async def download_matches_csv(dest_dir: Path) -> Path:
     dest_dir.mkdir(parents=True, exist_ok=True)
     output_path = dest_dir / "Matches.csv"
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        logger.info("Downloading matches CSV from %s", MATCHES_URL)
-        response = await client.get(MATCHES_URL)
-        response.raise_for_status()
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                logger.info("Downloading matches CSV from %s", MATCHES_URL)
+                response = await client.get(MATCHES_URL)
+                response.raise_for_status()
+            break
+        except RETRYABLE as exc:
+            if attempt == MAX_RETRIES:
+                raise
+            wait = BACKOFF * attempt
+            logger.warning(
+                "Download failed (attempt %d/%d): %s. Retrying in %.0fs",
+                attempt,
+                MAX_RETRIES,
+                exc,
+                wait,
+            )
+            await asyncio.sleep(wait)
 
     output_path.write_bytes(response.content)
     size_mb = len(response.content) / (1024 * 1024)

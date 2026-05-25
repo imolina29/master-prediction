@@ -8,6 +8,7 @@ from pathlib import Path
 
 import httpx
 
+from backend.etl.http import get_with_retry
 from backend.services.teams import TeamNormalizer
 
 logger = logging.getLogger(__name__)
@@ -57,8 +58,7 @@ def _get_token() -> str:
 def _api_get(path: str, token: str, params: dict | None = None) -> dict:
     url = f"{API_BASE}{path}"
     headers = {"X-Auth-Token": token}
-    resp = httpx.get(url, headers=headers, params=params, timeout=30)
-    resp.raise_for_status()
+    resp = get_with_retry(url, headers=headers, params=params)
     return resp.json()
 
 
@@ -166,8 +166,7 @@ def load_fixtures(records: list[dict], batch_size: int = 500) -> int:
 
 def _download_international_results() -> list[dict]:
     logger.info("Downloading international results from %s", INTL_RESULTS_URL)
-    resp = httpx.get(INTL_RESULTS_URL, timeout=60)
-    resp.raise_for_status()
+    resp = get_with_retry(INTL_RESULTS_URL, timeout=60)
     reader = csv.DictReader(io.StringIO(resp.text))
     return list(reader)
 
