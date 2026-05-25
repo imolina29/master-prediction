@@ -119,6 +119,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_AUTHORIZED_CHATS: ${{ secrets.TELEGRAM_AUTHORIZED_CHATS }}
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          TELEGRAM_FREE_CHANNEL_ID: ${{ secrets.TELEGRAM_FREE_CHANNEL_ID }}
+          TELEGRAM_PREMIUM_CHANNEL_ID: ${{ secrets.TELEGRAM_PREMIUM_CHANNEL_ID }}
+          LANDING_URL: ${{ secrets.LANDING_URL }}
 
       - name: Check and send smart alerts
         run: PYTHONPATH=. python scripts/run_alerts.py
@@ -131,6 +134,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_AUTHORIZED_CHATS: ${{ secrets.TELEGRAM_AUTHORIZED_CHATS }}
           DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+          TELEGRAM_FREE_CHANNEL_ID: ${{ secrets.TELEGRAM_FREE_CHANNEL_ID }}
+          TELEGRAM_PREMIUM_CHANNEL_ID: ${{ secrets.TELEGRAM_PREMIUM_CHANNEL_ID }}
+          LANDING_URL: ${{ secrets.LANDING_URL }}
 
       - name: Notify pipeline failure via Telegram
         if: failure()
