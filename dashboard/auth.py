@@ -6,7 +6,10 @@ import streamlit as st
 
 from dashboard.data_access import get_supabase_client
 
-SESSION_TIMEOUT_SECONDS = 30 * 60
+SESSION_TIMEOUT_SECONDS = 15 * 60
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_SECONDS = 15 * 60
+MIN_PASSWORD_LENGTH = 12
 
 ROLE_LABELS = {"admin": "Administrador", "viewer": "Viewer"}
 
@@ -220,12 +223,33 @@ def require_admin() -> bool:
     return True
 
 
+def _is_locked_out() -> bool:
+    attempts = st.session_state.get("login_attempts", 0)
+    lockout_time = st.session_state.get("lockout_until", 0)
+    if attempts >= MAX_LOGIN_ATTEMPTS and time.time() < lockout_time:
+        return True
+    if time.time() >= lockout_time:
+        st.session_state["login_attempts"] = 0
+    return False
+
+
+def _record_failed_attempt():
+    attempts = st.session_state.get("login_attempts", 0) + 1
+    st.session_state["login_attempts"] = attempts
+    if attempts >= MAX_LOGIN_ATTEMPTS:
+        st.session_state["lockout_until"] = time.time() + LOCKOUT_SECONDS
+
+
 def _do_login(username: str, password: str) -> dict | None:
     """Try Secrets first, then Supabase."""
     result = _authenticate_secrets(username, password)
     if result:
+        st.session_state["login_attempts"] = 0
         return result
-    return _authenticate_supabase(username, password)
+    result = _authenticate_supabase(username, password)
+    if result:
+        st.session_state["login_attempts"] = 0
+    return result
 
 
 def _handle_password_change():
@@ -237,8 +261,8 @@ def _handle_password_change():
         submitted = st.form_submit_button("Cambiar contraseña", use_container_width=True)
 
     if submitted:
-        if not new_pass or len(new_pass) < 6:
-            st.error("La contraseña debe tener al menos 6 caracteres.")
+        if not new_pass or len(new_pass) < MIN_PASSWORD_LENGTH:
+            st.error(f"La contraseña debe tener al menos {MIN_PASSWORD_LENGTH} caracteres.")
             return False
         if new_pass != confirm_pass:
             st.error("Las contraseñas no coinciden.")
@@ -264,7 +288,7 @@ def check_auth() -> bool:
     if st.session_state.get("authentication_status"):
         expired = _check_session_timeout()
         if expired:
-            st.warning("Tu sesion ha expirado (30 min). Inicia sesion nuevamente.")
+            st.warning("Tu sesion ha expirado (15 min). Inicia sesion nuevamente.")
             st.rerun()
         if st.session_state.get("must_change_password"):
             _handle_password_change()
@@ -280,22 +304,30 @@ def check_auth() -> bool:
         submitted = st.form_submit_button("Iniciar sesion", use_container_width=True)
 
     if submitted and username and password:
-        user = _do_login(username, password)
-        if user:
-            st.session_state["authentication_status"] = True
-            st.session_state["username"] = user["username"]
-            st.session_state["name"] = user["name"]
-            st.session_state["user_role"] = user["role"]
-            st.session_state["user_source"] = user["source"]
-            st.session_state["must_change_password"] = user["must_change_password"]
-            st.session_state["session_start"] = time.time()
-            if user.get("user_id"):
-                st.session_state["user_id"] = user["user_id"]
-            st.rerun()
+        if _is_locked_out():
+            remaining = int((st.session_state.get("lockout_until", 0) - time.time()) / 60)
+            st.error(
+                f"Demasiados intentos fallidos. Intenta de nuevo en {max(1, remaining)} minutos."
+            )
+        else:
+            user = _do_login(username, password)
+            if user:
+                st.session_state["authentication_status"] = True
+                st.session_state["username"] = user["username"]
+                st.session_state["name"] = user["name"]
+                st.session_state["user_role"] = user["role"]
+                st.session_state["user_source"] = user["source"]
+                st.session_state["must_change_password"] = user["must_change_password"]
+                st.session_state["session_start"] = time.time()
+                if user.get("user_id"):
+                    st.session_state["user_id"] = user["user_id"]
+                st.rerun()
+            else:
+                _record_failed_attempt()
 
     _, center, _ = st.columns([1.5, 2, 1.5])
     with center:
-        if submitted and username and password:
+        if submitted and username and password and not _is_locked_out():
             st.error("Usuario o contraseña incorrectos")
 
         if not submitted:
