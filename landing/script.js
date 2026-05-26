@@ -56,6 +56,7 @@ const translations = {
     planFeature5: 'Weekly performance report',
     planPromoFeatureWC: 'World Cup 2026 predictions included',
     planCta: 'Subscribe Now',
+    planCancel: 'Cancel anytime',
     faqTitle: 'Frequently Asked Questions',
     faq1Q: 'How are predictions generated?',
     faq1A:
@@ -135,6 +136,7 @@ const translations = {
     planFeature5: 'Reporte de rendimiento semanal',
     planPromoFeatureWC: 'Predicciones Copa del Mundo 2026 incluidas',
     planCta: 'Suscribirse Ahora',
+    planCancel: 'Cancela cuando quieras',
     faqTitle: 'Preguntas Frecuentes',
     faq1Q: 'Como se generan las predicciones?',
     faq1A:
