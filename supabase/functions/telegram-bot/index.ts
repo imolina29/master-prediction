@@ -11,6 +11,7 @@ const LANDING_URL =
   Deno.env.get("LANDING_URL") || "https://masterprediction.com";
 const TELEGRAM_FREE_CHANNEL_URL =
   Deno.env.get("TELEGRAM_FREE_CHANNEL_URL") || "";
+const STRIPE_PROMO_CODE = Deno.env.get("STRIPE_PROMO_CODE") || "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -40,6 +41,7 @@ async function createCheckoutUrl(
   telegramUserId: string,
   username: string,
   plan: string,
+  promoCode?: string,
 ): Promise<string | null> {
   const priceId =
     plan === "quarterly" ? STRIPE_PRICE_QUARTERLY : STRIPE_PRICE_MONTHLY;
@@ -53,6 +55,10 @@ async function createCheckoutUrl(
   params.append("cancel_url", LANDING_URL);
   params.append("client_reference_id", telegramUserId);
   params.append("metadata[telegram_username]", username);
+  params.append("metadata[plan]", plan);
+  if (promoCode) {
+    params.append("discounts[0][promotion_code]", promoCode);
+  }
 
   const resp = await fetch(
     "https://api.stripe.com/v1/checkout/sessions",
@@ -70,6 +76,16 @@ async function createCheckoutUrl(
   return session.url || null;
 }
 
+async function checkActiveSubscription(userId: number): Promise<boolean> {
+  const { data } = await supabase
+    .from("subscriptions")
+    .select("id")
+    .eq("telegram_user_id", String(userId))
+    .eq("status", "active")
+    .maybeSingle();
+  return !!data;
+}
+
 async function handleStart(
   chatId: number,
   userId: number,
@@ -77,6 +93,16 @@ async function handleStart(
   args: string,
 ) {
   if (args === "subscribe") {
+    const hasActive = await checkActiveSubscription(userId);
+    if (hasActive) {
+      await telegramReply(
+        chatId,
+        "✅ You already have an active Premium subscription!\n\n" +
+          "Use /status to see your subscription details.",
+      );
+      return;
+    }
+
     const monthlyUrl = await createCheckoutUrl(
       String(userId),
       username,
@@ -99,6 +125,19 @@ async function handleStart(
           url: quarterlyUrl,
         },
       ]);
+    }
+    if (STRIPE_PROMO_CODE) {
+      const promoUrl = await createCheckoutUrl(
+        String(userId),
+        username,
+        "monthly",
+        STRIPE_PROMO_CODE,
+      );
+      if (promoUrl) {
+        buttons.push([
+          { text: "🏆 World Cup Promo — $9.99 first month", url: promoUrl },
+        ]);
+      }
     }
 
     await telegramReply(

@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from backend.subscriptions.channel import ChannelManager
 from dashboard.auth import require_admin
 from dashboard.components.theme import section_header, stat_card
 from dashboard.data_access import (
@@ -96,6 +97,11 @@ if subscriptions:
         col_a, col_b = st.columns(2)
         with col_a:
             if st.button("❌ Revocar Acceso", use_container_width=True):
+                try:
+                    channel_mgr = ChannelManager()
+                    channel_mgr.revoke_user_access(selected_sub["telegram_user_id"])
+                except Exception as e:
+                    st.warning(f"No se pudo revocar en Telegram: {e}")
                 client = get_supabase_client()
                 client.table("subscriptions").update({"status": "cancelled"}).eq(
                     "id", selected_sub["id"]

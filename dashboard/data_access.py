@@ -191,8 +191,8 @@ def get_subscription_kpis(subscriptions: list[dict], payments: list[dict]) -> di
         1 for s in subscriptions if s.get("created_at", "").startswith(current_month)
     )
 
-    total = len(subscriptions)
-    churn_rate = len(cancelled) / total * 100 if total > 0 else 0.0
+    churn_base = len(active) + len(cancelled)
+    churn_rate = len(cancelled) / churn_base * 100 if churn_base > 0 else 0.0
 
     month_payments = [
         p

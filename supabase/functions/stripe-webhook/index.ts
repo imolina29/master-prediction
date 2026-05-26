@@ -8,6 +8,9 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
 const TELEGRAM_ADMIN_CHAT_ID = Deno.env.get("TELEGRAM_ADMIN_CHAT_ID") || "";
 const TELEGRAM_PREMIUM_CHANNEL_ID =
   Deno.env.get("TELEGRAM_PREMIUM_CHANNEL_ID") || "";
+const LANDING_URL =
+  Deno.env.get("LANDING_URL") || "https://imolina29.github.io/master-prediction";
+const SIGNATURE_TOLERANCE_SEC = 300;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -35,23 +38,36 @@ async function notifyAdmin(text: string) {
   });
 }
 
-async function sendInviteToUser(telegramUserId: string) {
-  const linkResult = await telegramApi("createChatInviteLink", {
-    chat_id: TELEGRAM_PREMIUM_CHANNEL_ID,
-    member_limit: 1,
-  });
+async function sendInviteToUser(telegramUserId: string): Promise<boolean> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const linkResult = await telegramApi("createChatInviteLink", {
+      chat_id: TELEGRAM_PREMIUM_CHANNEL_ID,
+      member_limit: 1,
+    });
 
-  if (!linkResult.ok) return;
-  const inviteLink = linkResult.result.invite_link;
+    if (!linkResult.ok) {
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      await notifyAdmin(
+        `🚨 <b>ERROR:</b> Could not create invite link for user ${telegramUserId} after 3 attempts. Manual action required.`,
+      );
+      return false;
+    }
 
-  await telegramApi("sendMessage", {
-    chat_id: telegramUserId,
-    text:
-      `🎉 <b>Welcome to Master Prediction Premium!</b>\n\n` +
-      `Join here:\n${inviteLink}\n\n` +
-      `You'll receive all picks with odds, edge & confidence daily.`,
-    parse_mode: "HTML",
-  });
+    const inviteLink = linkResult.result.invite_link;
+    await telegramApi("sendMessage", {
+      chat_id: telegramUserId,
+      text:
+        `🎉 <b>Welcome to Master Prediction Premium!</b>\n\n` +
+        `Join here:\n${inviteLink}\n\n` +
+        `You'll receive all picks with odds, edge & confidence daily.`,
+      parse_mode: "HTML",
+    });
+    return true;
+  }
+  return false;
 }
 
 async function revokeUserAccess(telegramUserId: string) {
@@ -67,7 +83,7 @@ async function revokeUserAccess(telegramUserId: string) {
     chat_id: telegramUserId,
     text:
       "Your Master Prediction Premium subscription has ended.\n\n" +
-      "Renew anytime at https://masterprediction.com",
+      `Renew anytime at ${LANDING_URL}`,
   });
 }
 
@@ -102,6 +118,10 @@ async function verifyStripeSignature(
     .join("");
 
   if (computed !== expectedSig) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - Number(timestamp)) > SIGNATURE_TOLERANCE_SEC) return null;
+
   return JSON.parse(body);
 }
 
@@ -127,10 +147,22 @@ serve(async (req) => {
       const telegramUserId = data.client_reference_id as string;
       const metadata = data.metadata as Record<string, string>;
       const telegramUsername = metadata?.telegram_username || "";
+      const plan = metadata?.plan || "monthly";
       const stripeCustomerId = data.customer as string;
       const stripeSubscriptionId = data.subscription as string;
 
-      const plan = "monthly";
+      const { data: existing } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("stripe_subscription_id", stripeSubscriptionId)
+        .maybeSingle();
+
+      if (existing) {
+        return new Response(
+          JSON.stringify({ received: true, duplicate: true }),
+          { headers: { "Content-Type": "application/json" }, status: 200 },
+        );
+      }
 
       await supabase.from("subscriptions").insert({
         telegram_user_id: telegramUserId,
@@ -141,10 +173,11 @@ serve(async (req) => {
         status: "active",
       });
 
-      await sendInviteToUser(telegramUserId);
+      const invited = await sendInviteToUser(telegramUserId);
       await notifyAdmin(
         `🆕 <b>New subscriber:</b> @${telegramUsername || telegramUserId}` +
-          ` — Premium ${plan} ($${plan === "monthly" ? "19.99" : "49.99"})`,
+          ` — Premium ${plan}` +
+          (invited ? "" : "\n⚠️ Invite link failed — send manually"),
       );
     }
 

@@ -159,23 +159,46 @@
 <body>
   <div class="success-container">
     <div class="success-icon">&#10003;</div>
-    <h1 class="success-title">Payment Successful!</h1>
-    <p class="success-message">
+    <h1 class="success-title" data-i18n="title">Payment Successful!</h1>
+    <p class="success-message" data-i18n="message">
       Thank you for subscribing to Master Prediction Premium. Your access is
       being set up right now.
     </p>
     <div class="success-steps">
-      <h3>Next Steps</h3>
+      <h3 data-i18n="stepsTitle">Next Steps</h3>
       <ol>
-        <li>Open the Master Prediction bot on Telegram.</li>
-        <li>The bot will send you an invite link to the premium channel.</li>
-        <li>Join the channel and start receiving AI-powered picks!</li>
+        <li data-i18n="step1">Open the Master Prediction bot on Telegram.</li>
+        <li data-i18n="step2">The bot will send you an invite link to the premium channel.</li>
+        <li data-i18n="step3">Join the channel and start receiving AI-powered picks!</li>
       </ol>
     </div>
-    <a href="https://t.me/Omnidroid_bot" class="btn btn-primary">
+    <a href="https://t.me/Omnidroid_bot" class="btn btn-primary" data-i18n="cta">
       Open Telegram Bot
     </a>
-    <a href="index.html" class="back-link">&larr; Back to Master Prediction</a>
+    <a href="index.html" class="back-link" data-i18n="back">&larr; Back to Master Prediction</a>
   </div>
+  <script>
+    var t = {
+      es: {
+        title: "Pago Exitoso!",
+        message: "Gracias por suscribirte a Master Prediction Premium. Tu acceso se esta configurando ahora mismo.",
+        stepsTitle: "Siguientes Pasos",
+        step1: "Abre el bot de Master Prediction en Telegram.",
+        step2: "El bot te enviara un enlace de invitacion al canal premium.",
+        step3: "Unete al canal y empieza a recibir picks con IA!",
+        cta: "Abrir Bot de Telegram",
+        back: "← Volver a Master Prediction"
+      }
+    };
+    try {
+      var lang = localStorage.getItem("mp-lang");
+      if (lang && t[lang]) {
+        document.querySelectorAll("[data-i18n]").forEach(function (el) {
+          var key = el.getAttribute("data-i18n");
+          if (t[lang][key]) el.textContent = t[lang][key];
+        });
+      }
+    } catch (e) {}
+  </script>
 </body>
 </html>
