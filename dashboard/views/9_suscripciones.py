@@ -15,8 +15,7 @@ if not require_admin():
     st.stop()
 
 st.markdown(
-    '<h1 style="font-size:1.8rem; font-weight:800; letter-spacing:-0.03em;">'
-    "💳 Suscripciones</h1>",
+    '<h1 style="font-size:1.8rem; font-weight:800; letter-spacing:-0.03em;">💳 Suscripciones</h1>',
     unsafe_allow_html=True,
 )
 
