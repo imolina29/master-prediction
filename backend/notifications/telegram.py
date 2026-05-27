@@ -162,3 +162,36 @@ class TelegramNotifier:
             )
 
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
+
+    def send_free_picks(
+        self, picks: list[dict], chat_id: str | None = None, landing_url: str = ""
+    ) -> list[dict]:
+        free = build_free_picks(picks)
+        if not free:
+            return []
+
+        lines = [
+            "⚽ <b>Master Prediction — Free Picks</b>",
+            f"📅 {len(free)} Pick{'s' if len(free) > 1 else ''} del Dia",
+            "",
+        ]
+        for i, p in enumerate(free, 1):
+            flag = DIVISION_FLAGS.get(p.get("division", ""), "")
+            market = MARKET_LABELS.get(p["market"], p["market"])
+            lines.append(f"<b>{i}.</b> {flag} <b>{p['home_team']} vs {p['away_team']}</b>")
+            lines.append(f"   📊 {market}")
+            lines.append("")
+
+        cta = landing_url or "https://masterprediction.com"
+        lines.append(
+            f"🔒 +{max(len(picks) - len(free), 0)} picks con odds, edge y confianza → Premium"
+        )
+        lines.append(f"👉 {cta}")
+
+        target = chat_id or (self.chat_ids[0] if self.chat_ids else "")
+        return [self.send_message("\n".join(lines), chat_id=target)]
+
+
+def build_free_picks(picks: list[dict]) -> list[dict]:
+    sorted_picks = sorted(picks, key=lambda p: (-p.get("stake", 0), -p.get("edge", 0)))
+    return sorted_picks[:2]

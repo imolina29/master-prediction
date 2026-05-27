@@ -5,6 +5,7 @@ import duckdb
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+
 from supabase import Client, create_client
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -150,3 +151,60 @@ DIVISION_NAMES = {
     "EC": "Champions League",
     "WC": "FIFA World Cup",
 }
+
+
+@st.cache_data(ttl=60)
+def get_subscriptions() -> list[dict]:
+    client = get_supabase_client()
+    resp = client.table("subscriptions").select("*").order("created_at", desc=True).execute()
+    return resp.data or []
+
+
+@st.cache_data(ttl=60)
+def get_payments() -> list[dict]:
+    client = get_supabase_client()
+    resp = (
+        client.table("payments")
+        .select("*, subscriptions(telegram_username, plan)")
+        .order("paid_at", desc=True)
+        .execute()
+    )
+    return resp.data or []
+
+
+def get_subscription_kpis(subscriptions: list[dict], payments: list[dict]) -> dict:
+    from datetime import datetime, timezone
+
+    active = [s for s in subscriptions if s["status"] == "active"]
+    cancelled = [s for s in subscriptions if s["status"] == "cancelled"]
+
+    mrr = 0.0
+    for s in active:
+        if s["plan"] == "monthly":
+            mrr += 80_000
+        elif s["plan"] == "quarterly":
+            mrr += 185_000 / 3
+
+    now = datetime.now(timezone.utc)
+    current_month = now.strftime("%Y-%m")
+    new_this_month = sum(
+        1 for s in subscriptions if s.get("created_at", "").startswith(current_month)
+    )
+
+    churn_base = len(active) + len(cancelled)
+    churn_rate = len(cancelled) / churn_base * 100 if churn_base > 0 else 0.0
+
+    month_payments = [
+        p
+        for p in payments
+        if p.get("paid_at", "").startswith(current_month) and p["status"] == "succeeded"
+    ]
+    revenue_this_month = sum(float(p["amount"]) for p in month_payments)
+
+    return {
+        "mrr": round(mrr, 2),
+        "active_count": len(active),
+        "new_this_month": new_this_month,
+        "churn_rate": round(churn_rate, 1),
+        "revenue_this_month": round(revenue_this_month, 2),
+    }

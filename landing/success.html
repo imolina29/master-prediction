@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Successful - Master Prediction</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .success-container {
+      text-align: center;
+      max-width: 520px;
+      padding: 60px 32px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #4CAF50;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      font-size: 2.5rem;
+      color: #fff;
+      animation: scaleIn 0.4s ease-out;
+    }
+
+    @keyframes scaleIn {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .success-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .success-message {
+      color: #aaa;
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .success-steps {
+      text-align: left;
+      background: #141414;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 40px;
+    }
+
+    .success-steps h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4CAF50;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .success-steps ol {
+      list-style: none;
+      counter-reset: steps;
+    }
+
+    .success-steps li {
+      counter-increment: steps;
+      padding: 8px 0;
+      color: #bbb;
+      font-size: 0.95rem;
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .success-steps li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(76, 175, 80, 0.15);
+      color: #4CAF50;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      top: 9px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 16px 40px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #4CAF50;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #2E7D32;
+      transform: translateY(-1px);
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 24px;
+      color: #666;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="success-icon">&#10003;</div>
+    <h1 class="success-title" data-i18n="title">Payment Successful!</h1>
+    <p class="success-message" data-i18n="message">
+      Thank you for subscribing to Master Prediction Premium. Your access is
+      being set up right now.
+    </p>
+    <div class="success-steps">
+      <h3 data-i18n="stepsTitle">Next Steps</h3>
+      <ol>
+        <li data-i18n="step1">Open the Master Prediction bot on Telegram.</li>
+        <li data-i18n="step2">The bot will send you an invite link to the premium channel.</li>
+        <li data-i18n="step3">Join the channel and start receiving AI-powered picks!</li>
+      </ol>
+    </div>
+    <a href="https://t.me/Omnidroid_bot" class="btn btn-primary" data-i18n="cta">
+      Open Telegram Bot
+    </a>
+    <a href="index.html" class="back-link" data-i18n="back">&larr; Back to Master Prediction</a>
+  </div>
+  <script>
+    var t = {
+      es: {
+        title: "Pago Exitoso!",
+        message: "Gracias por suscribirte a Master Prediction Premium. Tu acceso se esta configurando ahora mismo.",
+        stepsTitle: "Siguientes Pasos",
+        step1: "Abre el bot de Master Prediction en Telegram.",
+        step2: "El bot te enviara un enlace de invitacion al canal premium.",
+        step3: "Unete al canal y empieza a recibir picks con IA!",
+        cta: "Abrir Bot de Telegram",
+        back: "← Volver a Master Prediction"
+      }
+    };
+    try {
+      var lang = localStorage.getItem("mp-lang");
+      if (lang && t[lang]) {
+        document.querySelectorAll("[data-i18n]").forEach(function (el) {
+          var key = el.getAttribute("data-i18n");
+          if (t[lang][key]) el.textContent = t[lang][key];
+        });
+      }
+    } catch (e) {}
+  </script>
+</body>
+</html>

@@ -8,9 +8,11 @@ from dashboard.data_access import DIVISION_NAMES, get_active_picks, get_resolved
 
 st.markdown(
     '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'
-    '<h1 style="font-size:2.5rem; margin:0;">⚽ Master Prediction</h1>'
-    '<p style="color:#81C784; font-size:1rem; margin-top:4px; letter-spacing:2px;'
-    ' text-transform:uppercase;">Inteligencia Deportiva con IA</p>'
+    '<h1 style="font-size:2.2rem; margin:0; color:#fff !important;'
+    " font-weight:800; letter-spacing:-0.03em;"
+    '">⚽ Master Prediction</h1>'
+    '<p style="color:#555; font-size:0.78rem; margin-top:6px; letter-spacing:0.08em;'
+    ' text-transform:uppercase; font-weight:500;">Inteligencia Deportiva con IA</p>'
     "</div>",
     unsafe_allow_html=True,
 )
@@ -110,8 +112,8 @@ with col_right:
 
         if perf.get("by_market"):
             st.markdown(
-                '<p style="color:#a5d6a7; font-size:0.85rem; margin:1rem 0 0.5rem 0;'
-                ' text-transform:uppercase; letter-spacing:1px;">Por mercado</p>',
+                '<p style="color:#666; font-size:0.78rem; margin:1rem 0 0.5rem 0;'
+                ' text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Por mercado</p>',
                 unsafe_allow_html=True,
             )
             for market_name, data in perf["by_market"].items():
