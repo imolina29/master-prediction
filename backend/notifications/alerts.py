@@ -118,6 +118,7 @@ def send_alerts(
     active_picks: list[dict],
     resolved: list[dict],
     today: date | None = None,
+    admin_chat_id: str | None = None,
 ) -> dict:
     today = today or date.today()
     sent = {"premium": 0, "streak": 0, "weekly": 0}
@@ -133,7 +134,10 @@ def send_alerts(
     streak = check_streaks(resolved)
     if streak:
         text = _format_streak(streak)
-        notifier.send_to_all(text, reply_markup=markup)
+        if streak["type"] == "win":
+            notifier.send_to_all(text, reply_markup=markup)
+        elif admin_chat_id:
+            notifier.send_message(text, chat_id=admin_chat_id)
         sent["streak"] = 1
 
     if today.weekday() == 6:

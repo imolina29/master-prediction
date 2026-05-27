@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     client = get_supabase()
     premium_channel_id = os.environ.get("TELEGRAM_PREMIUM_CHANNEL_ID", "")
+    admin_chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
     if premium_channel_id:
         notifier = TelegramNotifier(chat_ids=[premium_channel_id])
     else:
@@ -34,7 +35,7 @@ def main() -> None:
     )
     resolved = resolved_resp.data or []
 
-    sent = send_alerts(notifier, active_picks, resolved)
+    sent = send_alerts(notifier, active_picks, resolved, admin_chat_id=admin_chat_id)
     logger.info(
         "Alerts sent — premium: %d, streak: %d, weekly: %d",
         sent["premium"],

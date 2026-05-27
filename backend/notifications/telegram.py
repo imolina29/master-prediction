@@ -171,31 +171,27 @@ class TelegramNotifier:
             return []
 
         lines = [
-            "⚽ <b>Master Prediction — Free Pick</b>",
+            "⚽ <b>Master Prediction — Free Picks</b>",
+            f"📅 {len(free)} Pick{'s' if len(free) > 1 else ''} del Dia",
             "",
         ]
-        for p in free:
+        for i, p in enumerate(free, 1):
             flag = DIVISION_FLAGS.get(p.get("division", ""), "")
             market = MARKET_LABELS.get(p["market"], p["market"])
-            lines.append(f"{flag} <b>{p['home_team']} vs {p['away_team']}</b>")
-            lines.append(f"📊 {market}")
+            lines.append(f"<b>{i}.</b> {flag} <b>{p['home_team']} vs {p['away_team']}</b>")
+            lines.append(f"   📊 {market}")
             lines.append("")
 
         cta = landing_url or "https://masterprediction.com"
-        lines.append(f"🔒 All picks + odds + edge → {cta}")
+        lines.append(
+            f"🔒 +{max(len(picks) - len(free), 0)} picks con odds, edge y confianza → Premium"
+        )
+        lines.append(f"👉 {cta}")
 
         target = chat_id or (self.chat_ids[0] if self.chat_ids else "")
         return [self.send_message("\n".join(lines), chat_id=target)]
 
 
-FREE_DIVISIONS = {"E0", "WC"}
-
-
 def build_free_picks(picks: list[dict]) -> list[dict]:
-    filtered = [
-        p
-        for p in picks
-        if p.get("market", "").startswith("1x2") and p.get("division") in FREE_DIVISIONS
-    ]
-    filtered.sort(key=lambda p: (-p.get("stake", 0), -p.get("edge", 0)))
-    return filtered[:2]
+    sorted_picks = sorted(picks, key=lambda p: (-p.get("stake", 0), -p.get("edge", 0)))
+    return sorted_picks[:2]
