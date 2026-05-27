@@ -1,6 +1,7 @@
 """Check for smart alerts and send via Telegram."""
 
 import logging
+import os
 
 from backend.db.client import get_supabase
 from backend.notifications.alerts import send_alerts
@@ -12,7 +13,11 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     client = get_supabase()
-    notifier = TelegramNotifier()
+    premium_channel_id = os.environ.get("TELEGRAM_PREMIUM_CHANNEL_ID", "")
+    if premium_channel_id:
+        notifier = TelegramNotifier(chat_ids=[premium_channel_id])
+    else:
+        notifier = TelegramNotifier()
 
     active_resp = (
         client.table("value_bets").select("*").is_("result", "null").eq("alerted", False).execute()

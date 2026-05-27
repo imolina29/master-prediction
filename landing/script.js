@@ -77,6 +77,8 @@ const translations = {
     footerFreeChannel: 'Free Telegram Channel',
     footerPricing: 'Pricing',
     footerFaq: 'FAQ',
+    footerPrivacy: 'Privacy Policy',
+    footerTerms: 'Terms of Service',
     footerDisclaimer:
       'Master Prediction is an informational service. We do not guarantee profits. Sports betting involves risk. Gamble responsibly. 18+.',
   },
@@ -157,6 +159,8 @@ const translations = {
     footerFreeChannel: 'Canal de Telegram Gratis',
     footerPricing: 'Precios',
     footerFaq: 'Preguntas Frecuentes',
+    footerPrivacy: 'Politica de Privacidad',
+    footerTerms: 'Terminos de Servicio',
     footerDisclaimer:
       'Master Prediction es un servicio informativo. No garantizamos ganancias. Las apuestas deportivas implican riesgo. Apuesta responsablemente. 18+.',
   },

@@ -199,6 +199,84 @@ async function handleStatus(chatId: number, userId: number) {
   }
 }
 
+async function handleCancel(
+  chatId: number,
+  userId: number,
+  args: string,
+) {
+  const { data: sub } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("telegram_user_id", String(userId))
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (!sub) {
+    await telegramReply(
+      chatId,
+      "You don't have an active subscription to cancel.\n\n" +
+        "Use /start subscribe to get Premium access!",
+    );
+    return;
+  }
+
+  if (args !== "confirm") {
+    const endDate = sub.current_period_end
+      ? new Date(sub.current_period_end).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "end of current period";
+
+    await telegramReply(
+      chatId,
+      "⚠️ <b>Cancel Subscription</b>\n\n" +
+        `Plan: <b>${sub.plan}</b>\n` +
+        `Access until: <b>${endDate}</b>\n\n` +
+        "You will keep Premium access until the end of your current billing period.\n\n" +
+        "To confirm cancellation, type:\n/cancel confirm",
+    );
+    return;
+  }
+
+  const resp = await fetch(
+    `https://api.stripe.com/v1/subscriptions/${sub.stripe_subscription_id}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "cancel_at_period_end=true",
+    },
+  );
+  const result = await resp.json();
+
+  if (result.error) {
+    await telegramReply(
+      chatId,
+      "❌ There was an error cancelling your subscription. Please try again or contact support.",
+    );
+    return;
+  }
+
+  const endDate = sub.current_period_end
+    ? new Date(sub.current_period_end).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "end of current period";
+
+  await telegramReply(
+    chatId,
+    "✅ <b>Subscription cancelled</b>\n\n" +
+      `You will keep Premium access until <b>${endDate}</b>.\n` +
+      "After that, you can re-subscribe anytime with /start subscribe.",
+  );
+}
+
 async function handleHelp(chatId: number) {
   await telegramReply(
     chatId,
@@ -206,6 +284,7 @@ async function handleHelp(chatId: number) {
       "/start — Welcome & free channel link\n" +
       "/start subscribe — Subscribe to Premium\n" +
       "/status — Check your subscription status\n" +
+      "/cancel — Cancel your subscription\n" +
       "/help — This message\n\n" +
       `🌐 Website: ${LANDING_URL}`,
   );
@@ -233,6 +312,9 @@ serve(async (req) => {
     await handleStart(chatId, userId, username, args);
   } else if (text === "/status") {
     await handleStatus(chatId, userId);
+  } else if (text.startsWith("/cancel")) {
+    const cancelArgs = text.replace("/cancel", "").trim();
+    await handleCancel(chatId, userId, cancelArgs);
   } else if (text === "/help") {
     await handleHelp(chatId);
   }
