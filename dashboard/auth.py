@@ -15,58 +15,72 @@ ROLE_LABELS = {"admin": "Administrador", "viewer": "Viewer"}
 
 LOGIN_CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
-/* ── Compact main block for login ── */
-.stMainBlockContainer { padding-top: 1rem !important; padding-bottom: 0 !important; }
+/* ── Base ── */
+.stMainBlockContainer {
+    padding-top: 1rem !important;
+    padding-bottom: 0 !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
+}
 
 /* ── Login container ── */
 [data-testid="stForm"] {
-    max-width: 420px;
+    max-width: 400px;
     margin: 0 auto;
-    background: linear-gradient(145deg, rgba(27, 94, 32, 0.15), rgba(14, 17, 23, 0.95));
-    border: 1px solid rgba(76, 175, 80, 0.25);
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
     padding: 2rem 2.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Input fields ── */
 [data-testid="stForm"] input {
-    background: rgba(14, 17, 23, 0.8) !important;
-    border: 1px solid rgba(76, 175, 80, 0.3) !important;
-    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
     color: #e0e0e0 !important;
-    padding: 0.6rem 1rem !important;
+    padding: 0.65rem 1rem !important;
+    font-family: 'Inter', sans-serif !important;
+    transition: all 0.2s ease !important;
 }
+
 [data-testid="stForm"] input:focus {
-    border-color: #4CAF50 !important;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+    border-color: rgba(76, 175, 80, 0.3) !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.08) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
 }
 
 /* ── Login button ── */
 [data-testid="stForm"] button[type="submit"] {
-    background: linear-gradient(135deg, #2E7D32, #1B5E20) !important;
-    color: #FFD700 !important;
+    background: #4CAF50 !important;
+    color: #fff !important;
     border: none !important;
-    border-radius: 8px !important;
-    padding: 0.6rem 2rem !important;
+    border-radius: 10px !important;
+    padding: 0.65rem 2rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.5px !important;
+    font-family: 'Inter', sans-serif !important;
     width: 100%;
-    transition: all 0.3s ease !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3), 0 4px 16px rgba(76, 175, 80, 0.2) !important;
 }
+
 [data-testid="stForm"] button[type="submit"]:hover {
-    background: linear-gradient(135deg, #388E3C, #2E7D32) !important;
-    box-shadow: 0 4px 16px rgba(46, 125, 50, 0.4) !important;
+    background: #43A047 !important;
+    box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.5), 0 8px 32px rgba(76, 175, 80, 0.3) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* ── Labels ── */
 [data-testid="stForm"] label {
-    color: #a5d6a7 !important;
-    font-size: 0.85rem !important;
+    color: #666 !important;
+    font-size: 0.8rem !important;
     font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
 }
 
 /* ── Responsive ── */
@@ -77,34 +91,29 @@ LOGIN_CSS = """
 """
 
 LOGIN_HEADER = """
-<div style="text-align: center; padding: 1rem 0 1.2rem 0;">
-    <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚽</div>
+<div style="text-align: center; padding: 2rem 0 1.5rem 0; font-family: 'Inter', sans-serif;">
+    <div style="font-size: 2.5rem; margin-bottom: 0.8rem;">⚽</div>
     <h1 style="
-        color: #4CAF50;
-        font-size: 2.2rem;
-        font-weight: 700;
+        color: #fff;
+        font-size: 1.8rem;
+        font-weight: 800;
         margin: 0;
-        letter-spacing: 1px;
-    ">MASTER PREDICTION</h1>
+        letter-spacing: -0.03em;
+    ">Master Prediction</h1>
     <p style="
-        color: #81C784;
-        font-size: 0.95rem;
-        margin-top: 0.3rem;
-        letter-spacing: 2px;
+        color: #555;
+        font-size: 0.78rem;
+        margin-top: 0.5rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-    ">Inteligencia Deportiva</p>
-    <div style="
-        width: 60px;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #FFD700, transparent);
-        margin: 1rem auto 0;
-    "></div>
+        font-weight: 500;
+    ">Inteligencia Deportiva con IA</p>
 </div>
 """
 
 LOGIN_FOOTER = """
-<div style="text-align: center; padding: 0.8rem 0 0;">
-    <p style="color: rgba(160, 160, 160, 0.6); font-size: 0.75rem; letter-spacing: 0.5px;">
+<div style="text-align: center; padding: 1rem 0 0; font-family: 'Inter', sans-serif;">
+    <p style="color: #333; font-size: 0.72rem; letter-spacing: 0.04em;">
         Powered by AI &middot; v1.0
     </p>
 </div>
@@ -344,7 +353,7 @@ def check_auth() -> bool:
 @st.dialog("Solicitar Acceso")
 def _show_access_request():
     st.markdown(
-        '<p style="color:#a5d6a7; font-size:0.9rem;">'
+        '<p style="color:#888; font-size:0.88rem;">'
         "Completa el formulario para solicitar acceso como Viewer.</p>",
         unsafe_allow_html=True,
     )
@@ -385,7 +394,8 @@ def render_user_menu():
         with st.popover(f"👤 {user['name']}", use_container_width=True):
             st.markdown(
                 f'<p style="margin:0;color:#e0e0e0;font-weight:600;">{user["name"]}</p>'
-                f'<p style="margin:0.2rem 0 0 0;color:#81C784;font-size:0.8rem;">'
+                f'<p style="margin:0.2rem 0 0 0;color:#4CAF50;font-size:0.78rem;'
+                f' font-weight:500;">'
                 f"{role_label}</p>",
                 unsafe_allow_html=True,
             )

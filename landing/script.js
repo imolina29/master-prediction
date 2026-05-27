@@ -1,15 +1,22 @@
 // ===== Translations =====
-const translations = {
+var translations = {
   en: {
+    heroBadge: 'Powered by 6 ML Models',
     heroTitle: 'AI-Powered Football Predictions',
     heroSubtitle:
       '6 machine learning models analyze every match so you don\'t have to. Get daily premium picks delivered straight to your Telegram.',
     statAccuracy: 'Accuracy',
     statLeagues: 'Top Leagues',
     statModels: 'ML Models',
+    statDaily: 'Daily',
+    statPicks: 'Picks',
+    navHow: 'How it works',
+    navPricing: 'Pricing',
+    navFaq: 'FAQ',
     navDashboard: 'Dashboard',
     heroCta: 'Get Premium Picks',
-    heroCtaFree: 'Try Free Channel',
+    heroCtaFree: 'Try Free Channel →',
+    howTag: 'The Process',
     howTitle: 'How It Works',
     step1Title: 'Data Collection',
     step1Desc:
@@ -20,22 +27,25 @@ const translations = {
     step3Title: 'Premium Picks',
     step3Desc:
       'Only high-confidence picks where multiple models agree are sent to your Telegram. Quality over quantity, every day.',
+    compareTag: 'Why Premium',
     compareTitle: 'Free vs Premium',
-    compareFeature: 'Feature',
-    compareFree: 'Free Channel',
-    comparePremium: 'Premium',
     compareDailyPicks: 'Daily Picks',
     compareLeagues: 'Leagues Covered',
     compareConfidence: 'Confidence Scores',
     compareModelBreakdown: 'Model Breakdown',
-    comparePreMatch: 'Pre-match Analysis',
-    comparePriority: 'Priority Support',
     compareWeekly: 'Weekly Report',
+    bentoFree: 'Free',
+    bentoPremium: 'Premium',
+    bentoLeagueDetail: 'Premier League, La Liga, Bundesliga, Serie A, Ligue 1',
+    bentoFreeLabel: 'Free: ✗',
+    bentoPremiumLabel: 'Premium: ✓',
+    bentoCta: 'Get the full picture. Confidence, edge, model consensus — everything you need for informed bets.',
     wcBadge: 'World Cup 2026',
     wcTitle: 'Get Ready for the Biggest Tournament in History',
     wcDesc:
       '48 teams. 104 matches. Our AI models are already training on international data. Lock in your premium access now and get World Cup predictions from day one.',
     wcCta: 'See World Cup Promo',
+    pricingTag: 'Plans',
     pricingTitle: 'Choose Your Plan',
     pricingSubtitle:
       'Cancel anytime. All plans include full premium Telegram access.',
@@ -57,6 +67,7 @@ const translations = {
     planPromoFeatureWC: 'World Cup 2026 predictions included',
     planCta: 'Subscribe Now',
     planCancel: 'Cancel anytime',
+    faqTag: 'Support',
     faqTitle: 'Frequently Asked Questions',
     faq1Q: 'How are predictions generated?',
     faq1A:
@@ -74,6 +85,8 @@ const translations = {
     faq5A:
       'All predictions are delivered via our private Telegram channel. After subscribing, you\'ll receive an invite link from our bot within minutes.',
     footerTagline: 'AI-powered football betting intelligence.',
+    footerProductTitle: 'Product',
+    footerLegalTitle: 'Legal',
     footerFreeChannel: 'Free Telegram Channel',
     footerPricing: 'Pricing',
     footerFaq: 'FAQ',
@@ -83,41 +96,51 @@ const translations = {
       'Master Prediction is an informational service. We do not guarantee profits. Sports betting involves risk. Gamble responsibly. 18+.',
   },
   es: {
-    heroTitle: 'Predicciones de Futbol con IA',
+    heroBadge: 'Impulsado por 6 Modelos ML',
+    heroTitle: 'Predicciones de Fútbol con IA',
     heroSubtitle:
-      '6 modelos de machine learning analizan cada partido para que tu no tengas que hacerlo. Recibe picks premium diarios directo en tu Telegram.',
-    statAccuracy: 'Precision',
+      '6 modelos de machine learning analizan cada partido para que tú no tengas que hacerlo. Recibe picks premium diarios directo en tu Telegram.',
+    statAccuracy: 'Precisión',
     statLeagues: 'Ligas Top',
     statModels: 'Modelos ML',
+    statDaily: 'Diario',
+    statPicks: 'Picks',
+    navHow: 'Cómo funciona',
+    navPricing: 'Precios',
+    navFaq: 'FAQ',
     navDashboard: 'Dashboard',
     heroCta: 'Obtener Picks Premium',
-    heroCtaFree: 'Canal Gratuito',
-    howTitle: 'Como Funciona',
-    step1Title: 'Recopilacion de Datos',
+    heroCtaFree: 'Canal Gratuito →',
+    howTag: 'El Proceso',
+    howTitle: 'Cómo Funciona',
+    step1Title: 'Recopilación de Datos',
     step1Desc:
-      'Recopilamos estadisticas en tiempo real, datos de forma, historial de enfrentamientos y cuotas de las 5 principales ligas europeas cada dia.',
-    step2Title: 'Analisis con IA',
+      'Recopilamos estadísticas en tiempo real, datos de forma, historial de enfrentamientos y cuotas de las 5 principales ligas europeas cada día.',
+    step2Title: 'Análisis con IA',
     step2Desc:
-      '6 modelos ML independientes (XGBoost, Random Forest, Redes Neuronales y mas) generan una prediccion para cada partido.',
+      '6 modelos ML independientes (XGBoost, Random Forest, Redes Neuronales y más) generan una predicción para cada partido.',
     step3Title: 'Picks Premium',
     step3Desc:
-      'Solo se envian a tu Telegram los picks de alta confianza donde multiples modelos coinciden. Calidad sobre cantidad, cada dia.',
+      'Solo se envían a tu Telegram los picks de alta confianza donde múltiples modelos coinciden. Calidad sobre cantidad, cada día.',
+    compareTag: 'Por qué Premium',
     compareTitle: 'Gratis vs Premium',
-    compareFeature: 'Caracteristica',
-    compareFree: 'Canal Gratis',
-    comparePremium: 'Premium',
     compareDailyPicks: 'Picks Diarios',
     compareLeagues: 'Ligas Cubiertas',
     compareConfidence: 'Puntuaciones de Confianza',
     compareModelBreakdown: 'Desglose de Modelos',
-    comparePreMatch: 'Analisis Pre-partido',
-    comparePriority: 'Soporte Prioritario',
     compareWeekly: 'Reporte Semanal',
+    bentoFree: 'Gratis',
+    bentoPremium: 'Premium',
+    bentoLeagueDetail: 'Premier League, La Liga, Bundesliga, Serie A, Ligue 1',
+    bentoFreeLabel: 'Gratis: ✗',
+    bentoPremiumLabel: 'Premium: ✓',
+    bentoCta: 'Obtén la imagen completa. Confianza, edge, consenso de modelos — todo lo que necesitas para apuestas informadas.',
     wcBadge: 'Copa del Mundo 2026',
-    wcTitle: 'Preparate para el Torneo Mas Grande de la Historia',
+    wcTitle: 'Prepárate para el Torneo Más Grande de la Historia',
     wcDesc:
-      '48 equipos. 104 partidos. Nuestros modelos de IA ya estan entrenando con datos internacionales. Asegura tu acceso premium ahora y recibe predicciones del Mundial desde el primer dia.',
+      '48 equipos. 104 partidos. Nuestros modelos de IA ya están entrenando con datos internacionales. Asegura tu acceso premium ahora y recibe predicciones del Mundial desde el primer día.',
     wcCta: 'Ver Promo del Mundial',
+    pricingTag: 'Planes',
     pricingTitle: 'Elige Tu Plan',
     pricingSubtitle:
       'Cancela cuando quieras. Todos los planes incluyen acceso completo al Telegram premium.',
@@ -134,33 +157,36 @@ const translations = {
     planFeature1: '5-10 picks premium diarios',
     planFeature2: '5 ligas cubiertas',
     planFeature3: 'Puntuaciones de confianza y desglose de modelos',
-    planFeature4: 'Analisis pre-partido',
+    planFeature4: 'Análisis pre-partido',
     planFeature5: 'Reporte de rendimiento semanal',
     planPromoFeatureWC: 'Predicciones Copa del Mundo 2026 incluidas',
     planCta: 'Suscribirse Ahora',
     planCancel: 'Cancela cuando quieras',
+    faqTag: 'Soporte',
     faqTitle: 'Preguntas Frecuentes',
-    faq1Q: 'Como se generan las predicciones?',
+    faq1Q: '¿Cómo se generan las predicciones?',
     faq1A:
-      'Utilizamos 6 modelos de machine learning independientes (incluyendo XGBoost, Random Forest y Redes Neuronales) entrenados con datos historicos de partidos, forma del equipo, enfrentamientos directos y estadisticas en tiempo real. Solo se comparten los picks donde multiples modelos coinciden.',
-    faq2Q: 'Que ligas cubren?',
+      'Utilizamos 6 modelos de machine learning independientes (incluyendo XGBoost, Random Forest y Redes Neuronales) entrenados con datos históricos de partidos, forma del equipo, enfrentamientos directos y estadísticas en tiempo real. Solo se comparten los picks donde múltiples modelos coinciden.',
+    faq2Q: '¿Qué ligas cubren?',
     faq2A:
-      'Cubrimos las 5 principales ligas europeas: Premier League, La Liga, Bundesliga, Serie A y Ligue 1. Se agregaran predicciones de la Copa del Mundo 2026 para suscriptores premium.',
-    faq3Q: 'Puedo cancelar en cualquier momento?',
+      'Cubrimos las 5 principales ligas europeas: Premier League, La Liga, Bundesliga, Serie A y Ligue 1. Se agregarán predicciones de la Copa del Mundo 2026 para suscriptores premium.',
+    faq3Q: '¿Puedo cancelar en cualquier momento?',
     faq3A:
-      'Si. Todos los planes se pueden cancelar en cualquier momento a traves del bot de Telegram. Tu acceso continua hasta el final de tu periodo de facturacion actual.',
-    faq4Q: 'Cual es su tasa de precision?',
+      'Sí. Todos los planes se pueden cancelar en cualquier momento a través del bot de Telegram. Tu acceso continúa hasta el final de tu periodo de facturación actual.',
+    faq4Q: '¿Cuál es su tasa de precisión?',
     faq4A:
-      'Nuestro modelo ensamblado mantiene una tasa de precision del 55%+ en predicciones de resultados de partidos. Publicamos reportes de rendimiento semanales para que puedas seguir los resultados de forma transparente.',
-    faq5Q: 'Como recibo las predicciones?',
+      'Nuestro modelo ensamblado mantiene una tasa de precisión del 55%+ en predicciones de resultados de partidos. Publicamos reportes de rendimiento semanales para que puedas seguir los resultados de forma transparente.',
+    faq5Q: '¿Cómo recibo las predicciones?',
     faq5A:
-      'Todas las predicciones se entregan a traves de nuestro canal privado de Telegram. Despues de suscribirte, recibiras un enlace de invitacion de nuestro bot en minutos.',
-    footerTagline: 'Inteligencia de apuestas de futbol con IA.',
+      'Todas las predicciones se entregan a través de nuestro canal privado de Telegram. Después de suscribirte, recibirás un enlace de invitación de nuestro bot en minutos.',
+    footerTagline: 'Inteligencia de apuestas de fútbol con IA.',
+    footerProductTitle: 'Producto',
+    footerLegalTitle: 'Legal',
     footerFreeChannel: 'Canal de Telegram Gratis',
     footerPricing: 'Precios',
     footerFaq: 'Preguntas Frecuentes',
-    footerPrivacy: 'Politica de Privacidad',
-    footerTerms: 'Terminos de Servicio',
+    footerPrivacy: 'Política de Privacidad',
+    footerTerms: 'Términos de Servicio',
     footerDisclaimer:
       'Master Prediction es un servicio informativo. No garantizamos ganancias. Las apuestas deportivas implican riesgo. Apuesta responsablemente. 18+.',
   },
@@ -168,31 +194,26 @@ const translations = {
 
 // ===== Language Switching =====
 function setLang(lang) {
-  const elements = document.querySelectorAll('[data-i18n]');
-  const strings = translations[lang];
+  var elements = document.querySelectorAll('[data-i18n]');
+  var strings = translations[lang];
   if (!strings) return;
 
   elements.forEach(function (el) {
-    const key = el.getAttribute('data-i18n');
+    var key = el.getAttribute('data-i18n');
     if (strings[key]) {
       el.textContent = strings[key];
     }
   });
 
-  // Update active button state
   document.querySelectorAll('.lang-btn').forEach(function (btn) {
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });
 
-  // Update html lang attribute
   document.documentElement.lang = lang;
 
-  // Persist preference
   try {
     localStorage.setItem('mp-lang', lang);
-  } catch (e) {
-    // localStorage may be unavailable
-  }
+  } catch (e) {}
 }
 
 // ===== FAQ Accordion =====
@@ -202,11 +223,9 @@ function initFAQ() {
     var question = item.querySelector('.faq-question');
     question.addEventListener('click', function () {
       var isOpen = item.classList.contains('open');
-      // Close all items
       items.forEach(function (i) {
         i.classList.remove('open');
       });
-      // Open clicked item if it was closed
       if (!isOpen) {
         item.classList.add('open');
       }
@@ -214,24 +233,136 @@ function initFAQ() {
   });
 }
 
+// ===== Scroll Reveal =====
+function initScrollReveal() {
+  var reveals = document.querySelectorAll('.reveal');
+
+  var observer = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
+  );
+
+  reveals.forEach(function (el, i) {
+    var parent = el.parentElement;
+    if (parent) {
+      var siblings = Array.from(parent.children).filter(function (c) {
+        return c.classList.contains('reveal');
+      });
+      var idx = siblings.indexOf(el);
+      if (idx > 0) {
+        el.classList.add('reveal-stagger-' + Math.min(idx, 5));
+      }
+    }
+    observer.observe(el);
+  });
+}
+
+// ===== Animated Stat Counter =====
+function initStatCounters() {
+  var statValues = document.querySelectorAll('.stat-value[data-target]');
+  var animated = false;
+
+  var observer = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !animated) {
+          animated = true;
+          animateCounters(statValues);
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
+
+  var heroStats = document.querySelector('.hero-stats');
+  if (heroStats) {
+    observer.observe(heroStats);
+  }
+}
+
+function animateCounters(elements) {
+  elements.forEach(function (el) {
+    var target = parseInt(el.getAttribute('data-target'), 10);
+    var finalText = el.textContent.trim();
+    var suffix = finalText.replace(/\d+/, '');
+    var duration = 1000;
+    var startTime = null;
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = Math.round(target * eased);
+
+      el.textContent = current + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = finalText;
+      }
+    }
+
+    el.textContent = '0' + suffix;
+    requestAnimationFrame(step);
+  });
+}
+
+// ===== Navbar scroll effect =====
+function initNavScroll() {
+  var topBar = document.querySelector('.top-bar');
+  if (!topBar) return;
+
+  function onScroll() {
+    if (window.scrollY > 20) {
+      topBar.classList.add('scrolled');
+    } else {
+      topBar.classList.remove('scrolled');
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+// ===== Smooth scroll for anchor links =====
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', function () {
-  // Set up language toggle buttons
   document.querySelectorAll('.lang-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       setLang(btn.getAttribute('data-lang'));
     });
   });
 
-  // Load saved language or default to English
   var savedLang = 'en';
   try {
     savedLang = localStorage.getItem('mp-lang') || 'en';
-  } catch (e) {
-    // localStorage may be unavailable
-  }
+  } catch (e) {}
   setLang(savedLang);
 
-  // Initialize FAQ accordion
   initFAQ();
+  initScrollReveal();
+  initStatCounters();
+  initNavScroll();
+  initSmoothScroll();
 });
