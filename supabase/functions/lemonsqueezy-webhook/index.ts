@@ -1,16 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
+const WEBHOOK_SECRET = Deno.env.get("LS_WEBHOOK_SECRET") || "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const SUPABASE_SERVICE_ROLE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
 const TELEGRAM_ADMIN_CHAT_ID = Deno.env.get("TELEGRAM_ADMIN_CHAT_ID") || "";
 const TELEGRAM_PREMIUM_CHANNEL_ID =
   Deno.env.get("TELEGRAM_PREMIUM_CHANNEL_ID") || "";
 const LANDING_URL =
-  Deno.env.get("LANDING_URL") || "https://imolina29.github.io/master-prediction";
-const SIGNATURE_TOLERANCE_SEC = 300;
+  Deno.env.get("LANDING_URL") ||
+  "https://imolina29.github.io/master-prediction";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -87,22 +88,15 @@ async function revokeUserAccess(telegramUserId: string) {
   });
 }
 
-async function verifyStripeSignature(
+async function verifySignature(
   body: string,
   signature: string,
-): Promise<Record<string, unknown> | null> {
-  const parts = signature.split(",");
-  const timestampPart = parts.find((p) => p.startsWith("t="));
-  const sigPart = parts.find((p) => p.startsWith("v1="));
-  if (!timestampPart || !sigPart) return null;
-
-  const timestamp = timestampPart.split("=")[1];
-  const expectedSig = sigPart.split("=")[1];
-  const signedPayload = `${timestamp}.${body}`;
+): Promise<boolean> {
+  if (!signature || !WEBHOOK_SECRET) return false;
 
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(STRIPE_WEBHOOK_SECRET),
+    new TextEncoder().encode(WEBHOOK_SECRET),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -111,18 +105,24 @@ async function verifyStripeSignature(
   const sig = await crypto.subtle.sign(
     "HMAC",
     key,
-    new TextEncoder().encode(signedPayload),
+    new TextEncoder().encode(body),
   );
   const computed = Array.from(new Uint8Array(sig))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  if (computed !== expectedSig) return null;
+  return computed === signature;
+}
 
-  const now = Math.floor(Date.now() / 1000);
-  if (Math.abs(now - Number(timestamp)) > SIGNATURE_TOLERANCE_SEC) return null;
-
-  return JSON.parse(body);
+function detectPlan(variantName: string, intervalCount: number): string {
+  if (intervalCount === 3) return "quarterly";
+  if (
+    variantName.toLowerCase().includes("trimestral") ||
+    variantName.toLowerCase().includes("quarterly")
+  ) {
+    return "quarterly";
+  }
+  return "monthly";
 }
 
 serve(async (req) => {
@@ -131,30 +131,33 @@ serve(async (req) => {
   }
 
   const body = await req.text();
-  const signature = req.headers.get("stripe-signature") || "";
+  const signature = req.headers.get("x-signature") || "";
 
-  const event = await verifyStripeSignature(body, signature);
-  if (!event) {
+  const valid = await verifySignature(body, signature);
+  if (!valid) {
     return new Response("Invalid signature", { status: 400 });
   }
 
-  const eventType = event.type as string;
-  const data = (event.data as Record<string, unknown>)
-    .object as Record<string, unknown>;
+  const payload = JSON.parse(body);
+  const eventName = payload.meta?.event_name as string;
+  const customData = payload.meta?.custom_data || {};
+  const attrs = payload.data?.attributes || {};
+  const lsSubscriptionId = String(payload.data?.id || "");
 
   try {
-    if (eventType === "checkout.session.completed") {
-      const telegramUserId = data.client_reference_id as string;
-      const metadata = data.metadata as Record<string, string>;
-      const telegramUsername = metadata?.telegram_username || "";
-      const plan = metadata?.plan || "monthly";
-      const stripeCustomerId = data.customer as string;
-      const stripeSubscriptionId = data.subscription as string;
+    if (eventName === "subscription_created") {
+      const telegramUserId = customData.telegram_user_id || "";
+      const telegramUsername = customData.telegram_username || "";
+      const lsCustomerId = String(attrs.customer_id || "");
+      const variantName = attrs.variant_name || "";
+      const intervalCount = attrs.billing_anchor || 1;
+      const plan = detectPlan(variantName, intervalCount);
+      const renewsAt = attrs.renews_at || null;
 
       const { data: existing } = await supabase
         .from("subscriptions")
         .select("id")
-        .eq("stripe_subscription_id", stripeSubscriptionId)
+        .eq("provider_subscription_id", lsSubscriptionId)
         .maybeSingle();
 
       if (existing) {
@@ -167,10 +170,11 @@ serve(async (req) => {
       await supabase.from("subscriptions").insert({
         telegram_user_id: telegramUserId,
         telegram_username: telegramUsername,
-        stripe_customer_id: stripeCustomerId,
-        stripe_subscription_id: stripeSubscriptionId,
+        provider_customer_id: lsCustomerId,
+        provider_subscription_id: lsSubscriptionId,
         plan,
         status: "active",
+        current_period_end: renewsAt,
       });
 
       const invited = await sendInviteToUser(telegramUserId);
@@ -181,58 +185,67 @@ serve(async (req) => {
       );
     }
 
-    if (eventType === "invoice.paid") {
-      const stripeSubscriptionId = data.subscription as string;
-      const amountPaid = (data.amount_paid as number) / 100;
-      const paymentIntentId = data.payment_intent as string;
-      const periodStart = new Date(
-        (data.period_start as number) * 1000,
-      ).toISOString();
-      const periodEnd = new Date(
-        (data.period_end as number) * 1000,
-      ).toISOString();
+    if (eventName === "subscription_updated") {
+      const status = attrs.status as string;
+      const renewsAt = attrs.renews_at || null;
+      const endsAt = attrs.ends_at || null;
 
+      const dbStatus =
+        status === "active"
+          ? "active"
+          : status === "past_due"
+            ? "past_due"
+            : status === "cancelled"
+              ? "cancelled"
+              : status === "expired"
+                ? "expired"
+                : "active";
+
+      await supabase
+        .from("subscriptions")
+        .update({
+          status: dbStatus,
+          current_period_end: endsAt || renewsAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("provider_subscription_id", lsSubscriptionId);
+    }
+
+    if (eventName === "subscription_payment_success") {
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("id")
-        .eq("stripe_subscription_id", stripeSubscriptionId)
-        .single();
+        .eq("provider_subscription_id", lsSubscriptionId)
+        .maybeSingle();
 
       if (sub) {
+        const amount = attrs.subtotal_formatted
+          ? parseFloat(String(attrs.subtotal || 0)) / 100
+          : 0;
+
         await supabase.from("payments").insert({
           subscription_id: sub.id,
-          stripe_payment_intent_id: paymentIntentId,
-          amount_usd: amountPaid,
+          provider_payment_id: String(payload.data?.id || ""),
+          amount: amount,
           status: "succeeded",
         });
-
-        await supabase
-          .from("subscriptions")
-          .update({
-            current_period_start: periodStart,
-            current_period_end: periodEnd,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("stripe_subscription_id", stripeSubscriptionId);
       }
     }
 
-    if (eventType === "invoice.payment_failed") {
-      const stripeSubscriptionId = data.subscription as string;
-
+    if (eventName === "subscription_payment_failed") {
       await supabase
         .from("subscriptions")
         .update({
           status: "past_due",
           updated_at: new Date().toISOString(),
         })
-        .eq("stripe_subscription_id", stripeSubscriptionId);
+        .eq("provider_subscription_id", lsSubscriptionId);
 
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("telegram_username, telegram_user_id")
-        .eq("stripe_subscription_id", stripeSubscriptionId)
-        .single();
+        .eq("provider_subscription_id", lsSubscriptionId)
+        .maybeSingle();
 
       if (sub) {
         await notifyAdmin(
@@ -241,27 +254,31 @@ serve(async (req) => {
       }
     }
 
-    if (eventType === "customer.subscription.deleted") {
-      const stripeSubscriptionId = data.id as string;
-
+    if (
+      eventName === "subscription_cancelled" ||
+      eventName === "subscription_expired"
+    ) {
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("telegram_user_id, telegram_username")
-        .eq("stripe_subscription_id", stripeSubscriptionId)
-        .single();
+        .eq("provider_subscription_id", lsSubscriptionId)
+        .maybeSingle();
+
+      const newStatus =
+        eventName === "subscription_expired" ? "expired" : "cancelled";
 
       await supabase
         .from("subscriptions")
         .update({
-          status: "cancelled",
+          status: newStatus,
           updated_at: new Date().toISOString(),
         })
-        .eq("stripe_subscription_id", stripeSubscriptionId);
+        .eq("provider_subscription_id", lsSubscriptionId);
 
       if (sub) {
         await revokeUserAccess(sub.telegram_user_id);
         await notifyAdmin(
-          `❌ <b>Subscription cancelled:</b> @${sub.telegram_username || sub.telegram_user_id}`,
+          `❌ <b>Subscription ${newStatus}:</b> @${sub.telegram_username || sub.telegram_user_id}`,
         );
       }
     }

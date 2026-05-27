@@ -12,8 +12,8 @@ class SubscriptionService:
         self,
         telegram_user_id: str,
         telegram_username: str | None,
-        stripe_customer_id: str,
-        stripe_subscription_id: str,
+        provider_customer_id: str,
+        provider_subscription_id: str,
         plan: str,
         period_start: str | None = None,
         period_end: str | None = None,
@@ -21,8 +21,8 @@ class SubscriptionService:
         row = {
             "telegram_user_id": telegram_user_id,
             "telegram_username": telegram_username,
-            "stripe_customer_id": stripe_customer_id,
-            "stripe_subscription_id": stripe_subscription_id,
+            "provider_customer_id": provider_customer_id,
+            "provider_subscription_id": provider_subscription_id,
             "plan": plan,
             "status": "active",
             "current_period_start": period_start,
@@ -42,24 +42,24 @@ class SubscriptionService:
         )
         return resp.data[0] if resp.data else None
 
-    def get_subscription_by_stripe_id(self, stripe_subscription_id: str) -> dict | None:
+    def get_subscription_by_provider_id(self, provider_subscription_id: str) -> dict | None:
         resp = (
             self.client.table("subscriptions")
             .select("*")
-            .eq("stripe_subscription_id", stripe_subscription_id)
+            .eq("provider_subscription_id", provider_subscription_id)
             .execute()
         )
         return resp.data[0] if resp.data else None
 
-    def update_subscription_status(self, stripe_subscription_id: str, status: str) -> None:
+    def update_subscription_status(self, provider_subscription_id: str, status: str) -> None:
         now = datetime.now(timezone.utc).isoformat()
         self.client.table("subscriptions").update({"status": status, "updated_at": now}).eq(
-            "stripe_subscription_id", stripe_subscription_id
+            "provider_subscription_id", provider_subscription_id
         ).execute()
-        logger.info("Updated subscription %s to status=%s", stripe_subscription_id, status)
+        logger.info("Updated subscription %s to status=%s", provider_subscription_id, status)
 
     def update_subscription_period(
-        self, stripe_subscription_id: str, period_start: str, period_end: str
+        self, provider_subscription_id: str, period_start: str, period_end: str
     ) -> None:
         now = datetime.now(timezone.utc).isoformat()
         self.client.table("subscriptions").update(
@@ -68,28 +68,28 @@ class SubscriptionService:
                 "current_period_end": period_end,
                 "updated_at": now,
             }
-        ).eq("stripe_subscription_id", stripe_subscription_id).execute()
+        ).eq("provider_subscription_id", provider_subscription_id).execute()
 
-    def cancel_subscription(self, stripe_subscription_id: str) -> None:
-        self.update_subscription_status(stripe_subscription_id, "cancelled")
+    def cancel_subscription(self, provider_subscription_id: str) -> None:
+        self.update_subscription_status(provider_subscription_id, "cancelled")
 
     def record_payment(
         self,
         subscription_id: str,
-        stripe_payment_intent_id: str,
-        amount_usd: float,
+        provider_payment_id: str,
+        amount: float,
         status: str,
     ) -> dict:
         row = {
             "subscription_id": subscription_id,
-            "stripe_payment_intent_id": stripe_payment_intent_id,
-            "amount_usd": amount_usd,
+            "provider_payment_id": provider_payment_id,
+            "amount": amount,
             "status": status,
         }
         resp = self.client.table("payments").insert(row).execute()
         logger.info(
             "Recorded payment %s for subscription %s",
-            stripe_payment_intent_id,
+            provider_payment_id,
             subscription_id,
         )
         return resp.data[0]

@@ -20,8 +20,8 @@ def test_subscription_model():
     sub = Subscription(
         telegram_user_id="12345",
         telegram_username="testuser",
-        stripe_customer_id="cus_test",
-        stripe_subscription_id="sub_test",
+        provider_customer_id="cus_test",
+        provider_subscription_id="sub_test",
         plan="monthly",
         status="active",
     )
@@ -33,11 +33,11 @@ def test_subscription_model():
 def test_payment_model():
     pay = Payment(
         subscription_id="uuid-123",
-        stripe_payment_intent_id="pi_test",
-        amount_usd=19.99,
+        provider_payment_id="pi_test",
+        amount=80000,
         status="succeeded",
     )
-    assert pay.amount_usd == 19.99
+    assert pay.amount == 80000
     assert pay.status == "succeeded"
 
 
@@ -49,8 +49,8 @@ def test_create_subscription(service, mock_client):
     result = service.create_subscription(
         telegram_user_id="12345",
         telegram_username="testuser",
-        stripe_customer_id="cus_test",
-        stripe_subscription_id="sub_test",
+        provider_customer_id="cus_test",
+        provider_subscription_id="sub_test",
         plan="monthly",
     )
     assert result["telegram_user_id"] == "12345"
@@ -96,8 +96,8 @@ def test_record_payment(service, mock_client):
 
     result = service.record_payment(
         subscription_id="uuid-1",
-        stripe_payment_intent_id="pi_test",
-        amount_usd=19.99,
+        provider_payment_id="pi_test",
+        amount=80000,
         status="succeeded",
     )
     assert result is not None
@@ -122,7 +122,7 @@ def test_get_all_payments(service, mock_client):
     mock_table = MagicMock()
     mock_client.table.return_value = mock_table
     mock_table.select.return_value.order.return_value.execute.return_value = MagicMock(
-        data=[{"id": "p1", "amount_usd": 19.99}]
+        data=[{"id": "p1", "amount": 80000}]
     )
 
     result = service.get_all_payments()

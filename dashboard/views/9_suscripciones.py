@@ -29,7 +29,7 @@ st.markdown(section_header("📊", "Indicadores"), unsafe_allow_html=True)
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     st.markdown(
-        stat_card("MRR", f"${kpis['mrr']:.2f}", "ingreso recurrente mensual"),
+        stat_card("MRR", f"${kpis['mrr']:,.0f} COP", "ingreso recurrente mensual"),
         unsafe_allow_html=True,
     )
 with c2:
@@ -158,7 +158,7 @@ if payments:
             {
                 "Fecha": p.get("paid_at", "")[:10],
                 "Usuario": f"@{username}" if username != "—" else "—",
-                "Monto": f"${float(p['amount_usd']):.2f}",
+                "Monto": f"${float(p['amount']):,.0f} COP",
                 "Plan": plan.capitalize() if plan != "—" else "—",
                 "Estado": f"{icon} {p['status']}",
             }
@@ -166,9 +166,9 @@ if payments:
 
     st.dataframe(pd.DataFrame(pay_rows), use_container_width=True, hide_index=True)
 
-    total_revenue = sum(float(p["amount_usd"]) for p in payments if p["status"] == "succeeded")
+    total_revenue = sum(float(p["amount"]) for p in payments if p["status"] == "succeeded")
     st.markdown(
-        stat_card("Ingresos Totales", f"${total_revenue:.2f}", "todos los pagos exitosos"),
+        stat_card("Ingresos Totales", f"${total_revenue:,.0f} COP", "todos los pagos exitosos"),
         unsafe_allow_html=True,
     )
 else:

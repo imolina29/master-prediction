@@ -181,9 +181,9 @@ def get_subscription_kpis(subscriptions: list[dict], payments: list[dict]) -> di
     mrr = 0.0
     for s in active:
         if s["plan"] == "monthly":
-            mrr += 19.99
+            mrr += 80_000
         elif s["plan"] == "quarterly":
-            mrr += 49.99 / 3
+            mrr += 185_000 / 3
 
     now = datetime.now(timezone.utc)
     current_month = now.strftime("%Y-%m")
@@ -199,7 +199,7 @@ def get_subscription_kpis(subscriptions: list[dict], payments: list[dict]) -> di
         for p in payments
         if p.get("paid_at", "").startswith(current_month) and p["status"] == "succeeded"
     ]
-    revenue_this_month = sum(float(p["amount_usd"]) for p in month_payments)
+    revenue_this_month = sum(float(p["amount"]) for p in month_payments)
 
     return {
         "mrr": round(mrr, 2),

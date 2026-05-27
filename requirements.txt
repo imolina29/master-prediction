@@ -1,7 +1,7 @@
 # API
 fastapi>=0.115.0
 uvicorn>=0.32.0
-stripe>=8.0.0
+
 
 # Database
 supabase>=2.10.0

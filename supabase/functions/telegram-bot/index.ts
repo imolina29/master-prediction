@@ -2,16 +2,18 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const SUPABASE_SERVICE_ROLE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
-const STRIPE_PRICE_MONTHLY = Deno.env.get("STRIPE_PRICE_MONTHLY") || "";
-const STRIPE_PRICE_QUARTERLY = Deno.env.get("STRIPE_PRICE_QUARTERLY") || "";
-const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
+const LS_API_KEY = Deno.env.get("LS_API_KEY") || "";
+const LS_STORE_ID = Deno.env.get("LS_STORE_ID") || "";
+const LS_VARIANT_MONTHLY = Deno.env.get("LS_VARIANT_MONTHLY") || "";
+const LS_VARIANT_QUARTERLY = Deno.env.get("LS_VARIANT_QUARTERLY") || "";
 const LANDING_URL =
-  Deno.env.get("LANDING_URL") || "https://masterprediction.com";
+  Deno.env.get("LANDING_URL") ||
+  "https://imolina29.github.io/master-prediction";
 const TELEGRAM_FREE_CHANNEL_URL =
   Deno.env.get("TELEGRAM_FREE_CHANNEL_URL") || "";
-const STRIPE_PROMO_CODE = Deno.env.get("STRIPE_PROMO_CODE") || "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -40,40 +42,41 @@ async function telegramReply(
 async function createCheckoutUrl(
   telegramUserId: string,
   username: string,
-  plan: string,
-  promoCode?: string,
+  variantId: string,
 ): Promise<string | null> {
-  const priceId =
-    plan === "quarterly" ? STRIPE_PRICE_QUARTERLY : STRIPE_PRICE_MONTHLY;
-  if (!priceId || !STRIPE_SECRET_KEY) return null;
+  if (!LS_API_KEY || !LS_STORE_ID || !variantId) return null;
 
-  const params = new URLSearchParams();
-  params.append("mode", "subscription");
-  params.append("line_items[0][price]", priceId);
-  params.append("line_items[0][quantity]", "1");
-  params.append("success_url", `${LANDING_URL}/success.html`);
-  params.append("cancel_url", LANDING_URL);
-  params.append("client_reference_id", telegramUserId);
-  params.append("metadata[telegram_username]", username);
-  params.append("metadata[plan]", plan);
-  if (promoCode) {
-    params.append("discounts[0][promotion_code]", promoCode);
-  }
-
-  const resp = await fetch(
-    "https://api.stripe.com/v1/checkout/sessions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
+  const resp = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LS_API_KEY}`,
+      "Content-Type": "application/vnd.api+json",
+      Accept: "application/vnd.api+json",
     },
-  );
+    body: JSON.stringify({
+      data: {
+        type: "checkouts",
+        attributes: {
+          checkout_data: {
+            custom: {
+              telegram_user_id: telegramUserId,
+              telegram_username: username,
+            },
+          },
+          product_options: {
+            redirect_url: `${LANDING_URL}/success.html`,
+          },
+        },
+        relationships: {
+          store: { data: { type: "stores", id: LS_STORE_ID } },
+          variant: { data: { type: "variants", id: variantId } },
+        },
+      },
+    }),
+  });
 
-  const session = await resp.json();
-  return session.url || null;
+  const result = await resp.json();
+  return result.data?.attributes?.url || null;
 }
 
 async function checkActiveSubscription(userId: number): Promise<boolean> {
@@ -106,38 +109,27 @@ async function handleStart(
     const monthlyUrl = await createCheckoutUrl(
       String(userId),
       username,
-      "monthly",
+      LS_VARIANT_MONTHLY,
     );
     const quarterlyUrl = await createCheckoutUrl(
       String(userId),
       username,
-      "quarterly",
+      LS_VARIANT_QUARTERLY,
     );
 
     const buttons: unknown[][] = [];
     if (monthlyUrl) {
-      buttons.push([{ text: "📅 Monthly — $19.99/mo", url: monthlyUrl }]);
+      buttons.push([
+        { text: "📅 Mensual — $80,000 COP/mes", url: monthlyUrl },
+      ]);
     }
     if (quarterlyUrl) {
       buttons.push([
         {
-          text: "📅 Quarterly — $49.99/3mo (save 17%)",
+          text: "📅 Trimestral — $185,000 COP/3 meses",
           url: quarterlyUrl,
         },
       ]);
-    }
-    if (STRIPE_PROMO_CODE) {
-      const promoUrl = await createCheckoutUrl(
-        String(userId),
-        username,
-        "monthly",
-        STRIPE_PROMO_CODE,
-      );
-      if (promoUrl) {
-        buttons.push([
-          { text: "🏆 World Cup Promo — $9.99 first month", url: promoUrl },
-        ]);
-      }
     }
 
     await telegramReply(
@@ -241,19 +233,17 @@ async function handleCancel(
   }
 
   const resp = await fetch(
-    `https://api.stripe.com/v1/subscriptions/${sub.stripe_subscription_id}`,
+    `https://api.lemonsqueezy.com/v1/subscriptions/${sub.provider_subscription_id}`,
     {
-      method: "POST",
+      method: "DELETE",
       headers: {
-        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Bearer ${LS_API_KEY}`,
+        Accept: "application/vnd.api+json",
       },
-      body: "cancel_at_period_end=true",
     },
   );
-  const result = await resp.json();
 
-  if (result.error) {
+  if (!resp.ok) {
     await telegramReply(
       chatId,
       "❌ There was an error cancelling your subscription. Please try again or contact support.",
