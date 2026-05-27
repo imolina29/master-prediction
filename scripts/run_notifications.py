@@ -54,14 +54,29 @@ def main() -> None:
         ok_count = sum(1 for r in free_results if r.get("ok"))
         logger.info("Free picks sent: %d ok", ok_count)
 
-    # Resolved summary: premium only
+    # Resolved summary
     today_resolved = [
         p for p in resolved if p.get("resolved_at", "").startswith(date.today().isoformat())
     ]
     if today_resolved:
         results = premium_notifier.send_resolved_summary(today_resolved)
         ok_count = sum(1 for r in results if r.get("ok"))
-        logger.info("Resolved summary sent: %d/%d ok", ok_count, len(results))
+        logger.info("Resolved summary (premium) sent: %d/%d ok", ok_count, len(results))
+
+        # Send to free channel too when there's profit
+        profit = sum(p.get("profit", 0) for p in today_resolved)
+        if profit > 0 and free_channel_id:
+            free_notifier = TelegramNotifier(chat_ids=[free_channel_id])
+            wins = sum(1 for p in today_resolved if p.get("result") == "win")
+            losses = len(today_resolved) - wins
+            lines = [
+                "📈 <b>Resultados del Dia — Master Prediction</b>",
+                f"✅ {wins} ganados · ❌ {losses} perdidos · Profit: <b>{profit:+.2f}u</b>",
+                "",
+                f"🔒 Accede a todos los picks → {landing_url}",
+            ]
+            free_notifier.send_message("\n".join(lines), chat_id=free_channel_id)
+            logger.info("Resolved summary (free) sent")
 
 
 if __name__ == "__main__":
