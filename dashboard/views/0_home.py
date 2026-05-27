@@ -112,8 +112,10 @@ with col_right:
 
         if perf.get("by_market"):
             st.markdown(
-                '<p style="color:#666; font-size:0.78rem; margin:1rem 0 0.5rem 0;'
-                ' text-transform:uppercase; letter-spacing:0.06em; font-weight:600;">Por mercado</p>',
+                '<p style="color:#666; font-size:0.78rem;'
+                " margin:1rem 0 0.5rem 0; text-transform:uppercase;"
+                ' letter-spacing:0.06em; font-weight:600;">'
+                "Por mercado</p>",
                 unsafe_allow_html=True,
             )
             for market_name, data in perf["by_market"].items():
