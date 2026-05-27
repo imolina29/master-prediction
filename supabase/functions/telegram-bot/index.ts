@@ -60,7 +60,7 @@ async function createCheckoutUrl(
           checkout_data: {
             custom: {
               telegram_user_id: telegramUserId,
-              telegram_username: username,
+              ...(username ? { telegram_username: username } : {}),
             },
           },
           product_options: {
