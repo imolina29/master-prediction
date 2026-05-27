@@ -1,7 +1,7 @@
 from backend.notifications.telegram import build_free_picks
 
 
-def test_build_free_picks_filters_1x2_only():
+def test_build_free_picks_top_two_by_stake():
     picks = [
         {
             "market": "1x2_home",
@@ -33,10 +33,10 @@ def test_build_free_picks_filters_1x2_only():
     ]
     result = build_free_picks(picks)
     assert len(result) == 2
-    assert all(p["market"].startswith("1x2") for p in result)
+    assert result[0]["stake"] >= result[1]["stake"]
 
 
-def test_build_free_picks_filters_by_division():
+def test_build_free_picks_any_division():
     picks = [
         {
             "market": "1x2_home",
@@ -58,8 +58,7 @@ def test_build_free_picks_filters_by_division():
         },
     ]
     result = build_free_picks(picks)
-    assert len(result) == 1
-    assert result[0]["division"] == "E0"
+    assert len(result) == 2
 
 
 def test_build_free_picks_includes_world_cup():
