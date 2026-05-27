@@ -51,3 +51,9 @@ models/*.pt
 # Logs
 *.log
 logs/
+
+# Claude Code
+.claude/
+
+# Supabase temp
+supabase/.temp/
