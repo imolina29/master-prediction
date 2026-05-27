@@ -376,9 +376,7 @@ def confidence_gauge(value: float, label: str = "") -> str:
         level = "medium"
     else:
         level = "low"
-    label_html = (
-        f'<span style="color:#888;font-size:0.78rem;">{label}</span>' if label else ""
-    )
+    label_html = f'<span style="color:#888;font-size:0.78rem;">{label}</span>' if label else ""
     return (
         f'<div style="display:inline-block;width:100%;">'
         f"{label_html}"
