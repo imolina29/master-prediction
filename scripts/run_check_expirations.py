@@ -31,9 +31,9 @@ def main() -> None:
     channel_mgr = ChannelManager()
 
     for sub in expired:
-        client.table("subscriptions").update(
-            {"status": "expired", "updated_at": now}
-        ).eq("id", sub["id"]).execute()
+        client.table("subscriptions").update({"status": "expired", "updated_at": now}).eq(
+            "id", sub["id"]
+        ).execute()
 
         try:
             channel_mgr.revoke_user_access(sub["telegram_user_id"])
