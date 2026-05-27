@@ -1,7 +1,6 @@
 """Check for expired subscriptions and revoke channel access."""
 
 import logging
-import os
 from datetime import datetime, timezone
 
 from backend.db.client import get_supabase
