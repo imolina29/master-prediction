@@ -5,7 +5,12 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-RETRYABLE = (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.ConnectError)
+RETRYABLE = (
+    httpx.ReadTimeout,
+    httpx.ConnectTimeout,
+    httpx.ConnectError,
+    httpx.RemoteProtocolError,
+)
 
 
 def get_with_retry(
@@ -21,6 +26,20 @@ def get_with_retry(
             resp = httpx.get(url, timeout=timeout, **kwargs)
             resp.raise_for_status()
             return resp
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                wait = backoff * attempt
+                logger.warning(
+                    "HTTP %d from %s (attempt %d/%d). Retrying in %.0fs",
+                    exc.response.status_code,
+                    url,
+                    attempt,
+                    max_retries,
+                    wait,
+                )
+                time.sleep(wait)
+                continue
+            raise
         except RETRYABLE as exc:
             if attempt == max_retries:
                 raise
