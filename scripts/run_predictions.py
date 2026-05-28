@@ -111,10 +111,11 @@ def main():
         away = match["away_team"]
         division = match["division"]
 
+        use_national = division == "WC" and national_features
         home_feat = team_features[team_features["team"] == home].sort_values("match_date")
         away_feat = team_features[team_features["team"] == away].sort_values("match_date")
 
-        if home_feat.empty or away_feat.empty:
+        if use_national or home_feat.empty or away_feat.empty:
             if national_features and (home in national_features or away in national_features):
                 feature_row = _build_feature_row_from_national(national_features, home, away, match)
                 if not feature_row:
