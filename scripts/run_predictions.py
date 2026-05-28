@@ -35,15 +35,17 @@ def _build_feature_row_from_national(features: dict, home: str, away: str, match
         "win_rate_10",
     ]
     for col in rolling_cols:
-        feature_row[f"home_{col}"] = home_feat.get(col)
-        feature_row[f"away_{col}"] = away_feat.get(col)
+        home_val = home_feat.get(col)
+        away_val = away_feat.get(col)
+        feature_row[f"home_{col}"] = home_val if home_val is not None else float("nan")
+        feature_row[f"away_{col}"] = away_val if away_val is not None else float("nan")
 
     for col in ["xg_for_avg", "xg_against_avg", "xg_diff_avg", "xg_overperformance"]:
         feature_row[f"home_{col}"] = float("nan")
         feature_row[f"away_{col}"] = float("nan")
 
-    home_elo = match.get("home_elo") or 1500.0
-    away_elo = match.get("away_elo") or 1500.0
+    home_elo = home_feat.get("elo") or match.get("home_elo") or 1500.0
+    away_elo = away_feat.get("elo") or match.get("away_elo") or 1500.0
     feature_row["home_elo"] = home_elo
     feature_row["away_elo"] = away_elo
     feature_row["elo_diff"] = home_elo - away_elo

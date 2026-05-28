@@ -175,10 +175,59 @@ def _normalize_dataset_name(name: str) -> str:
     return DATASET_TO_CANONICAL.get(name, name)
 
 
+def _compute_elo_ratings(rows: list[dict], team_names: set[str]) -> dict[str, float]:
+    k_factor = 40
+    elo: dict[str, float] = {}
+
+    for row in rows:
+        if row["home_score"] == "NA" or row["away_score"] == "NA":
+            continue
+
+        home = _normalize_dataset_name(row["home_team"])
+        away = _normalize_dataset_name(row["away_team"])
+
+        if home not in elo:
+            elo[home] = 1500.0
+        if away not in elo:
+            elo[away] = 1500.0
+
+        exp_home = 1.0 / (1.0 + 10 ** ((elo[away] - elo[home]) / 400))
+        home_goals = int(row["home_score"])
+        away_goals = int(row["away_score"])
+
+        if home_goals > away_goals:
+            score_home = 1.0
+        elif home_goals == away_goals:
+            score_home = 0.5
+        else:
+            score_home = 0.0
+
+        delta = k_factor * (score_home - exp_home)
+        elo[home] += delta
+        elo[away] -= delta
+
+    return {name: round(elo.get(name, 1500.0), 1) for name in team_names}
+
+
+def _window_stats(matches: list[dict], n: int) -> dict:
+    window = matches[-n:]
+    k = len(window)
+    if k == 0:
+        return {}
+    wins = sum(1 for m in window if m["gf"] > m["ga"])
+    return {
+        f"goals_scored_avg_{n}": round(sum(m["gf"] for m in window) / k, 3),
+        f"goals_conceded_avg_{n}": round(sum(m["ga"] for m in window) / k, 3),
+        f"win_rate_{n}": round(wins / k, 3),
+    }
+
+
 def build_national_features_from_dataset(
     team_names: set[str], min_date: str = "2022-01-01"
 ) -> dict[str, dict]:
     rows = _download_international_results()
+
+    elo_ratings = _compute_elo_ratings(rows, team_names)
 
     canonical_to_dataset: dict[str, str] = {v: k for k, v in DATASET_TO_CANONICAL.items()}
 
@@ -239,7 +288,7 @@ def build_national_features_from_dataset(
         btts = sum(1 for m in recent if m["gf"] > 0 and m["ga"] > 0)
         over25 = sum(1 for m in recent if m["gf"] + m["ga"] > 2)
 
-        features[name] = {
+        feat = {
             "goals_scored_avg": round(sum(m["gf"] for m in recent) / n, 3),
             "goals_conceded_avg": round(sum(m["ga"] for m in recent) / n, 3),
             "shots_target_avg": None,
@@ -248,9 +297,14 @@ def build_national_features_from_dataset(
             "draw_rate": round(draws / n, 3),
             "btts_rate": round(btts / n, 3),
             "over25_rate": round(over25 / n, 3),
+            "elo": elo_ratings.get(name, 1500.0),
             "matches_used": n,
         }
-        logger.info("Built features for %s: %d matches", name, n)
+        feat.update(_window_stats(matches, 3))
+        feat.update(_window_stats(matches, 10))
+
+        features[name] = feat
+        logger.info("Built features for %s: %d matches, ELO=%.0f", name, n, feat["elo"])
 
     return features
 
