@@ -41,7 +41,6 @@ Thumbs.db
 
 # ML models
 models/*.pkl
-models/*.joblib
 models/*.pt
 !models/.gitkeep
 
