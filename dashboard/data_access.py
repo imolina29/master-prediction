@@ -123,6 +123,25 @@ def get_teams(division: str, season: str | None = None) -> list[str]:
 
 
 @st.cache_data(ttl=300)
+def get_upcoming_predictions() -> pd.DataFrame:
+    from datetime import date, timedelta
+
+    client = get_supabase_client()
+    today = str(date.today())
+    end = str(date.today() + timedelta(days=21))
+    resp = (
+        client.table("predictions")
+        .select("*")
+        .gte("match_date", today)
+        .lte("match_date", end)
+        .order("match_date")
+        .limit(50)
+        .execute()
+    )
+    return pd.DataFrame(resp.data) if resp.data else pd.DataFrame()
+
+
+@st.cache_data(ttl=300)
 def get_active_picks() -> list[dict]:
     client = get_supabase_client()
     resp = client.table("value_bets").select("*").is_("result", "null").execute()

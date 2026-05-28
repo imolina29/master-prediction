@@ -2,9 +2,10 @@ import pandas as pd
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
+from dashboard.components.predictions import format_predictions
 from dashboard.components.theme import section_header, stat_card
 from dashboard.components.value_bets import _market_label, _result_badge, _stake_badge
-from dashboard.data_access import DIVISION_NAMES, get_active_picks, get_resolved_picks
+from dashboard.data_access import get_resolved_picks, get_upcoming_predictions
 
 st.markdown(
     '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'
@@ -18,10 +19,10 @@ st.markdown(
 )
 
 try:
-    active_picks = get_active_picks()
+    preds_df = get_upcoming_predictions()
 except Exception as e:
-    st.error(f"Error al cargar picks activos: {e}")
-    active_picks = []
+    st.error(f"Error al cargar predicciones: {e}")
+    preds_df = pd.DataFrame()
 
 try:
     resolved_picks = get_resolved_picks()
@@ -29,19 +30,23 @@ except Exception as e:
     st.error(f"Error al cargar picks resueltos: {e}")
     resolved_picks = []
 
-recommended = [p for p in active_picks if p["stake"] >= 1]
 perf = calculate_performance(resolved_picks) if resolved_picks else None
+
+high_conf = 0
+if not preds_df.empty and "confidence" in preds_df.columns:
+    high_conf = len(preds_df[preds_df["confidence"] == "alta"])
 
 k1, k2, k3, k4 = st.columns(4)
 with k1:
     st.markdown(
-        stat_card("Picks Activos", str(len(recommended)), "recomendados hoy"),
+        stat_card("Predicciones", str(len(preds_df)), "partidos analizados"),
         unsafe_allow_html=True,
     )
 with k2:
-    val = f"{perf['profit']:+.1f}u" if perf else "—"
-    sub = "unidades acumuladas" if perf else ""
-    st.markdown(stat_card("Profit Total", val, sub), unsafe_allow_html=True)
+    st.markdown(
+        stat_card("Alta Confianza", str(high_conf), "predicciones"),
+        unsafe_allow_html=True,
+    )
 with k3:
     val = f"{perf['roi']:.1f}%" if perf else "—"
     sub = "retorno de inversion" if perf else ""
@@ -53,29 +58,16 @@ with k4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-st.markdown(section_header("🎯", "Picks Recomendados"), unsafe_allow_html=True)
+st.markdown(section_header("🤖", "Predicciones Proximas"), unsafe_allow_html=True)
 
-if recommended:
-    recommended.sort(key=lambda p: (-p["stake"], -p["edge"]))
-    rows = []
-    for p in recommended[:10]:
-        rows.append(
-            {
-                "Fecha": p["match_date"],
-                "Partido": f"{p['home_team']} vs {p['away_team']}",
-                "Liga": DIVISION_NAMES.get(p["division"], p["division"]),
-                "Apuesta": _market_label(p["market"]),
-                "Cuota": f"{p['odd']:.2f}",
-                "Ventaja": f"{p['edge']:.1%}",
-                "Unidades": _stake_badge(p["stake"]),
-            }
-        )
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-    st.caption(f"{len(recommended)} picks recomendados activos")
+if not preds_df.empty:
+    display = format_predictions(preds_df)
+    st.dataframe(display, use_container_width=True, hide_index=True)
+    st.caption(f"{len(preds_df)} predicciones disponibles")
 else:
     st.info(
-        "No hay picks recomendados actualmente."
-        " El pipeline genera picks diariamente a las 6 AM UTC."
+        "No hay predicciones disponibles actualmente."
+        " El pipeline genera predicciones diariamente a las 6 AM UTC."
     )
 
 col_left, col_right = st.columns([3, 2])
