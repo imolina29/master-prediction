@@ -50,7 +50,7 @@ with col2:
 with col3:
     date_range = st.date_input(
         "Rango de fechas",
-        value=(date.today(), date.today() + timedelta(days=7)),
+        value=(date.today(), date.today() + timedelta(days=21)),
         format="YYYY-MM-DD",
     )
 

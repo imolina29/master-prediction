@@ -77,7 +77,7 @@ def main():
     client = get_supabase()
 
     today = datetime.now().strftime("%Y-%m-%d")
-    week_ahead = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+    week_ahead = (datetime.now() + timedelta(days=21)).strftime("%Y-%m-%d")
 
     logger.info("Finding matches from %s to %s", today, week_ahead)
     resp = (
