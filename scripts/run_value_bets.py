@@ -48,10 +48,12 @@ def main():
         return
 
     logger.info("Uploading %d picks to value_bets...", len(picks))
+
+    client.table("value_bets").delete().is_("result", "null").execute()
+    logger.info("Cleared stale unresolved value bets")
+
     for pick in picks:
-        client.table("value_bets").upsert(
-            pick, on_conflict="match_date,home_team,away_team,market"
-        ).execute()
+        client.table("value_bets").insert(pick).execute()
 
     logger.info("Done! %d value bets uploaded.", len(picks))
 

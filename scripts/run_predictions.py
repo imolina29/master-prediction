@@ -196,6 +196,12 @@ def main():
         return
 
     logger.info("Generated %d predictions, uploading to Supabase...", len(predictions))
+
+    client.table("predictions").delete().gte("match_date", today).lte(
+        "match_date", week_ahead
+    ).execute()
+    logger.info("Cleared stale predictions for %s to %s", today, week_ahead)
+
     for pred in predictions:
         row = {
             "match_date": str(pred["match_date"]),
@@ -211,9 +217,7 @@ def main():
             "predicted_result": pred.get("predicted_result"),
             "confidence": pred.get("confidence"),
         }
-        client.table("predictions").upsert(
-            row, on_conflict="match_date,home_team,away_team"
-        ).execute()
+        client.table("predictions").insert(row).execute()
 
     logger.info("Done! %d predictions uploaded.", len(predictions))
 
