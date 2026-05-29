@@ -119,6 +119,8 @@ def send_alerts(
     resolved: list[dict],
     today: date | None = None,
     admin_chat_id: str | None = None,
+    free_notifier: TelegramNotifier | None = None,
+    landing_url: str = "",
 ) -> dict:
     today = today or date.today()
     sent = {"premium": 0, "streak": 0, "weekly": 0}
@@ -133,6 +135,10 @@ def send_alerts(
         text = _format_streak(streak)
         if streak["type"] == "win":
             notifier.send_to_all(text, reply_markup=markup)
+            if free_notifier:
+                cta = landing_url or "https://masterprediction.com"
+                free_text = text + f"\n\n🔒 Accede a todos los picks → {cta}"
+                free_notifier.send_to_all(free_text)
         elif admin_chat_id:
             notifier.send_message(text, chat_id=admin_chat_id)
         sent["streak"] = 1
