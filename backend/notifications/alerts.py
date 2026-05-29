@@ -126,10 +126,7 @@ def send_alerts(
     markup = notifier._dashboard_markup()
 
     premium = check_high_confidence_picks(active_picks)
-    for pick in premium:
-        text = _format_premium_pick(pick)
-        notifier.send_to_all(text, reply_markup=markup)
-        sent["premium"] += 1
+    sent["premium"] = len(premium)
 
     streak = check_streaks(resolved)
     if streak:
