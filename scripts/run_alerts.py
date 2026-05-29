@@ -53,6 +53,10 @@ def main() -> None:
         logger.info("Smart alerts already sent today, skipping")
         return
 
+    free_channel_id = os.environ.get("TELEGRAM_FREE_CHANNEL_ID", "")
+    free_notifier = TelegramNotifier(chat_ids=[free_channel_id]) if free_channel_id else None
+    landing_url = os.environ.get("LANDING_URL", "https://masterprediction.com")
+
     active_resp = (
         client.table("value_bets").select("*").is_("result", "null").eq("alerted", False).execute()
     )
@@ -68,7 +72,14 @@ def main() -> None:
     )
     resolved = resolved_resp.data or []
 
-    sent = send_alerts(notifier, active_picks, resolved, admin_chat_id=admin_chat_id)
+    sent = send_alerts(
+        notifier,
+        active_picks,
+        resolved,
+        admin_chat_id=admin_chat_id,
+        free_notifier=free_notifier,
+        landing_url=landing_url,
+    )
     logger.info(
         "Alerts sent — premium: %d, streak: %d, weekly: %d",
         sent["premium"],
