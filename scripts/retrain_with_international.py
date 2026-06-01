@@ -190,8 +190,8 @@ def build_intl_match_features(intl_df: pd.DataFrame) -> pd.DataFrame:
                 v_recent = venue_h[-5:]
                 v_wins = sum(1 for m in v_recent if m["gf"] > m["ga"])
                 feature_row[f"{prefix}_venue_win_rate"] = v_wins / len(v_recent)
-                feature_row[f"{prefix}_venue_goals_avg"] = (
-                    sum(m["gf"] for m in v_recent) / len(v_recent)
+                feature_row[f"{prefix}_venue_goals_avg"] = sum(m["gf"] for m in v_recent) / len(
+                    v_recent
                 )
             else:
                 feature_row[f"{prefix}_venue_win_rate"] = float("nan")
@@ -230,9 +230,7 @@ def build_intl_match_features(intl_df: pd.DataFrame) -> pd.DataFrame:
 
         match_rows.append(feature_row)
 
-        _record_match(
-            team_history, team_venue_history, home, away, hg, ag, row["match_date"]
-        )
+        _record_match(team_history, team_venue_history, home, away, hg, ag, row["match_date"])
         _update_elo(elo, home, away, hg, ag, k_factor)
 
     df = pd.DataFrame(match_rows)
@@ -309,9 +307,7 @@ def generate_wc_predictions(models_dir=None):
         home = match["home_team"]
         away = match["away_team"]
 
-        feature_row = _build_feature_row_from_national(
-            national_features, home, away, match
-        )
+        feature_row = _build_feature_row_from_national(national_features, home, away, match)
         if not feature_row:
             logger.warning("No features for %s vs %s", home, away)
             continue
@@ -333,16 +329,9 @@ def print_comparison(baseline: list[dict], new_predictions: list[dict]):
         baseline_map[key] = p
 
     print("\n" + "=" * 130)
-    print(
-        "COMPARATIVA PREDICCIONES WC: ANTES vs DESPUÉS (con datos internacionales)"
-    )
+    print("COMPARATIVA PREDICCIONES WC: ANTES vs DESPUÉS (con datos internacionales)")
     print("=" * 130)
-    header = (
-        f"{'Partido':<40} "
-        f"{'--- ANTES ---':^28} "
-        f"{'--- DESPUÉS ---':^28} "
-        f"{'ΔHome':>6}"
-    )
+    header = f"{'Partido':<40} {'--- ANTES ---':^28} {'--- DESPUÉS ---':^28} {'ΔHome':>6}"
     print(header)
     sub = (
         f"{'':40} "
@@ -419,9 +408,7 @@ def main():
     team_features = pd.read_parquet(FEATURES_PATH)
     logger.info("Loaded %d club team-feature rows", len(team_features))
 
-    client = create_client(
-        os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"]
-    )
+    client = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_KEY"])
     matches = pd.DataFrame(fetch_all(client, "matches"))
     logger.info("Loaded %d matches from Supabase", len(matches))
 

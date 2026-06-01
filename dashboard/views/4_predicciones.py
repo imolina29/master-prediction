@@ -117,8 +117,19 @@ if not track_df.empty:
         )
 
     display = track_df[
-        ["match_date", "home_team", "away_team", "division", "prob_home", "prob_draw",
-         "prob_away", "predicted_label", "actual_label", "correct", "confidence"]
+        [
+            "match_date",
+            "home_team",
+            "away_team",
+            "division",
+            "prob_home",
+            "prob_draw",
+            "prob_away",
+            "predicted_label",
+            "actual_label",
+            "correct",
+            "confidence",
+        ]
     ].copy()
 
     display["result_icon"] = display["correct"].apply(lambda x: "✅" if x else "❌")
@@ -127,12 +138,32 @@ if not track_df.empty:
     display["division"] = display["division"].map(DIVISION_NAMES).fillna(display["division"])
 
     display = display[
-        ["match_date", "home_team", "away_team", "division", "prob_home", "prob_draw",
-         "prob_away", "predicted_label", "actual_label", "result_icon", "confidence"]
+        [
+            "match_date",
+            "home_team",
+            "away_team",
+            "division",
+            "prob_home",
+            "prob_draw",
+            "prob_away",
+            "predicted_label",
+            "actual_label",
+            "result_icon",
+            "confidence",
+        ]
     ]
     display.columns = [
-        "Fecha", "Local", "Visitante", "Liga", "P(H)", "P(D)", "P(A)",
-        "Prediccion", "Resultado", "Acierto", "Confianza",
+        "Fecha",
+        "Local",
+        "Visitante",
+        "Liga",
+        "P(H)",
+        "P(D)",
+        "P(A)",
+        "Prediccion",
+        "Resultado",
+        "Acierto",
+        "Confianza",
     ]
 
     st.dataframe(display, use_container_width=True, hide_index=True)
