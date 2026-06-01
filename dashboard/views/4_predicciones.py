@@ -11,7 +11,7 @@ from dashboard.components.metrics import (
 )
 from dashboard.components.predictions import format_predictions
 from dashboard.components.theme import section_header, stat_card
-from dashboard.data_access import DIVISION_NAMES, get_supabase_client
+from dashboard.data_access import DIVISION_NAMES, get_supabase_client, get_track_record
 
 st.markdown(
     '<h1 style="font-size:2rem;">🤖 Predicciones</h1>',
@@ -75,7 +75,71 @@ if not preds_df.empty:
 else:
     st.info("No hay predicciones disponibles para el rango seleccionado.")
 
-# --- Section 2: Model metrics ---
+# --- Section 2: Track Record ---
+st.markdown(section_header("📋", "Track Record"), unsafe_allow_html=True)
+
+try:
+    track_df = get_track_record(limit=100)
+except Exception as e:
+    st.error(f"Error al cargar track record: {e}")
+    track_df = pd.DataFrame()
+
+if not track_df.empty:
+    result_map = {"H": "Local", "D": "Empate", "A": "Visitante"}
+    track_df["predicted_label"] = track_df["predicted_result"].map(result_map)
+    track_df["actual_label"] = track_df["ft_result"].map(result_map)
+    track_df["correct"] = track_df["predicted_result"] == track_df["ft_result"]
+
+    total = len(track_df)
+    hits = track_df["correct"].sum()
+    hit_rate = hits / total if total > 0 else 0
+
+    alta_mask = track_df["confidence"] == "alta"
+    alta_total = alta_mask.sum()
+    alta_hits = track_df.loc[alta_mask, "correct"].sum()
+    alta_rate = alta_hits / alta_total if alta_total > 0 else 0
+
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown(
+            stat_card("Aciertos", f"{hit_rate:.0%}", f"{hits}/{total} predicciones"),
+            unsafe_allow_html=True,
+        )
+    with m2:
+        st.markdown(
+            stat_card("Alta Confianza", f"{alta_rate:.0%}", f"{alta_hits}/{alta_total} aciertos"),
+            unsafe_allow_html=True,
+        )
+    with m3:
+        st.markdown(
+            stat_card("Partidos Analizados", str(total), "con resultado"),
+            unsafe_allow_html=True,
+        )
+
+    display = track_df[
+        ["match_date", "home_team", "away_team", "division", "prob_home", "prob_draw",
+         "prob_away", "predicted_label", "actual_label", "correct", "confidence"]
+    ].copy()
+
+    display["result_icon"] = display["correct"].apply(lambda x: "✅" if x else "❌")
+    for col in ["prob_home", "prob_draw", "prob_away"]:
+        display[col] = display[col].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "-")
+    display["division"] = display["division"].map(DIVISION_NAMES).fillna(display["division"])
+
+    display = display[
+        ["match_date", "home_team", "away_team", "division", "prob_home", "prob_draw",
+         "prob_away", "predicted_label", "actual_label", "result_icon", "confidence"]
+    ]
+    display.columns = [
+        "Fecha", "Local", "Visitante", "Liga", "P(H)", "P(D)", "P(A)",
+        "Prediccion", "Resultado", "Acierto", "Confianza",
+    ]
+
+    st.dataframe(display, use_container_width=True, hide_index=True)
+else:
+    st.info("Aun no hay predicciones con resultado para mostrar el track record.")
+
+# --- Section 3: Model metrics ---
 st.markdown(section_header("📊", "Metricas del Modelo"), unsafe_allow_html=True)
 
 results = load_backtest_results(BACKTEST_RESULTS_PATH)
