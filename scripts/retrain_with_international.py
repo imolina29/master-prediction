@@ -278,6 +278,7 @@ def generate_wc_predictions(models_dir=None):
     import os
 
     from dotenv import load_dotenv
+
     from supabase import create_client
 
     load_dotenv()
@@ -393,12 +394,12 @@ def main():
     import os
 
     from dotenv import load_dotenv
-    from supabase import create_client
 
     from backend.db.helpers import fetch_all
-    from backend.ml.config import BASE_FEATURES, FEATURES_PATH, PREMIUM_FEATURES
+    from backend.ml.config import FEATURES_PATH
     from backend.ml.features import build_match_features
     from backend.ml.train import train_all
+    from supabase import create_client
 
     load_dotenv()
 
