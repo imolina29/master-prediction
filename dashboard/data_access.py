@@ -166,11 +166,7 @@ def get_track_record(limit: int = 100) -> pd.DataFrame:
     client = get_supabase_client()
 
     preds_resp = (
-        client.table("predictions")
-        .select("*")
-        .order("match_date", desc=True)
-        .limit(500)
-        .execute()
+        client.table("predictions").select("*").order("match_date", desc=True).limit(500).execute()
     )
     if not preds_resp.data:
         return pd.DataFrame()
@@ -200,12 +196,14 @@ def get_track_record(limit: int = 100) -> pd.DataFrame:
         m = match_map.get(key)
         if not m:
             continue
-        rows.append({
-            **p,
-            "ft_result": m["ft_result"],
-            "ft_home_goals": m["ft_home_goals"],
-            "ft_away_goals": m["ft_away_goals"],
-        })
+        rows.append(
+            {
+                **p,
+                "ft_result": m["ft_result"],
+                "ft_home_goals": m["ft_home_goals"],
+                "ft_away_goals": m["ft_away_goals"],
+            }
+        )
 
     if not rows:
         return pd.DataFrame()
