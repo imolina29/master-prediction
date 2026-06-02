@@ -1,8 +1,13 @@
 """Advisor engine — intent parsing, data lookup, and template responses."""
 
+import logging
 import re
 import unicodedata
 from datetime import date, timedelta
+
+import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 TEAM_ALIASES = {
     "psg": "Paris SG",
@@ -139,6 +144,23 @@ DATE_KEYWORDS = {
 
 STATS_KEYWORDS = ["racha", "record", "rendimiento", "estadistica", "acierto", "track"]
 
+CONTEXT_KEYWORDS = [
+    "y el de manana",
+    "y manana",
+    "y el otro",
+    "ese equipo",
+    "ese mismo",
+    "el mismo",
+    "que mas tiene",
+    "otro partido",
+    "siguiente",
+    "proximo partido",
+    "mas partidos",
+    "mas informacion",
+    "y el",
+    "y la",
+]
+
 GREETING_WORDS = {
     "hola",
     "buenas",
@@ -201,12 +223,17 @@ def _resolve_team(token: str, known_teams: list[str]) -> str | None:
     return None
 
 
-def parse_query(text: str, known_teams: list[str]) -> dict:
+def parse_query(text: str, known_teams: list[str], context: dict | None = None) -> dict:
     norm = _normalize(text)
 
     words = set(norm.split())
     if words and words.issubset(GREETING_WORDS):
         return {"intent": "greeting"}
+
+    if context and context.get("last_team"):
+        for kw in CONTEXT_KEYWORDS:
+            if kw in norm:
+                return {"intent": "team", "team": context["last_team"]}
 
     for kw in STATS_KEYWORDS:
         if kw in norm:
@@ -293,9 +320,13 @@ def handle_match(client, team_a: str, team_b: str) -> str:
             f"para este partido. Las predicciones se actualizan diariamente."
         )
 
+    on_demand = _predict_on_demand(team_a, team_b)
+    if on_demand:
+        return on_demand
+
     return (
-        f"No encontre el partido **{team_a} vs {team_b}** en el sistema. "
-        f"Puede que aun no este programado o que los nombres no coincidan."
+        f"No encontre el partido **{team_a} vs {team_b}** en el sistema "
+        f"y no tengo suficientes datos para generar una prediccion on-demand."
     )
 
 
@@ -526,8 +557,105 @@ def _format_past_match(m: dict) -> str:
     )
 
 
-def get_response(client, text: str, known_teams: list[str]) -> str:
-    query = parse_query(text, known_teams)
+def _predict_on_demand(home: str, away: str) -> str | None:
+    """Try to generate a prediction using available features and the model."""
+    try:
+        from backend.etl.fixtures import load_national_features
+        from backend.ml.config import FEATURES_PATH
+        from backend.ml.predict import _model_cache, predict_upcoming
+        from scripts.run_predictions import _build_feature_row_from_national
+
+        national = load_national_features()
+        if national and (home in national or away in national):
+            feature_row = _build_feature_row_from_national(national, home, away, {})
+            if feature_row:
+                _model_cache.clear()
+                feature_df = pd.DataFrame([feature_row])
+                preds = predict_upcoming(feature_df, "WC")
+                p = {
+                    "home_team": home,
+                    "away_team": away,
+                    "match_date": "On-demand",
+                    "division": "WC",
+                    **preds,
+                }
+                header = "⚡ _Prediccion generada on-demand (no estaba en el sistema)_\n\n"
+                return header + _format_prediction(p)
+
+        if FEATURES_PATH.exists():
+            tf = pd.read_parquet(FEATURES_PATH)
+            tf["match_date"] = pd.to_datetime(tf["match_date"])
+            home_feat = tf[tf["team"] == home].sort_values("match_date")
+            away_feat = tf[tf["team"] == away].sort_values("match_date")
+
+            if not home_feat.empty and not away_feat.empty:
+                latest_home = home_feat.iloc[-1]
+                latest_away = away_feat.iloc[-1]
+
+                rolling_cols = [
+                    "goals_scored_avg",
+                    "goals_conceded_avg",
+                    "shots_target_avg",
+                    "corners_avg",
+                    "win_rate",
+                    "draw_rate",
+                    "btts_rate",
+                    "over25_rate",
+                    "xg_for_avg",
+                    "xg_against_avg",
+                    "xg_diff_avg",
+                    "xg_overperformance",
+                    "goals_scored_avg_3",
+                    "goals_conceded_avg_3",
+                    "win_rate_3",
+                    "goals_scored_avg_10",
+                    "goals_conceded_avg_10",
+                    "win_rate_10",
+                    "venue_win_rate",
+                    "venue_goals_avg",
+                    "league_pos",
+                    "h2h_win_rate",
+                    "h2h_avg_goals",
+                    "h2h_matches",
+                ]
+                feature_row = {}
+                for col in rolling_cols:
+                    feature_row[f"home_{col}"] = latest_home.get(col, float("nan"))
+                    feature_row[f"away_{col}"] = latest_away.get(col, float("nan"))
+
+                feature_row["home_elo"] = 1500.0
+                feature_row["away_elo"] = 1500.0
+                feature_row["elo_diff"] = 0.0
+                feature_row["home_rest_days"] = 7
+                feature_row["away_rest_days"] = 7
+                feature_row["league_pos_diff"] = float("nan")
+
+                division = latest_home.get("division", "E0")
+                _model_cache.clear()
+                feature_df = pd.DataFrame([feature_row])
+                preds = predict_upcoming(feature_df, division)
+                p = {
+                    "home_team": home,
+                    "away_team": away,
+                    "match_date": "On-demand",
+                    "division": division,
+                    **preds,
+                }
+                header = "⚡ _Prediccion generada on-demand (no estaba en el sistema)_\n\n"
+                return header + _format_prediction(p)
+
+    except Exception as e:
+        logger.warning("On-demand prediction failed: %s", e)
+
+    return None
+
+
+def get_response(
+    client, text: str, known_teams: list[str], context: dict | None = None
+) -> tuple[str, dict]:
+    """Return (response_text, updated_context)."""
+    query = parse_query(text, known_teams, context)
+    ctx = dict(context) if context else {}
 
     if query["intent"] == "greeting":
         return (
@@ -537,13 +665,21 @@ def get_response(client, text: str, known_teams: list[str]) -> str:
             "• _Argentina vs Algeria_\n"
             "• _mejores picks_\n"
             "• _Francia_"
-        )
+        ), ctx
+
     if query["intent"] == "match":
-        return handle_match(client, query["team_a"], query["team_b"])
+        ctx["last_team"] = query["team_a"]
+        ctx["last_teams"] = [query["team_a"], query["team_b"]]
+        return handle_match(client, query["team_a"], query["team_b"]), ctx
+
     if query["intent"] == "team":
-        return handle_team(client, query["team"])
+        ctx["last_team"] = query["team"]
+        return handle_team(client, query["team"]), ctx
+
     if query["intent"] == "best_picks":
-        return handle_best_picks(client, query.get("days_ahead", 7))
+        return handle_best_picks(client, query.get("days_ahead", 7)), ctx
+
     if query["intent"] == "stats":
-        return handle_stats(client)
-    return handle_unknown()
+        return handle_stats(client), ctx
+
+    return handle_unknown(), ctx

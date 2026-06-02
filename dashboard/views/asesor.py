@@ -24,6 +24,9 @@ WELCOME = (
 if "advisor_messages" not in st.session_state:
     st.session_state.advisor_messages = [{"role": "assistant", "content": WELCOME}]
 
+if "advisor_context" not in st.session_state:
+    st.session_state.advisor_context = {}
+
 if "advisor_teams" not in st.session_state:
     try:
         client = get_supabase_client()
@@ -62,7 +65,13 @@ if prompt := st.chat_input("Ej: Argentina vs Algeria, mejores picks de hoy..."):
         with st.spinner("Analizando..."):
             try:
                 client = get_supabase_client()
-                response = get_response(client, prompt, st.session_state.advisor_teams)
+                response, new_ctx = get_response(
+                    client,
+                    prompt,
+                    st.session_state.advisor_teams,
+                    st.session_state.advisor_context,
+                )
+                st.session_state.advisor_context = new_ctx
             except Exception as e:
                 response = f"Error al procesar tu consulta: {e}"
         st.markdown(response)
