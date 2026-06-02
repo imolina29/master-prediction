@@ -32,6 +32,9 @@ pages: dict[str, list] = {
     "Apuestas": [
         st.Page("views/5_value_bets.py", title="Value Bets", icon=":material/payments:"),
     ],
+    "Herramientas": [
+        st.Page("views/asesor.py", title="Asesor Virtual", icon=":material/smart_toy:"),
+    ],
 }
 
 if is_admin:
