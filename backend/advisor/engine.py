@@ -314,11 +314,13 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
             return {"intent": "best_picks", "days_ahead": days_ahead}
 
     teams = []
+    raw_names = []
     separators = re.split(r"\s+(?:vs\.?|contra|versus|[-–])\s+", text, maxsplit=1)
 
     if len(separators) == 2:
-        t1 = _resolve_team(separators[0].strip(), known_teams)
-        t2 = _resolve_team(separators[1].strip(), known_teams)
+        raw_names = [separators[0].strip(), separators[1].strip()]
+        t1 = _resolve_team(raw_names[0], known_teams)
+        t2 = _resolve_team(raw_names[1], known_teams)
         if t1:
             teams.append(t1)
         if t2:
@@ -342,6 +344,13 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
         return {"intent": "match", "team_a": teams[0], "team_b": teams[1]}
     if len(teams) == 1:
         return {"intent": "team", "team": teams[0]}
+
+    if raw_names:
+        return {
+            "intent": "unresolved_match",
+            "raw_a": raw_names[0],
+            "raw_b": raw_names[1],
+        }
 
     return {"intent": "unknown"}
 
@@ -866,5 +875,21 @@ def get_response(
 
     if query["intent"] == "stats":
         return handle_stats(client), ctx
+
+    if query["intent"] == "unresolved_match":
+        return (
+            f"Detecte que buscas el partido "
+            f"**{query['raw_a']} vs {query['raw_b']}**, "
+            f"pero estos equipos no estan en nuestra base de datos.\n\n"
+            f"Actualmente cubrimos:\n"
+            f"• 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League\n"
+            f"• 🇪🇸 La Liga\n"
+            f"• 🇮🇹 Serie A\n"
+            f"• 🇩🇪 Bundesliga\n"
+            f"• 🇫🇷 Ligue 1\n"
+            f"• 🏆 Champions League\n"
+            f"• 🌍 FIFA World Cup 2026\n\n"
+            f"_Estamos trabajando para agregar mas ligas pronto._"
+        ), ctx
 
     return handle_unknown(), ctx
