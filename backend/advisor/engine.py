@@ -133,6 +133,19 @@ BEST_PICKS_KEYWORDS = [
     "top",
 ]
 
+SCHEDULE_KEYWORDS = [
+    "que partidos hay",
+    "partidos de hoy",
+    "partidos de manana",
+    "partidos de mañana",
+    "que juegos hay",
+    "calendario",
+    "proximos partidos",
+    "proximos juegos",
+    "que hay hoy",
+    "que se juega",
+]
+
 DATE_KEYWORDS = {
     "hoy": 0,
     "mañana": 1,
@@ -234,6 +247,15 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
         for kw in CONTEXT_KEYWORDS:
             if kw in norm:
                 return {"intent": "team", "team": context["last_team"]}
+
+    for kw in SCHEDULE_KEYWORDS:
+        if kw in norm:
+            days_ahead = 0
+            for date_kw, days in DATE_KEYWORDS.items():
+                if date_kw in norm:
+                    days_ahead = days
+                    break
+            return {"intent": "schedule", "days_ahead": days_ahead}
 
     for kw in STATS_KEYWORDS:
         if kw in norm:
@@ -432,6 +454,68 @@ def handle_best_picks(client, days_ahead: int = 7) -> str:
     lines.append(
         f"\n_Total: {len(picks)} predicciones de confianza {'alta' if resp.data else 'media'}_"
     )
+    return "\n\n".join(lines)
+
+
+def handle_schedule(client, days_ahead: int = 0) -> str:
+    today = date.today()
+    if days_ahead == 0:
+        label = "hoy"
+        date_start = today.isoformat()
+        date_end = today.isoformat()
+    else:
+        label = f"los proximos {days_ahead} dias"
+        date_start = date.today().isoformat()
+        date_end = (date.today() + timedelta(days=days_ahead)).isoformat()
+
+    resp = (
+        client.table("predictions")
+        .select("*")
+        .gte("match_date", date_start)
+        .lte("match_date", date_end)
+        .order("match_date")
+        .execute()
+    )
+
+    matches = resp.data or []
+    if not matches:
+        resp2 = (
+            client.table("matches")
+            .select("match_date,home_team,away_team,division")
+            .gte("match_date", date_start)
+            .lte("match_date", date_end)
+            .is_("ft_result", "null")
+            .order("match_date")
+            .execute()
+        )
+        matches_raw = resp2.data or []
+        if not matches_raw:
+            return f"No hay partidos programados para {label}."
+
+        lines = [f"**Partidos programados para {label}:**\n"]
+        for m in matches_raw:
+            liga = DIVISION_NAMES.get(m["division"], m["division"])
+            lines.append(
+                f"📅 {m['match_date']} — **{m['home_team']} vs {m['away_team']}** ({liga})"
+            )
+        lines.append("\n_No hay predicciones generadas aun para estos partidos._")
+        return "\n\n".join(lines)
+
+    lines = [f"**Partidos para {label} con prediccion:**\n"]
+    for p in matches:
+        emoji = CONFIDENCE_EMOJI.get(p.get("confidence", ""), "")
+        liga = DIVISION_NAMES.get(p["division"], p["division"])
+        pred = RESULT_LABELS.get(p.get("predicted_result", ""), "?")
+        max_prob = max(p["prob_home"], p["prob_draw"], p["prob_away"])
+        lines.append(
+            f"{emoji} **{p['home_team']} vs {p['away_team']}** — "
+            f"{p['match_date']} ({liga})\n"
+            f"   Prediccion: **{pred}** ({max_prob:.0%}) "
+            f"| H: {p['prob_home']:.0%} D: {p['prob_draw']:.0%} "
+            f"A: {p['prob_away']:.0%}"
+        )
+
+    lines.append(f"\n_Total: {len(matches)} partidos_")
     return "\n\n".join(lines)
 
 
@@ -675,6 +759,9 @@ def get_response(
     if query["intent"] == "team":
         ctx["last_team"] = query["team"]
         return handle_team(client, query["team"]), ctx
+
+    if query["intent"] == "schedule":
+        return handle_schedule(client, query.get("days_ahead", 0)), ctx
 
     if query["intent"] == "best_picks":
         return handle_best_picks(client, query.get("days_ahead", 7)), ctx
