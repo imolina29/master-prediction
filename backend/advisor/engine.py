@@ -96,6 +96,17 @@ TEAM_ALIASES = {
     "qatar": "Qatar",
     "arabia saudita": "Saudi Arabia",
     "nueva zelanda": "New Zealand",
+    "new zealand": "New Zealand",
+    "new zeland": "New Zealand",
+    "nz": "New Zealand",
+    "south africa": "South Africa",
+    "saudi arabia": "Saudi Arabia",
+    "ivory coast": "Ivory Coast",
+    "cape verde": "Cape Verde Islands",
+    "south korea": "South Korea",
+    "north korea": "North Korea",
+    "costa rica": "Costa Rica",
+    "united states": "United States",
     "austria": "Austria",
     "jordania": "Jordan",
     "uzbekistan": "Uzbekistan",
@@ -220,10 +231,38 @@ def _normalize(text: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
+def _fuzzy_match(a: str, b: str) -> bool:
+    """Check if two strings match with at most 1 character difference."""
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) > len(b):
+        a, b = b, a
+    diffs = 0
+    j = 0
+    for i in range(len(a)):
+        if j >= len(b):
+            diffs += 1
+            break
+        if a[i] != b[j]:
+            diffs += 1
+            if len(a) < len(b):
+                j += 1
+        j += 1
+    diffs += len(b) - j
+    return diffs <= 1
+
+
 def _resolve_team(token: str, known_teams: list[str]) -> str | None:
     normalized = _normalize(token)
+    if not normalized or len(normalized) < 2:
+        return None
+
     if normalized in TEAM_ALIASES:
         return TEAM_ALIASES[normalized]
+
+    for alias, canonical in TEAM_ALIASES.items():
+        if _fuzzy_match(normalized, alias):
+            return canonical
 
     for name in known_teams:
         if _normalize(name) == normalized:
@@ -231,6 +270,10 @@ def _resolve_team(token: str, known_teams: list[str]) -> str | None:
 
     for name in known_teams:
         if normalized in _normalize(name) or _normalize(name) in normalized:
+            return name
+
+    for name in known_teams:
+        if _fuzzy_match(normalized, _normalize(name)):
             return name
 
     return None
