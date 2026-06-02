@@ -684,17 +684,72 @@ def _format_past_match(m: dict) -> str:
     )
 
 
+def _build_national_features(features: dict, home: str, away: str) -> dict:
+    """Build a feature row from national team features for on-demand prediction."""
+    home_feat = features.get(home)
+    away_feat = features.get(away)
+    if not home_feat or not away_feat:
+        return {}
+
+    feature_row = {}
+    rolling_cols = [
+        "goals_scored_avg",
+        "goals_conceded_avg",
+        "shots_target_avg",
+        "corners_avg",
+        "win_rate",
+        "draw_rate",
+        "btts_rate",
+        "over25_rate",
+        "goals_scored_avg_3",
+        "goals_conceded_avg_3",
+        "win_rate_3",
+        "goals_scored_avg_10",
+        "goals_conceded_avg_10",
+        "win_rate_10",
+    ]
+    for col in rolling_cols:
+        home_val = home_feat.get(col)
+        away_val = away_feat.get(col)
+        feature_row[f"home_{col}"] = home_val if home_val is not None else float("nan")
+        feature_row[f"away_{col}"] = away_val if away_val is not None else float("nan")
+
+    for col in ["xg_for_avg", "xg_against_avg", "xg_diff_avg", "xg_overperformance"]:
+        feature_row[f"home_{col}"] = float("nan")
+        feature_row[f"away_{col}"] = float("nan")
+
+    home_elo = home_feat.get("elo", 1500.0)
+    away_elo = away_feat.get("elo", 1500.0)
+    feature_row["home_elo"] = home_elo
+    feature_row["away_elo"] = away_elo
+    feature_row["elo_diff"] = home_elo - away_elo
+
+    for col in [
+        "rest_days",
+        "venue_win_rate",
+        "venue_goals_avg",
+        "league_pos",
+        "h2h_win_rate",
+        "h2h_avg_goals",
+        "h2h_matches",
+    ]:
+        feature_row[f"home_{col}"] = float("nan")
+        feature_row[f"away_{col}"] = float("nan")
+    feature_row["league_pos_diff"] = float("nan")
+
+    return feature_row
+
+
 def _predict_on_demand(home: str, away: str) -> str | None:
     """Try to generate a prediction using available features and the model."""
     try:
         from backend.etl.fixtures import load_national_features
         from backend.ml.config import FEATURES_PATH
         from backend.ml.predict import _model_cache, predict_upcoming
-        from scripts.run_predictions import _build_feature_row_from_national
 
         national = load_national_features()
         if national and (home in national or away in national):
-            feature_row = _build_feature_row_from_national(national, home, away, {})
+            feature_row = _build_national_features(national, home, away)
             if feature_row:
                 _model_cache.clear()
                 feature_df = pd.DataFrame([feature_row])
