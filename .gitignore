@@ -59,3 +59,4 @@ supabase/.temp/
 models_backup/
 data/baseline_wc_predictions.json
 data/new_wc_predictions.json
+docs/
