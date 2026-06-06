@@ -722,112 +722,51 @@ def _format_past_match(m: dict) -> str:
 
 
 def _estimate_score(p: dict) -> str | None:
-    """Estimate most likely scoreline from prediction probabilities and team stats."""
+    """Estimate scoreline from average goals scored/conceded per team."""
     try:
         from backend.etl.fixtures import load_national_features
         from backend.ml.config import FEATURES_PATH
 
         home = p["home_team"]
         away = p["away_team"]
-        prob_h = p.get("prob_home", 0.33)
-        prob_d = p.get("prob_draw", 0.33)
-        prob_a = p.get("prob_away", 0.33)
-        prob_o25 = p.get("prob_over25", 0.5)
-        prob_btts = p.get("prob_btts", 0.5)
 
-        home_goals_avg = 1.3
-        away_goals_avg = 1.1
+        h_scored = h_conceded = a_scored = a_conceded = None
 
         national = load_national_features()
         if national and home in national and away in national:
-            home_goals_avg = national[home].get("goals_scored_avg", 1.3)
-            away_goals_avg = national[away].get("goals_scored_avg", 1.1)
-            home_conceded = national[home].get("goals_conceded_avg", 0.8)
-            away_conceded = national[away].get("goals_conceded_avg", 0.8)
-            home_goals_avg = (home_goals_avg + away_conceded) / 2
-            away_goals_avg = (away_goals_avg + home_conceded) / 2
-        elif FEATURES_PATH.exists():
+            h_scored = national[home].get("goals_scored_avg")
+            h_conceded = national[home].get("goals_conceded_avg")
+            a_scored = national[away].get("goals_scored_avg")
+            a_conceded = national[away].get("goals_conceded_avg")
+
+        if h_scored is None and FEATURES_PATH.exists():
             tf = pd.read_parquet(FEATURES_PATH)
             hf = tf[tf["team"] == home].sort_values("match_date")
             af = tf[tf["team"] == away].sort_values("match_date")
             if not hf.empty and not af.empty:
-                lh = hf.iloc[-1]
-                la = af.iloc[-1]
-                h_scored = lh.get("goals_scored_avg", 1.3)
-                a_scored = la.get("goals_scored_avg", 1.1)
-                h_conceded = lh.get("goals_conceded_avg", 0.8)
-                a_conceded = la.get("goals_conceded_avg", 0.8)
-                home_goals_avg = (h_scored + a_conceded) / 2
-                away_goals_avg = (a_scored + h_conceded) / 2
+                h_scored = hf.iloc[-1].get("goals_scored_avg")
+                h_conceded = hf.iloc[-1].get("goals_conceded_avg")
+                a_scored = af.iloc[-1].get("goals_scored_avg")
+                a_conceded = af.iloc[-1].get("goals_conceded_avg")
 
-        if prob_h > prob_a:
-            home_xg = home_goals_avg * (1 + (prob_h - 0.33) * 0.5)
-            away_xg = away_goals_avg * (1 - (prob_h - 0.33) * 0.3)
-        elif prob_a > prob_h:
-            away_xg = away_goals_avg * (1 + (prob_a - 0.33) * 0.5)
-            home_xg = home_goals_avg * (1 - (prob_a - 0.33) * 0.3)
-        else:
-            home_xg = home_goals_avg
-            away_xg = away_goals_avg
+        if h_scored is None or a_scored is None:
+            return None
 
-        home_g = max(0, round(home_xg))
-        away_g = max(0, round(away_xg))
-
-        if prob_d > 0.30 and prob_d >= prob_h and prob_d >= prob_a:
-            avg = round((home_xg + away_xg) / 2)
-            home_g = avg
-            away_g = avg
-
-        if home_g == away_g:
-            if prob_h > prob_a + 0.05:
-                home_g += 1
-            elif prob_a > prob_h + 0.05:
-                away_g += 1
-
-        if prob_o25 < 0.40 and home_g + away_g > 2:
-            total = home_g + away_g
-            while total > 2 and total > 1:
-                if home_g > away_g:
-                    home_g -= 1
-                else:
-                    away_g -= 1
-                total = home_g + away_g
-
-        if prob_btts < 0.35 and home_g > 0 and away_g > 0:
-            if prob_h > prob_a:
-                away_g = 0
-            else:
-                home_g = 0
-
-        alt_h, alt_a = home_g, away_g
-        if prob_btts > 0.45 and (alt_a == 0 or alt_h == 0):
-            if alt_a == 0:
-                alt_a = 1
-            if alt_h == 0:
-                alt_h = 1
-
-        total = home_g + away_g
-        if total <= 2:
-            goal_desc = "partido cerrado"
-        elif total <= 3:
-            goal_desc = "partido con goles moderados"
-        else:
-            goal_desc = "partido abierto con goles"
+        home_xg = (h_scored + a_conceded) / 2
+        away_xg = (a_scored + h_conceded) / 2
+        home_g = round(home_xg)
+        away_g = round(away_xg)
 
         lines = [
             f"⚽ **Marcador estimado: {home} {home_g} - {away_g} {away}**",
             "",
-            f"_Basado en: promedios de goles, ELO, probabilidades del modelo ({goal_desc})_",
+            "📊 _Basado en promedios reales por partido:_",
+            f"• {home}: anota **{h_scored:.2f}** · recibe **{h_conceded:.2f}**",
+            f"• {away}: anota **{a_scored:.2f}** · recibe **{a_conceded:.2f}**",
+            f"• Goles esperados: {home} **{home_xg:.1f}** - **{away_xg:.1f}** {away}",
+            "",
+            "⚠️ _Estimacion basada en promedios historicos, no en el modelo de prediccion._",
         ]
-
-        if (alt_h, alt_a) != (home_g, away_g):
-            lines.append(f"Marcador alternativo: **{home} {alt_h} - {alt_a} {away}**")
-
-        lines.append(
-            "\n⚠️ _La estimacion de marcadores es orientativa. "
-            "El modelo esta optimizado para probabilidades de resultado, "
-            "no para scores exactos._"
-        )
         return "\n".join(lines)
 
     except Exception as e:
