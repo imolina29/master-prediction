@@ -144,18 +144,6 @@ BEST_PICKS_KEYWORDS = [
     "top",
 ]
 
-SCORE_KEYWORDS = [
-    "marcador",
-    "score",
-    "resultado probable",
-    "cuanto queda",
-    "cuantos goles",
-    "pronostico",
-    "pronostico exacto",
-    "goles",
-    "tanteo",
-]
-
 SCHEDULE_KEYWORDS = [
     "que partidos hay",
     "partidos de hoy",
@@ -307,8 +295,6 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
             if kw in norm:
                 return {"intent": "team", "team": context["last_team"]}
 
-    is_score_query = any(kw in norm for kw in SCORE_KEYWORDS)
-
     for kw in SCHEDULE_KEYWORDS:
         if kw in norm:
             days_ahead = 0
@@ -359,12 +345,7 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
                         break
 
     if len(teams) >= 2:
-        return {
-            "intent": "match",
-            "team_a": teams[0],
-            "team_b": teams[1],
-            "want_score": is_score_query,
-        }
+        return {"intent": "match", "team_a": teams[0], "team_b": teams[1]}
     if len(teams) == 1:
         return {"intent": "team", "team": teams[0]}
 
@@ -378,7 +359,7 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
     return {"intent": "unknown"}
 
 
-def handle_match(client, team_a: str, team_b: str, want_score: bool = False) -> str:
+def handle_match(client, team_a: str, team_b: str) -> str:
     resp = (
         client.table("predictions")
         .select("*")
@@ -393,12 +374,7 @@ def handle_match(client, team_a: str, team_b: str, want_score: bool = False) -> 
 
     if resp.data:
         p = resp.data[0]
-        result = _format_prediction(p)
-        if want_score:
-            score = _estimate_score(p)
-            if score:
-                result += "\n\n" + score
-        return result
+        return _format_prediction(p)
 
     resp2 = (
         client.table("matches")
@@ -721,59 +697,6 @@ def _format_past_match(m: dict) -> str:
     )
 
 
-def _estimate_score(p: dict) -> str | None:
-    """Estimate scoreline from average goals scored/conceded per team."""
-    try:
-        from backend.etl.fixtures import load_national_features
-        from backend.ml.config import FEATURES_PATH
-
-        home = p["home_team"]
-        away = p["away_team"]
-
-        h_scored = h_conceded = a_scored = a_conceded = None
-
-        national = load_national_features()
-        if national and home in national and away in national:
-            h_scored = national[home].get("goals_scored_avg")
-            h_conceded = national[home].get("goals_conceded_avg")
-            a_scored = national[away].get("goals_scored_avg")
-            a_conceded = national[away].get("goals_conceded_avg")
-
-        if h_scored is None and FEATURES_PATH.exists():
-            tf = pd.read_parquet(FEATURES_PATH)
-            hf = tf[tf["team"] == home].sort_values("match_date")
-            af = tf[tf["team"] == away].sort_values("match_date")
-            if not hf.empty and not af.empty:
-                h_scored = hf.iloc[-1].get("goals_scored_avg")
-                h_conceded = hf.iloc[-1].get("goals_conceded_avg")
-                a_scored = af.iloc[-1].get("goals_scored_avg")
-                a_conceded = af.iloc[-1].get("goals_conceded_avg")
-
-        if h_scored is None or a_scored is None:
-            return None
-
-        home_xg = (h_scored + a_conceded) / 2
-        away_xg = (a_scored + h_conceded) / 2
-        home_g = round(home_xg)
-        away_g = round(away_xg)
-
-        lines = [
-            f"⚽ **Marcador estimado: {home} {home_g} - {away_g} {away}**",
-            "",
-            "📊 _Basado en promedios reales por partido:_",
-            f"• {home}: anota **{h_scored:.2f}** · recibe **{h_conceded:.2f}**",
-            f"• {away}: anota **{a_scored:.2f}** · recibe **{a_conceded:.2f}**",
-            f"• Goles esperados: {home} **{home_xg:.1f}** - **{away_xg:.1f}** {away}",
-            "",
-            "⚠️ _Estimacion basada en promedios historicos, no en el modelo de prediccion._",
-        ]
-        return "\n".join(lines)
-
-    except Exception as e:
-        logger.warning("Score estimation failed: %s", e)
-        return None
-
-
 def _build_national_features(features: dict, home: str, away: str) -> dict:
     """Build a feature row from national team features for on-demand prediction."""
     home_feat = features.get(home)
@@ -942,15 +865,7 @@ def get_response(
     if query["intent"] == "match":
         ctx["last_team"] = query["team_a"]
         ctx["last_teams"] = [query["team_a"], query["team_b"]]
-        return (
-            handle_match(
-                client,
-                query["team_a"],
-                query["team_b"],
-                query.get("want_score", False),
-            ),
-            ctx,
-        )
+        return handle_match(client, query["team_a"], query["team_b"]), ctx
 
     if query["intent"] == "team":
         ctx["last_team"] = query["team"]
