@@ -1,0 +1,86 @@
+name: WC Results Update
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+jobs:
+  update-wc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check WC period (Jun 11 – Jul 20, 2026)
+        id: period
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          if [[ "$today" < "2026-06-11" ]] || [[ "$today" > "2026-07-20" ]]; then
+            echo "Outside WC period ($today), skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "WC period active ($today), running update."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.period.outputs.skip == 'false'
+
+      - name: Set up Python
+        if: steps.period.outputs.skip == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        if: steps.period.outputs.skip == 'false'
+        run: pip install -r requirements.txt
+
+      - name: Fetch finished match results
+        if: steps.period.outputs.skip == 'false'
+        run: PYTHONPATH=. python scripts/run_current_season.py
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Fetch new fixtures (knockout matches)
+        if: steps.period.outputs.skip == 'false'
+        run: PYTHONPATH=. python scripts/run_fixtures.py
+        env:
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Generate predictions for new fixtures
+        if: steps.period.outputs.skip == 'false'
+        run: PYTHONPATH=. python scripts/run_predictions.py --upcoming
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Resolve past picks
+        if: steps.period.outputs.skip == 'false'
+        run: PYTHONPATH=. python scripts/run_resolve_picks.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Notify pipeline failure
+        if: failure() && steps.period.outputs.skip == 'false'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode=HTML \
+            -d text="🚨 <b>WC Results Update falló</b>%0A%0ARun: <a href='${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'>Ver logs</a>"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
