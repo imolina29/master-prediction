@@ -17,6 +17,7 @@ is_admin = user and user["role"] == "admin"
 pages: dict[str, list] = {
     "": [
         st.Page("views/0_home.py", title="Home", icon=":material/home:", default=True),
+        st.Page("views/mundial.py", title="Mundial 2026", icon=":material/emoji_events:"),
     ],
     "Analisis": [
         st.Page("views/1_league_overview.py", title="Liga Overview", icon=":material/leaderboard:"),
