@@ -359,6 +359,67 @@ def parse_query(text: str, known_teams: list[str], context: dict | None = None) 
     return {"intent": "unknown"}
 
 
+def _get_poisson_estimate(home: str, away: str) -> dict | None:
+    """Get Poisson score estimate using national or club team features."""
+    try:
+        from backend.advisor.poisson import estimate_score
+        from backend.etl.fixtures import load_national_features
+
+        national = load_national_features()
+        hf = national.get(home) if national else None
+        af = national.get(away) if national else None
+
+        if hf and af:
+            all_avgs = [f["goals_scored_avg"] for f in national.values() if "goals_scored_avg" in f]
+            global_avg = sum(all_avgs) / len(all_avgs) if all_avgs else 1.3
+            return estimate_score(
+                home_attack=hf["goals_scored_avg"],
+                home_defense=hf["goals_conceded_avg"],
+                away_attack=af["goals_scored_avg"],
+                away_defense=af["goals_conceded_avg"],
+                home_elo=hf.get("elo", 1500.0),
+                away_elo=af.get("elo", 1500.0),
+                global_avg=global_avg,
+                home_advantage=1.0,
+            )
+
+        from backend.ml.config import FEATURES_PATH
+
+        if FEATURES_PATH.exists():
+            tf = pd.read_parquet(FEATURES_PATH)
+            hr = tf[tf["team"] == home].sort_values("match_date")
+            ar = tf[tf["team"] == away].sort_values("match_date")
+            if not hr.empty and not ar.empty:
+                hl, al = hr.iloc[-1], ar.iloc[-1]
+                return estimate_score(
+                    home_attack=float(hl.get("goals_scored_avg", 1.3)),
+                    home_defense=float(hl.get("goals_conceded_avg", 1.1)),
+                    away_attack=float(al.get("goals_scored_avg", 1.2)),
+                    away_defense=float(al.get("goals_conceded_avg", 1.2)),
+                    global_avg=1.35,
+                    home_advantage=1.1,
+                )
+    except Exception as e:
+        logger.warning("Poisson estimate failed: %s", e)
+    return None
+
+
+def _format_poisson(est: dict, home: str, away: str) -> str:
+    lines = [
+        "\n---\n",
+        "**📊 Marcadores Probables (Poisson)**\n",
+        "| Marcador | Prob. |",
+        "|----------|-------|",
+    ]
+    for score, prob in est["top_scores"]:
+        lines.append(f"| {score} | **{prob:.1%}** |")
+    lines.append(
+        f"\n⚽ Goles esperados: **{home}** {est['lambda_home']:.1f} — "
+        f"**{away}** {est['lambda_away']:.1f}"
+    )
+    return "\n".join(lines)
+
+
 def handle_match(client, team_a: str, team_b: str) -> str:
     resp = (
         client.table("predictions")
@@ -374,7 +435,11 @@ def handle_match(client, team_a: str, team_b: str) -> str:
 
     if resp.data:
         p = resp.data[0]
-        return _format_prediction(p)
+        result = _format_prediction(p)
+        poisson = _get_poisson_estimate(p["home_team"], p["away_team"])
+        if poisson:
+            result += _format_poisson(poisson, p["home_team"], p["away_team"])
+        return result
 
     resp2 = (
         client.table("matches")
@@ -400,6 +465,9 @@ def handle_match(client, team_a: str, team_b: str) -> str:
 
     on_demand = _predict_on_demand(team_a, team_b)
     if on_demand:
+        poisson = _get_poisson_estimate(team_a, team_b)
+        if poisson:
+            on_demand += _format_poisson(poisson, team_a, team_b)
         return on_demand
 
     return (
