@@ -405,19 +405,12 @@ def _get_poisson_estimate(home: str, away: str) -> dict | None:
 
 
 def _format_poisson(est: dict, home: str, away: str) -> str:
-    lines = [
-        "\n---\n",
-        "**📊 Marcadores Probables (Poisson)**\n",
-        "| Marcador | Prob. |",
-        "|----------|-------|",
-    ]
-    for score, prob in est["top_scores"]:
-        lines.append(f"| {score} | **{prob:.1%}** |")
-    lines.append(
-        f"\n⚽ Goles esperados: **{home}** {est['lambda_home']:.1f} — "
-        f"**{away}** {est['lambda_away']:.1f}"
+    scores = " · ".join(f"{s} ({p:.0%})" for s, p in est["top_scores"][:3])
+    return (
+        f"\n\n📊 _Marcadores probables:_ {scores}\n"
+        f"⚽ _Goles esperados: {home} {est['lambda_home']:.1f} — "
+        f"{away} {est['lambda_away']:.1f}_"
     )
-    return "\n".join(lines)
 
 
 def handle_match(client, team_a: str, team_b: str) -> str:
