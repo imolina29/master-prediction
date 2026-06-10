@@ -8,12 +8,10 @@ from dashboard.components.value_bets import _market_label, _result_badge, _stake
 from dashboard.data_access import get_resolved_picks, get_upcoming_predictions
 
 st.markdown(
-    '<div style="text-align:center; padding: 1rem 0 0.5rem 0;">'
-    '<h1 style="font-size:2.2rem; margin:0; color:#fff !important;'
-    " font-weight:800; letter-spacing:-0.03em;"
-    '">⚽ Master Prediction</h1>'
-    '<p style="color:#555; font-size:0.78rem; margin-top:6px; letter-spacing:0.08em;'
-    ' text-transform:uppercase; font-weight:500;">Inteligencia Deportiva con IA</p>'
+    '<div class="hero">'
+    '<div style="font-size:2.5rem;margin-bottom:0.3rem;">⚽</div>'
+    "<h1>Master Prediction</h1>"
+    '<p class="tagline">Inteligencia Deportiva · IA</p>'
     "</div>",
     unsafe_allow_html=True,
 )

@@ -7,16 +7,13 @@ import streamlit as st
 
 from backend.notifications.email import send_welcome_email
 from dashboard.auth import _deep_copy_secrets, _hash_password, get_current_user, require_admin
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 from dashboard.data_access import get_supabase_client
 
 if not require_admin():
     st.stop()
 
-st.markdown(
-    '<h1 style="font-size:2rem;">⚙️ Panel de Administracion</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("⚙️", "Admin"), unsafe_allow_html=True)
 
 client = get_supabase_client()
 admin_user = get_current_user()

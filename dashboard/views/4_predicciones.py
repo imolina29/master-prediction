@@ -10,13 +10,10 @@ from dashboard.components.metrics import (
     load_backtest_results,
 )
 from dashboard.components.predictions import format_predictions
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client, get_track_record
 
-st.markdown(
-    '<h1 style="font-size:2rem;">🤖 Predicciones</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("🤖", "Predicciones"), unsafe_allow_html=True)
 
 # --- Section 1: Upcoming predictions ---
 st.markdown(section_header("🔮", "Proximas Predicciones"), unsafe_allow_html=True)

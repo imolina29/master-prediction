@@ -3,6 +3,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+from dashboard.components.theme import page_header
 from dashboard.data_access import get_supabase_client
 
 WC_GROUPS: dict[str, list[str]] = {
@@ -568,10 +569,7 @@ def _render_bracket(all_matches: list[dict]):
 
 # ── Page ─────────────────────────────────────────────────
 
-st.markdown(
-    '<h1 style="font-size:2rem;">🏆 FIFA World Cup 2026</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("🏆", "FIFA World Cup 2026"), unsafe_allow_html=True)
 st.caption("Estados Unidos · Mexico · Canada  |  11 junio — 19 julio 2026")
 
 all_matches = _load_wc_matches()

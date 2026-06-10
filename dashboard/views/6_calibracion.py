@@ -6,12 +6,9 @@ from dashboard.components.calibration import (
     model_comparison_chart,
 )
 from dashboard.components.metrics import load_backtest_results
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 
-st.markdown(
-    '<h1 style="font-size:2rem;">🎯 Calibracion del Modelo</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("🎯", "Calibracion"), unsafe_allow_html=True)
 
 results = load_backtest_results(BACKTEST_RESULTS_PATH)
 

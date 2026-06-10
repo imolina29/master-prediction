@@ -9,14 +9,11 @@ from dashboard.components.performance import (
     performance_kpis,
     profit_chart,
 )
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 from dashboard.components.value_bets import format_picks, format_resolved
 from dashboard.data_access import DIVISION_NAMES, get_resolved_picks, get_supabase_client
 
-st.markdown(
-    '<h1 style="font-size:2rem;">💰 Value Bets</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("💰", "Value Bets"), unsafe_allow_html=True)
 
 with st.expander("📖 Guia de terminos"):
     st.markdown(
