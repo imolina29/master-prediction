@@ -2,7 +2,7 @@ import streamlit as st
 
 from dashboard.components.charts import home_away_chart, xg_vs_goals_chart
 from dashboard.components.tables import last_n_results
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -11,10 +11,7 @@ from dashboard.data_access import (
     load_matches,
 )
 
-st.markdown(
-    '<h1 style="font-size:2rem;">🔍 Analisis de Equipo</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("🔍", "Analisis de Equipo"), unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 with col1:

@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import hmac
 import time
 from collections.abc import Mapping
 
@@ -10,6 +13,10 @@ SESSION_TIMEOUT_SECONDS = 15 * 60
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 15 * 60
 MIN_PASSWORD_LENGTH = 12
+
+REMEMBER_COOKIE = "mp_remember"
+REMEMBER_DAYS = 30
+REMEMBER_TIMEOUT = REMEMBER_DAYS * 24 * 60 * 60
 
 ROLE_LABELS = {"admin": "Administrador", "viewer": "Viewer"}
 
@@ -83,6 +90,14 @@ LOGIN_CSS = """
     letter-spacing: 0.06em !important;
 }
 
+/* ── Remember checkbox ── */
+[data-testid="stForm"] [data-testid="stCheckbox"] label {
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-size: 0.82rem !important;
+    color: #555 !important;
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
     [data-testid="stForm"] { padding: 1.5rem 1.2rem; }
@@ -120,6 +135,9 @@ LOGIN_FOOTER = """
 """
 
 
+# ── Helpers ──────────────────────────────────────────────────────────────
+
+
 def _deep_copy_secrets(section: str) -> dict:
     raw = st.secrets.get(section, {})
     return _to_plain_dict(raw)
@@ -144,6 +162,108 @@ def _hash_password(password: str) -> str:
 
 def _verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
+
+
+# ── Remember-session token ───────────────────────────────────────────────
+
+
+def _get_signing_key() -> str:
+    try:
+        raw = st.secrets.get("SUPABASE_SERVICE_KEY", "") or st.secrets.get("SUPABASE_KEY", "")
+        if not raw:
+            raw = st.secrets.get("supabase", {}).get("key", "")
+    except Exception:
+        raw = ""
+    return hashlib.sha256(f"mp-remember:{raw}".encode()).hexdigest()
+
+
+def _make_remember_token(username: str) -> str:
+    expires = int(time.time()) + REMEMBER_TIMEOUT
+    payload = f"{username}:{expires}"
+    sig = hmac.new(_get_signing_key().encode(), payload.encode(), hashlib.sha256).hexdigest()[:32]
+    return base64.urlsafe_b64encode(f"{payload}:{sig}".encode()).decode()
+
+
+def _verify_remember_token(token: str) -> str | None:
+    try:
+        raw = base64.urlsafe_b64decode(token.encode()).decode()
+        parts = raw.rsplit(":", 2)
+        if len(parts) != 3:
+            return None
+        username, expires_str, sig = parts
+        if time.time() > int(expires_str):
+            return None
+        payload = f"{username}:{expires_str}"
+        expected = hmac.new(
+            _get_signing_key().encode(), payload.encode(), hashlib.sha256
+        ).hexdigest()[:32]
+        if not hmac.compare_digest(sig, expected):
+            return None
+        return username
+    except Exception:
+        return None
+
+
+def _get_remember_cookie() -> str | None:
+    try:
+        return st.context.cookies.get(REMEMBER_COOKIE)
+    except Exception:
+        return None
+
+
+def _set_remember_cookie(token: str):
+    st.markdown(
+        f"<script>"
+        f'document.cookie="{REMEMBER_COOKIE}={token};'
+        f'max-age={REMEMBER_TIMEOUT};path=/;SameSite=Strict";'
+        f"</script>",
+        unsafe_allow_html=True,
+    )
+
+
+def _clear_remember_cookie():
+    st.markdown(
+        f'<script>document.cookie="{REMEMBER_COOKIE}=;max-age=0;path=/";</script>',
+        unsafe_allow_html=True,
+    )
+
+
+def _lookup_user(username: str) -> dict | None:
+    credentials = _deep_copy_secrets("credentials")
+    user_data = credentials.get(username)
+    if user_data:
+        return {
+            "username": username,
+            "name": user_data.get("name", username),
+            "role": user_data.get("role", "viewer"),
+            "source": "secrets",
+            "must_change_password": False,
+        }
+    try:
+        client = get_supabase_client()
+        resp = (
+            client.table("app_users")
+            .select("*")
+            .eq("username", username)
+            .eq("is_active", True)
+            .execute()
+        )
+        if resp.data:
+            user = resp.data[0]
+            return {
+                "username": user["username"],
+                "name": user["name"],
+                "role": user["role"],
+                "source": "supabase",
+                "must_change_password": user.get("must_change_password", False),
+                "user_id": user["id"],
+            }
+    except Exception:
+        pass
+    return None
+
+
+# ── Auth core ────────────────────────────────────────────────────────────
 
 
 def _authenticate_secrets(username: str, password: str) -> dict | None:
@@ -192,6 +312,19 @@ def _authenticate_supabase(username: str, password: str) -> dict | None:
         return None
 
 
+def _set_session(user: dict, *, remembered: bool = False):
+    st.session_state["authentication_status"] = True
+    st.session_state["username"] = user["username"]
+    st.session_state["name"] = user["name"]
+    st.session_state["user_role"] = user["role"]
+    st.session_state["user_source"] = user["source"]
+    st.session_state["must_change_password"] = user["must_change_password"]
+    st.session_state["session_start"] = time.time()
+    st.session_state["remembered_session"] = remembered
+    if user.get("user_id"):
+        st.session_state["user_id"] = user["user_id"]
+
+
 def _force_logout():
     st.session_state["authentication_status"] = None
     st.session_state["name"] = None
@@ -201,6 +334,8 @@ def _force_logout():
     st.session_state.pop("user_role", None)
     st.session_state.pop("must_change_password", None)
     st.session_state.pop("user_id", None)
+    st.session_state.pop("remembered_session", None)
+    st.session_state["_clear_remember_cookie"] = True
 
 
 def _check_session_timeout() -> bool:
@@ -208,7 +343,10 @@ def _check_session_timeout() -> bool:
     if start is None:
         st.session_state["session_start"] = time.time()
         return False
-    if time.time() - start > SESSION_TIMEOUT_SECONDS:
+    timeout = (
+        REMEMBER_TIMEOUT if st.session_state.get("remembered_session") else SESSION_TIMEOUT_SECONDS
+    )
+    if time.time() - start > timeout:
         _force_logout()
         return True
     return False
@@ -294,15 +432,33 @@ def _handle_password_change():
 
 
 def check_auth() -> bool:
+    if st.session_state.pop("_clear_remember_cookie", False):
+        _clear_remember_cookie()
+
     if st.session_state.get("authentication_status"):
+        pending = st.session_state.pop("_pending_remember_token", None)
+        if pending:
+            _set_remember_cookie(pending)
+
         expired = _check_session_timeout()
         if expired:
-            st.warning("Tu sesion ha expirado (15 min). Inicia sesion nuevamente.")
+            _clear_remember_cookie()
+            st.warning("Tu sesion ha expirado. Inicia sesion nuevamente.")
             st.rerun()
         if st.session_state.get("must_change_password"):
             _handle_password_change()
             return False
         return True
+
+    token = _get_remember_cookie()
+    if token:
+        username = _verify_remember_token(token)
+        if username:
+            user_data = _lookup_user(username)
+            if user_data and not user_data.get("must_change_password"):
+                _set_session(user_data, remembered=True)
+                st.rerun()
+        _clear_remember_cookie()
 
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
     st.markdown(LOGIN_HEADER, unsafe_allow_html=True)
@@ -310,6 +466,7 @@ def check_auth() -> bool:
     with st.form("login_form"):
         username = st.text_input("Usuario")
         password = st.text_input("Contraseña", type="password")
+        remember = st.checkbox("Recordar sesion")
         submitted = st.form_submit_button("Iniciar sesion", use_container_width=True)
 
     if submitted and username and password:
@@ -321,15 +478,9 @@ def check_auth() -> bool:
         else:
             user = _do_login(username, password)
             if user:
-                st.session_state["authentication_status"] = True
-                st.session_state["username"] = user["username"]
-                st.session_state["name"] = user["name"]
-                st.session_state["user_role"] = user["role"]
-                st.session_state["user_source"] = user["source"]
-                st.session_state["must_change_password"] = user["must_change_password"]
-                st.session_state["session_start"] = time.time()
-                if user.get("user_id"):
-                    st.session_state["user_id"] = user["user_id"]
+                _set_session(user, remembered=remember)
+                if remember:
+                    st.session_state["_pending_remember_token"] = _make_remember_token(username)
                 st.rerun()
             else:
                 _record_failed_attempt()
@@ -383,10 +534,16 @@ def render_user_menu():
     if not user:
         return
 
-    remaining = SESSION_TIMEOUT_SECONDS - (
-        time.time() - st.session_state.get("session_start", time.time())
-    )
-    minutes_left = max(0, int(remaining // 60))
+    is_remembered = st.session_state.get("remembered_session", False)
+    elapsed = time.time() - st.session_state.get("session_start", time.time())
+
+    if is_remembered:
+        days_left = max(0, int((REMEMBER_TIMEOUT - elapsed) / 86400))
+        time_label = f"🔒 Sesion recordada · {days_left}d"
+    else:
+        minutes_left = max(0, int((SESSION_TIMEOUT_SECONDS - elapsed) / 60))
+        time_label = f"⏱ {minutes_left} min restantes"
+
     role_label = ROLE_LABELS.get(user["role"], user["role"])
 
     _, col_user = st.columns([8, 2])
@@ -400,7 +557,7 @@ def render_user_menu():
                 unsafe_allow_html=True,
             )
             st.divider()
-            st.caption(f"⏱ {minutes_left} min restantes")
+            st.caption(time_label)
             if st.button("🚪 Cerrar sesion", use_container_width=True):
                 _force_logout()
                 st.rerun()

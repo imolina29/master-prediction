@@ -1,7 +1,7 @@
 import streamlit as st
 
 from backend.betting.tracker import calculate_performance
-from dashboard.components.theme import section_header, stat_card
+from dashboard.components.theme import page_header, section_header, stat_card
 from dashboard.components.trends import (
     league_heatmap,
     market_comparison_chart,
@@ -10,10 +10,7 @@ from dashboard.components.trends import (
 )
 from dashboard.data_access import get_resolved_picks
 
-st.markdown(
-    '<h1 style="font-size:2rem;">📈 Tendencias</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("📈", "Tendencias"), unsafe_allow_html=True)
 
 try:
     resolved = get_resolved_picks()

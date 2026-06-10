@@ -4,8 +4,11 @@ import plotly.graph_objects as go
 PLOTLY_LAYOUT = {
     "template": "plotly_dark",
     "paper_bgcolor": "rgba(0,0,0,0)",
-    "plot_bgcolor": "rgba(14,17,23,0.8)",
-    "font": {"color": "#e0e0e0"},
+    "plot_bgcolor": "rgba(255,255,255,0.01)",
+    "font": {"family": "Inter, sans-serif", "color": "#999", "size": 12},
+    "xaxis": {"gridcolor": "rgba(255,255,255,0.03)", "zerolinecolor": "rgba(255,255,255,0.05)"},
+    "yaxis": {"gridcolor": "rgba(255,255,255,0.03)", "zerolinecolor": "rgba(255,255,255,0.05)"},
+    "margin": {"l": 40, "r": 20, "t": 40, "b": 40},
 }
 
 GREEN = "#4CAF50"

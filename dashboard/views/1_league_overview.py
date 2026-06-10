@@ -1,13 +1,10 @@
 import streamlit as st
 
 from dashboard.components.tables import form_indicator, standings_table
-from dashboard.components.theme import section_header
+from dashboard.components.theme import page_header, section_header
 from dashboard.data_access import DIVISION_NAMES, get_seasons, load_matches, load_xg
 
-st.markdown(
-    '<h1 style="font-size:2rem;">📊 Vista de Liga</h1>',
-    unsafe_allow_html=True,
-)
+st.markdown(page_header("📊", "Vista de Liga"), unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 with col1:

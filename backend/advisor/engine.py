@@ -407,9 +407,14 @@ def _get_poisson_estimate(home: str, away: str) -> dict | None:
 def _format_poisson(est: dict, home: str, away: str) -> str:
     scores = " · ".join(f"{s} ({p:.0%})" for s, p in est["top_scores"][:3])
     return (
-        f"\n\n📊 _Marcadores probables:_ {scores}\n"
-        f"⚽ _Goles esperados: {home} {est['lambda_home']:.1f} — "
-        f"{away} {est['lambda_away']:.1f}_"
+        f'<div style="color:#888;font-size:0.8rem;margin-top:6px;padding:10px 14px;'
+        f"background:rgba(76,175,80,0.03);border-left:2px solid rgba(76,175,80,0.2);"
+        f'border-radius:0 10px 10px 0;">'
+        f'📊 <span style="color:#aaa;">Marcadores:</span> {scores}<br>'
+        f'⚽ <span style="color:#aaa;">Goles esperados:</span> '
+        f'<strong style="color:#ccc;">{home}</strong> {est["lambda_home"]:.1f} — '
+        f'<strong style="color:#ccc;">{away}</strong> {est["lambda_away"]:.1f}'
+        f"</div>"
     )
 
 
@@ -709,41 +714,76 @@ def handle_unknown() -> str:
 def _format_prediction(p: dict) -> str:
     liga = DIVISION_NAMES.get(p["division"], p["division"])
     pred = RESULT_LABELS.get(p.get("predicted_result", ""), "?")
-    emoji = CONFIDENCE_EMOJI.get(p.get("confidence", ""), "")
-    max_prob = max(p["prob_home"], p["prob_draw"], p["prob_away"])
+    conf = p.get("confidence", "?")
+    conf_color = {"alta": "#4CAF50", "media": "#FFC107", "baja": "#666"}.get(conf, "#666")
 
-    lines = [
-        f"**{p['home_team']} vs {p['away_team']}**",
-        f"📅 {p['match_date']} · {liga}\n",
-        f"**Prediccion: {pred}** {emoji} Confianza: {p.get('confidence', '?')}\n",
-        "| Resultado | Probabilidad |",
-        "|-----------|-------------|",
-        f"| Local (H) | **{p['prob_home']:.1%}** |",
-        f"| Empate (D) | **{p['prob_draw']:.1%}** |",
-        f"| Visitante (A) | **{p['prob_away']:.1%}** |",
-    ]
+    ph, pd_, pa = p["prob_home"], p["prob_draw"], p["prob_away"]
+    max_prob = max(ph, pd_, pa)
+    predicted = p.get("predicted_result", "")
 
+    def _bar(label, prob, is_pred):
+        pct = prob * 100
+        bar_bg = "#4CAF50" if is_pred else "rgba(255,255,255,0.12)"
+        tc = "#fff" if is_pred else "#888"
+        fw = "600" if is_pred else "400"
+        return (
+            f'<div style="display:flex;align-items:center;gap:10px;margin:5px 0;">'
+            f'<span style="color:{tc};font-size:0.8rem;font-weight:{fw};width:65px;">{label}</span>'
+            f'<div style="flex:1;height:7px;background:rgba(255,255,255,0.04);border-radius:4px;">'
+            f'<div style="width:{pct:.0f}%;height:100%;'
+            f'background:{bar_bg};border-radius:4px;"></div>'
+            f"</div>"
+            f'<span style="color:{tc};font-size:0.8rem;font-weight:{fw};width:42px;'
+            f'text-align:right;">{prob:.1%}</span>'
+            f"</div>"
+        )
+
+    bars = (
+        _bar("Local", ph, predicted == "H")
+        + _bar("Empate", pd_, predicted == "D")
+        + _bar("Visitante", pa, predicted == "A")
+    )
+
+    extras = []
     if p.get("prob_over25"):
-        lines.append(f"\nOver 2.5 goles: **{p['prob_over25']:.1%}**")
+        extras.append(f"Over 2.5: <strong>{p['prob_over25']:.0%}</strong>")
     if p.get("prob_btts"):
-        lines.append(f"Ambos anotan (BTTS): **{p['prob_btts']:.1%}**")
+        extras.append(f"BTTS: <strong>{p['prob_btts']:.0%}</strong>")
+    extras_html = (
+        f'<div style="color:#666;font-size:0.78rem;margin-top:12px;padding-top:10px;'
+        f'border-top:1px solid rgba(255,255,255,0.04);">{"  ·  ".join(extras)}</div>'
+        if extras
+        else ""
+    )
 
     if max_prob > 0.60:
-        lines.append(
-            f"\n💡 _El modelo tiene buena confianza en este resultado. "
-            f"Probabilidad principal: {max_prob:.0%}_"
-        )
+        tip = f"💡 Buena confianza — probabilidad principal: {max_prob:.0%}"
     elif max_prob > 0.45:
-        lines.append(
-            f"\n⚖️ _Partido equilibrado. La probabilidad mas alta "
-            f"es {max_prob:.0%} — considera el contexto._"
-        )
+        tip = f"⚖️ Partido equilibrado ({max_prob:.0%}) — considera el contexto"
     else:
-        lines.append(
-            "\n⚠️ _Partido muy parejo. Las probabilidades estan repartidas — precaucion al apostar._"
-        )
+        tip = "⚠️ Partido parejo — precaucion al apostar"
 
-    return "\n".join(lines)
+    return (
+        f'<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);'
+        f'border-radius:14px;padding:18px 22px;margin:8px 0;">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;'
+        f'margin-bottom:4px;">'
+        f'<span style="color:#fff;font-weight:700;font-size:1.02rem;letter-spacing:-0.02em;">'
+        f"{p['home_team']} vs {p['away_team']}</span>"
+        f'<span style="color:{conf_color};font-size:0.68rem;font-weight:600;'
+        f"text-transform:uppercase;padding:3px 10px;border:1px solid {conf_color}33;"
+        f'border-radius:100px;letter-spacing:0.04em;">{conf}</span>'
+        f"</div>"
+        f'<div style="color:#555;font-size:0.78rem;margin-bottom:14px;">'
+        f"📅 {p['match_date']}  ·  {liga}</div>"
+        f'<div style="color:#999;font-size:0.82rem;margin-bottom:10px;">'
+        f'Prediccion: <strong style="color:#fff;">{pred}</strong></div>'
+        f"{bars}"
+        f"{extras_html}"
+        f'<div style="color:#555;font-size:0.76rem;margin-top:10px;'
+        f'font-style:italic;">{tip}</div>'
+        f"</div>"
+    )
 
 
 def _format_past_match(m: dict) -> str:
@@ -752,9 +792,14 @@ def _format_past_match(m: dict) -> str:
     liga = DIVISION_NAMES.get(m.get("division", ""), m.get("division", ""))
 
     return (
-        f"**{m['home_team']} vs {m['away_team']}**\n"
-        f"📅 {m['match_date']} · {liga}\n\n"
-        f"Este partido ya se jugo. Resultado: **{score}** → **{result}**"
+        f'<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);'
+        f'border-radius:14px;padding:16px 20px;margin:8px 0;">'
+        f'<span style="color:#fff;font-weight:700;">{m["home_team"]} vs {m["away_team"]}</span><br>'
+        f'<span style="color:#555;font-size:0.78rem;">📅 {m["match_date"]}  ·  {liga}</span>'
+        f'<div style="margin-top:12px;color:#aaa;">Resultado: '
+        f'<strong style="color:#fff;font-size:1.1rem;">{score}</strong>'
+        f' → <strong style="color:#4CAF50;">{result}</strong></div>'
+        f"</div>"
     )
 
 
@@ -835,7 +880,10 @@ def _predict_on_demand(home: str, away: str) -> str | None:
                     "division": "WC",
                     **preds,
                 }
-                header = "⚡ _Prediccion generada on-demand (no estaba en el sistema)_\n\n"
+                header = (
+                    '<div style="color:#FFC107;font-size:0.78rem;font-weight:500;'
+                    'margin-bottom:4px;">⚡ Prediccion on-demand</div>'
+                )
                 return header + _format_prediction(p)
 
         if FEATURES_PATH.exists():
@@ -897,7 +945,10 @@ def _predict_on_demand(home: str, away: str) -> str | None:
                     "division": division,
                     **preds,
                 }
-                header = "⚡ _Prediccion generada on-demand (no estaba en el sistema)_\n\n"
+                header = (
+                    '<div style="color:#FFC107;font-size:0.78rem;font-weight:500;'
+                    'margin-bottom:4px;">⚡ Prediccion on-demand</div>'
+                )
                 return header + _format_prediction(p)
 
     except Exception as e:
