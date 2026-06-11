@@ -62,10 +62,13 @@ def _api_get(path: str, token: str, params: dict | None = None) -> dict:
     return resp.json()
 
 
-def _current_season_year() -> int:
+def _current_season_year(competition: str = "") -> int:
     from datetime import date
 
     today = date.today()
+    # Standalone tournaments (WC, Euros) use calendar year, not league season
+    if competition in ("WC", "EC"):
+        return today.year
     return today.year if today.month >= 7 else today.year - 1
 
 
@@ -369,10 +372,10 @@ def run_fixtures_sync() -> dict:
 def run_current_season_sync() -> dict:
     token = _get_token()
     normalizer = TeamNormalizer()
-    season = _current_season_year()
 
     total_loaded = 0
     for api_code, division in COMPETITION_MAP.items():
+        season = _current_season_year(api_code)
         try:
             raw = fetch_finished_matches(api_code, token, season)
         except httpx.HTTPStatusError as e:
@@ -389,4 +392,4 @@ def run_current_season_sync() -> dict:
         logger.info("%s → %s: %d results loaded (season %d)", api_code, division, loaded, season)
         time.sleep(RATE_LIMIT_DELAY)
 
-    return {"season": season, "total_results": total_loaded}
+    return {"season": _current_season_year(), "total_results": total_loaded}
