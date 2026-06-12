@@ -123,12 +123,21 @@ def get_teams(division: str, season: str | None = None) -> list[str]:
 
 
 @st.cache_data(ttl=300)
+def _today_colombia() -> str:
+    from datetime import datetime, timedelta, timezone
+
+    col_tz = timezone(timedelta(hours=-5))
+    return datetime.now(col_tz).strftime("%Y-%m-%d")
+
+
 def get_upcoming_predictions() -> pd.DataFrame:
-    from datetime import date, timedelta
+    from datetime import datetime, timedelta, timezone
 
     client = get_supabase_client()
-    today = str(date.today())
-    end = str(date.today() + timedelta(days=21))
+    col_tz = timezone(timedelta(hours=-5))
+    now_col = datetime.now(col_tz)
+    today = now_col.strftime("%Y-%m-%d")
+    end = (now_col + timedelta(days=21)).strftime("%Y-%m-%d")
     resp = (
         client.table("predictions")
         .select("*")

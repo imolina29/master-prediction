@@ -1,6 +1,6 @@
 import argparse
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
@@ -78,8 +78,10 @@ def main():
 
     client = get_supabase()
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    week_ahead = (datetime.now() + timedelta(days=21)).strftime("%Y-%m-%d")
+    col_tz = timezone(timedelta(hours=-5))
+    now = datetime.now(col_tz)
+    today = now.strftime("%Y-%m-%d")
+    week_ahead = (now + timedelta(days=21)).strftime("%Y-%m-%d")
 
     logger.info("Finding matches from %s to %s", today, week_ahead)
     resp = (
@@ -198,10 +200,12 @@ def main():
 
     logger.info("Generated %d predictions, uploading to Supabase...", len(predictions))
 
-    client.table("predictions").delete().gte("match_date", today).lte(
-        "match_date", week_ahead
-    ).execute()
-    logger.info("Cleared stale predictions for %s to %s", today, week_ahead)
+    # Only delete predictions for matches we're about to regenerate (preserves played match data)
+    for _, match in upcoming.iterrows():
+        client.table("predictions").delete().eq("match_date", str(match["match_date"])).eq(
+            "home_team", match["home_team"]
+        ).eq("away_team", match["away_team"]).execute()
+    logger.info("Cleared stale predictions for %d upcoming matches", len(upcoming))
 
     for pred in predictions:
         row = {
