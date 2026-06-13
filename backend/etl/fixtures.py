@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import httpx
@@ -46,6 +47,13 @@ DATASET_TO_CANONICAL = {
 }
 
 RATE_LIMIT_DELAY = 6.5
+
+_COL_TZ = timezone(timedelta(hours=-5))
+
+
+def _utc_to_colombia_date(utc_date_str: str) -> str:
+    dt = datetime.fromisoformat(utc_date_str.replace("Z", "+00:00"))
+    return dt.astimezone(_COL_TZ).strftime("%Y-%m-%d")
 
 
 def _get_token() -> str:
@@ -109,7 +117,7 @@ def parse_finished_match(raw: dict, division: str, normalizer: TeamNormalizer) -
 
     return {
         "division": division,
-        "match_date": raw["utcDate"][:10],
+        "match_date": _utc_to_colombia_date(raw["utcDate"]),
         "home_team": normalizer.normalize(home_raw),
         "away_team": normalizer.normalize(away_raw),
         "ft_home_goals": home_goals,
@@ -137,7 +145,7 @@ def parse_fixture(raw: dict, division: str, normalizer: TeamNormalizer) -> dict 
 
     return {
         "division": division,
-        "match_date": raw["utcDate"][:10],
+        "match_date": _utc_to_colombia_date(raw["utcDate"]),
         "home_team": normalizer.normalize(home_raw),
         "away_team": normalizer.normalize(away_raw),
         "ft_home_goals": None,
