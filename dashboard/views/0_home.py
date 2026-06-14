@@ -98,6 +98,8 @@ with col_left:
             hit = p["predicted_result"] == p["ft_result"]
             badge = "✅ Acertado" if hit else "❌ Fallido"
             score = f"{int(p['ft_home_goals'])}-{int(p['ft_away_goals'])}"
+            prob_draw = p.get("prob_draw")
+            alerta = "⚠️" if prob_draw is not None and prob_draw > 0.25 else ""
             rows.append(
                 {
                     "Fecha": p["match_date"],
@@ -106,6 +108,7 @@ with col_left:
                     "Prediccion": RESULT_LABELS.get(p["predicted_result"], p["predicted_result"]),
                     "Confianza": p.get("confidence", ""),
                     "Resultado": badge,
+                    "Alerta": alerta,
                 }
             )
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)

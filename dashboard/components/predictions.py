@@ -14,6 +14,13 @@ def _confidence_badge(conf: str) -> str:
     return badges.get(conf, conf)
 
 
+def _draw_warning(row: pd.Series) -> str:
+    prob_draw = row.get("prob_draw")
+    if pd.notna(prob_draw) and prob_draw > 0.25:
+        return "⚠️ Empate probable"
+    return ""
+
+
 def format_predictions(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
@@ -31,9 +38,10 @@ def format_predictions(df: pd.DataFrame) -> pd.DataFrame:
             "prob_over25",
             "prob_btts",
             "confidence",
-            "model_variant",
         ]
     ].copy()
+
+    display["alerta"] = df.apply(_draw_warning, axis=1)
 
     result_map = {"H": "Local", "D": "Empate", "A": "Visitante"}
     display["predicted_result"] = display["predicted_result"].map(result_map)
@@ -54,6 +62,6 @@ def format_predictions(df: pd.DataFrame) -> pd.DataFrame:
         "P(O2.5)",
         "P(BTTS)",
         "Confianza",
-        "Modelo",
+        "Alerta",
     ]
     return display
