@@ -2,6 +2,7 @@ import argparse
 import logging
 from datetime import datetime, timedelta, timezone
 
+import numpy as np
 import pandas as pd
 
 logging.basicConfig(
@@ -9,6 +10,31 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+WC_HOST_COUNTRIES = {"United States", "Canada", "Mexico"}
+WC_HOST_BOOST = 0.08
+
+
+def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
+    if division != "WC" or home not in WC_HOST_COUNTRIES:
+        return preds
+    h = preds["prob_home"]
+    d = preds["prob_draw"]
+    a = preds["prob_away"]
+    total_da = d + a
+    if total_da <= 0:
+        return preds
+    preds["prob_home"] = round(h + WC_HOST_BOOST, 4)
+    preds["prob_draw"] = round(d - WC_HOST_BOOST * (d / total_da), 4)
+    preds["prob_away"] = round(a - WC_HOST_BOOST * (a / total_da), 4)
+    probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
+    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    from backend.ml.predict import classify_confidence
+
+    preds["confidence"] = classify_confidence(max(probs))
+    logger.info("Applied host boost for %s: H=%.0f%%", home, preds["prob_home"] * 100)
+    return preds
 
 
 def _build_feature_row_from_national(features: dict, home: str, away: str, match: dict) -> dict:
@@ -187,6 +213,7 @@ def main():
 
         feature_df = pd.DataFrame([feature_row])
         preds = predict_upcoming(feature_df, division)
+        preds = _apply_host_boost(preds, home, division)
 
         preds["match_date"] = match["match_date"]
         preds["home_team"] = home
