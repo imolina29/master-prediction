@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 WC_HOST_COUNTRIES = {"United States", "Canada", "Mexico"}
 WC_HOST_BOOST = 0.08
+WC_DRAW_BOOST = 0.15
 
 
 def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
@@ -30,11 +31,35 @@ def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
     preds["prob_away"] = round(a - WC_HOST_BOOST * (a / total_da), 4)
     probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
     preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
-    from backend.ml.predict import classify_confidence
-
-    preds["confidence"] = classify_confidence(max(probs))
+    preds["confidence"] = _classify_confidence_wc(max(probs))
     logger.info("Applied host boost for %s: H=%.0f%%", home, preds["prob_home"] * 100)
     return preds
+
+
+def _apply_wc_draw_boost(preds: dict, division: str) -> dict:
+    if division != "WC":
+        return preds
+    h = preds["prob_home"]
+    d = preds["prob_draw"]
+    a = preds["prob_away"]
+    d_boosted = d * (1 + WC_DRAW_BOOST)
+    total = h + d_boosted + a
+    preds["prob_home"] = round(h / total, 4)
+    preds["prob_draw"] = round(d_boosted / total, 4)
+    preds["prob_away"] = round(a / total, 4)
+    probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
+    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["confidence"] = _classify_confidence_wc(max(probs))
+    logger.info("Applied WC draw boost: D=%.0f%%", preds["prob_draw"] * 100)
+    return preds
+
+
+def _classify_confidence_wc(max_prob: float) -> str:
+    if max_prob > 0.70:
+        return "alta"
+    if max_prob > 0.55:
+        return "media"
+    return "baja"
 
 
 def _build_feature_row_from_national(features: dict, home: str, away: str, match: dict) -> dict:
@@ -214,12 +239,31 @@ def main():
         feature_df = pd.DataFrame([feature_row])
         preds = predict_upcoming(feature_df, division)
         preds = _apply_host_boost(preds, home, division)
+        preds = _apply_wc_draw_boost(preds, division)
 
         preds["match_date"] = match["match_date"]
         preds["home_team"] = home
         preds["away_team"] = away
         preds["division"] = division
         predictions.append(preds)
+
+    if national_features:
+        elo_updated = 0
+        for _, match in upcoming.iterrows():
+            h_elo = national_features.get(match["home_team"], {}).get("elo")
+            a_elo = national_features.get(match["away_team"], {}).get("elo")
+            if h_elo or a_elo:
+                update = {}
+                if h_elo:
+                    update["home_elo"] = round(h_elo, 1)
+                if a_elo:
+                    update["away_elo"] = round(a_elo, 1)
+                client.table("matches").update(update).eq(
+                    "match_date", str(match["match_date"])
+                ).eq("home_team", match["home_team"]).eq("away_team", match["away_team"]).execute()
+                elo_updated += 1
+        if elo_updated:
+            logger.info("Updated ELO for %d matches from national features", elo_updated)
 
     if not predictions:
         logger.info("No predictions generated.")
