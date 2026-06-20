@@ -12,11 +12,11 @@ WC_GROUPS: dict[str, list[str]] = {
     "C": ["Brazil", "Morocco", "Haiti", "Scotland"],
     "D": ["United States", "Paraguay", "Australia", "Turkey"],
     "E": ["Germany", "Curacao", "Ivory Coast", "Ecuador"],
-    "F": ["Argentina", "Algeria", "Austria", "Jordan"],
+    "F": ["Netherlands", "Japan", "Sweden", "Tunisia"],
     "G": ["France", "Norway", "Senegal", "Iraq"],
     "H": ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde Islands"],
     "I": ["Belgium", "Iran", "Egypt", "New Zealand"],
-    "J": ["Netherlands", "Japan", "Sweden", "Tunisia"],
+    "J": ["Argentina", "Algeria", "Austria", "Jordan"],
     "K": ["Portugal", "Colombia", "Congo DR", "Uzbekistan"],
     "L": ["England", "Croatia", "Ghana", "Panama"],
 }
