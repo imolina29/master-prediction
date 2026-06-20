@@ -20,6 +20,9 @@ WC_DRAW_ZONE_THRESHOLD = 0.30
 WC_DRAW_ZONE_SPREAD = 0.12
 WC_DRAW_ZONE_ELO_MAX = 80
 
+ENSEMBLE_WEIGHT_XGBOOST = 0.70
+ENSEMBLE_WEIGHT_POISSON = 0.30
+
 
 def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
     if division != "WC" or home not in WC_HOST_COUNTRIES:
@@ -88,6 +91,100 @@ def _apply_draw_zone(
             spread * 100,
             elo_diff,
         )
+    return preds
+
+
+def _get_poisson_probs(
+    home: str,
+    away: str,
+    national_features: dict,
+    division: str,
+) -> dict | None:
+    """Run Poisson model and return 1X2 + over25 + btts probabilities."""
+    try:
+        from backend.advisor.poisson import estimate_score
+
+        hf = national_features.get(home)
+        af = national_features.get(away)
+        if not hf or not af:
+            return None
+
+        all_avgs = [
+            f["goals_scored_avg"] for f in national_features.values() if "goals_scored_avg" in f
+        ]
+        global_avg = sum(all_avgs) / len(all_avgs) if all_avgs else 1.25
+        home_advantage = 1.08 if division == "WC" and home in WC_HOST_COUNTRIES else 1.0
+
+        est = estimate_score(
+            home_attack=hf["goals_scored_avg"],
+            home_defense=hf["goals_conceded_avg"],
+            away_attack=af["goals_scored_avg"],
+            away_defense=af["goals_conceded_avg"],
+            home_elo=hf.get("elo", 1500.0),
+            away_elo=af.get("elo", 1500.0),
+            global_avg=global_avg,
+            home_advantage=home_advantage,
+        )
+        return est
+    except Exception as e:
+        logger.warning("Poisson estimate failed for %s vs %s: %s", home, away, e)
+        return None
+
+
+def _apply_ensemble(preds: dict, poisson: dict | None, division: str) -> dict:
+    """Blend XGBoost and Poisson probabilities, adjust confidence on agreement."""
+    if poisson is None:
+        return preds
+
+    w_xgb = ENSEMBLE_WEIGHT_XGBOOST
+    w_poi = ENSEMBLE_WEIGHT_POISSON
+
+    h = w_xgb * preds["prob_home"] + w_poi * poisson["prob_home"]
+    d = w_xgb * preds["prob_draw"] + w_poi * poisson["prob_draw"]
+    a = w_xgb * preds["prob_away"] + w_poi * poisson["prob_away"]
+
+    preds["prob_home"] = round(h, 4)
+    preds["prob_draw"] = round(d, 4)
+    preds["prob_away"] = round(a, 4)
+
+    if poisson.get("prob_over25") is not None and preds.get("prob_over25") is not None:
+        preds["prob_over25"] = round(
+            w_xgb * preds["prob_over25"] + w_poi * poisson["prob_over25"], 4
+        )
+    if poisson.get("prob_btts") is not None and preds.get("prob_btts") is not None:
+        preds["prob_btts"] = round(w_xgb * preds["prob_btts"] + w_poi * poisson["prob_btts"], 4)
+
+    probs = [h, d, a]
+    max_prob = max(probs)
+    xgb_result = preds.get("predicted_result")
+    poisson_probs = [poisson["prob_home"], poisson["prob_draw"], poisson["prob_away"]]
+    poisson_result = ["H", "D", "A"][int(np.argmax(poisson_probs))]
+
+    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+
+    if xgb_result == poisson_result:
+        if max_prob > 0.50:
+            preds["confidence"] = "alta"
+        else:
+            preds["confidence"] = "media"
+        logger.info(
+            "Ensemble AGREE (%s): XGB+Poisson → confidence=%s",
+            xgb_result,
+            preds["confidence"],
+        )
+    else:
+        if max_prob > 0.55:
+            preds["confidence"] = "media"
+        else:
+            preds["confidence"] = "baja"
+        logger.info(
+            "Ensemble DIVERGE: XGB=%s Poisson=%s → %s (confidence=%s)",
+            xgb_result,
+            poisson_result,
+            preds["predicted_result"],
+            preds["confidence"],
+        )
+
     return preds
 
 
@@ -418,6 +515,10 @@ def main():
         preds = predict_upcoming(feature_df, division)
         preds = _apply_host_boost(preds, home, division)
         preds = _apply_wc_draw_boost(preds, division)
+
+        if national_features and division == "WC":
+            poisson_est = _get_poisson_probs(home, away, national_features, division)
+            preds = _apply_ensemble(preds, poisson_est, division)
 
         home_elo = match.get("home_elo") or 1500.0
         away_elo = match.get("away_elo") or 1500.0
