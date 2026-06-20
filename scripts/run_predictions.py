@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 WC_HOST_COUNTRIES = {"United States", "Canada", "Mexico"}
 WC_HOST_BOOST = 0.08
-WC_DRAW_BOOST = 0.15
+WC_DRAW_BOOST = 0.25
+
+WC_DRAW_ZONE_THRESHOLD = 0.30
+WC_DRAW_ZONE_SPREAD = 0.12
+WC_DRAW_ZONE_ELO_MAX = 80
 
 
 def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
@@ -54,15 +58,94 @@ def _apply_wc_draw_boost(preds: dict, division: str) -> dict:
     return preds
 
 
+def _apply_draw_zone(
+    preds: dict,
+    division: str,
+    elo_diff: float,
+    home: str,
+    away: str,
+) -> dict:
+    """Detect draw-prone matches where model spreads are tight."""
+    if division != "WC":
+        return preds
+    if home in WC_HOST_COUNTRIES or away in WC_HOST_COUNTRIES:
+        return preds
+    h = preds["prob_home"]
+    d = preds["prob_draw"]
+    a = preds["prob_away"]
+    spread = max(h, d, a) - min(h, d, a)
+
+    if (
+        d >= WC_DRAW_ZONE_THRESHOLD
+        and spread < WC_DRAW_ZONE_SPREAD
+        and abs(elo_diff) < WC_DRAW_ZONE_ELO_MAX
+    ):
+        preds["predicted_result"] = "D"
+        preds["confidence"] = _classify_confidence_wc(d)
+        logger.info(
+            "Draw zone triggered: D=%.0f%% spread=%.0f%% elo_diff=%.0f",
+            d * 100,
+            spread * 100,
+            elo_diff,
+        )
+    return preds
+
+
 def _classify_confidence_wc(max_prob: float) -> str:
-    if max_prob > 0.70:
+    if max_prob > 0.60:
         return "alta"
-    if max_prob > 0.55:
+    if max_prob > 0.45:
         return "media"
     return "baja"
 
 
-def _build_feature_row_from_national(features: dict, home: str, away: str, match: dict) -> dict:
+def _compute_rest_days(
+    team: str,
+    match_date: str,
+    wc_played: list[dict],
+) -> float:
+    """Calculate days since team's last WC match."""
+    last_date = None
+    for m in wc_played:
+        if m["match_date"] >= match_date:
+            continue
+        if m["home_team"] == team or m["away_team"] == team:
+            if last_date is None or m["match_date"] > last_date:
+                last_date = m["match_date"]
+    if last_date is None:
+        return 7.0
+    from datetime import datetime as dt
+
+    d1 = dt.strptime(match_date, "%Y-%m-%d")
+    d2 = dt.strptime(last_date, "%Y-%m-%d")
+    return float((d1 - d2).days)
+
+
+def _compute_matchday(
+    home: str,
+    away: str,
+    match_date: str,
+    wc_played: list[dict],
+) -> int:
+    """Determine which group matchday this is (1, 2, or 3) for these teams."""
+    played = 0
+    for m in wc_played:
+        if m["match_date"] >= match_date:
+            continue
+        teams = {m["home_team"], m["away_team"]}
+        if home in teams or away in teams:
+            played += 1
+    return min(played // 2 + 1, 3)
+
+
+def _build_feature_row_from_national(
+    features: dict,
+    home: str,
+    away: str,
+    match: dict,
+    h2h_stats: dict | None = None,
+    wc_played: list[dict] | None = None,
+) -> dict:
     home_feat = features.get(home)
     away_feat = features.get(away)
     if not home_feat or not away_feat:
@@ -101,20 +184,91 @@ def _build_feature_row_from_national(features: dict, home: str, away: str, match
     feature_row["away_elo"] = away_elo
     feature_row["elo_diff"] = home_elo - away_elo
 
-    for col in [
-        "rest_days",
-        "venue_win_rate",
-        "venue_goals_avg",
-        "league_pos",
-        "h2h_win_rate",
-        "h2h_avg_goals",
-        "h2h_matches",
-    ]:
+    match_date = str(match.get("match_date", ""))
+    wc_played = wc_played or []
+
+    feature_row["home_rest_days"] = _compute_rest_days(home, match_date, wc_played)
+    feature_row["away_rest_days"] = _compute_rest_days(away, match_date, wc_played)
+
+    h2h_home = (h2h_stats or {}).get((home, away), {})
+    h2h_away = (h2h_stats or {}).get((away, home), {})
+    feature_row["home_h2h_win_rate"] = h2h_home.get("h2h_win_rate", float("nan"))
+    feature_row["home_h2h_avg_goals"] = h2h_home.get("h2h_avg_goals", float("nan"))
+    feature_row["home_h2h_matches"] = h2h_home.get("h2h_matches", float("nan"))
+    feature_row["away_h2h_win_rate"] = h2h_away.get("h2h_win_rate", float("nan"))
+    feature_row["away_h2h_avg_goals"] = h2h_away.get("h2h_avg_goals", float("nan"))
+    feature_row["away_h2h_matches"] = h2h_away.get("h2h_matches", float("nan"))
+
+    for col in ["venue_win_rate", "venue_goals_avg", "league_pos"]:
         feature_row[f"home_{col}"] = float("nan")
         feature_row[f"away_{col}"] = float("nan")
     feature_row["league_pos_diff"] = float("nan")
 
     return feature_row
+
+
+def _update_features_with_wc_results(
+    features: dict[str, dict],
+    wc_played: list[dict],
+) -> dict[str, dict]:
+    """Incorporate WC results into national team rolling averages."""
+    features = {k: dict(v) for k, v in features.items()}
+
+    team_wc_matches: dict[str, list[dict]] = {}
+    for m in sorted(wc_played, key=lambda x: x["match_date"]):
+        hg = m["ft_home_goals"]
+        ag = m["ft_away_goals"]
+        if hg is None or ag is None:
+            continue
+        team_wc_matches.setdefault(m["home_team"], []).append({"gf": hg, "ga": ag})
+        team_wc_matches.setdefault(m["away_team"], []).append({"gf": ag, "ga": hg})
+
+    updated = 0
+    for team, wc_games in team_wc_matches.items():
+        feat = features.get(team)
+        if not feat:
+            continue
+
+        n_pre = feat.get("matches_used", 20)
+        pre_gf = feat.get("goals_scored_avg", 0) * n_pre
+        pre_ga = feat.get("goals_conceded_avg", 0) * n_pre
+        pre_wins = feat.get("win_rate", 0) * n_pre
+        pre_draws = feat.get("draw_rate", 0) * n_pre
+        pre_btts = feat.get("btts_rate", 0) * n_pre
+        pre_o25 = feat.get("over25_rate", 0) * n_pre
+
+        for g in wc_games:
+            pre_gf += g["gf"]
+            pre_ga += g["ga"]
+            if g["gf"] > g["ga"]:
+                pre_wins += 1
+            elif g["gf"] == g["ga"]:
+                pre_draws += 1
+            if g["gf"] > 0 and g["ga"] > 0:
+                pre_btts += 1
+            if g["gf"] + g["ga"] > 2:
+                pre_o25 += 1
+
+        n_total = n_pre + len(wc_games)
+        feat["goals_scored_avg"] = round(pre_gf / n_total, 3)
+        feat["goals_conceded_avg"] = round(pre_ga / n_total, 3)
+        feat["win_rate"] = round(pre_wins / n_total, 3)
+        feat["draw_rate"] = round(pre_draws / n_total, 3)
+        feat["btts_rate"] = round(pre_btts / n_total, 3)
+        feat["over25_rate"] = round(pre_o25 / n_total, 3)
+        feat["matches_used"] = n_total
+
+        recent3 = wc_games[-3:] if len(wc_games) >= 3 else wc_games
+        if recent3:
+            n3 = len(recent3)
+            feat["goals_scored_avg_3"] = round(sum(g["gf"] for g in recent3) / n3, 3)
+            feat["goals_conceded_avg_3"] = round(sum(g["ga"] for g in recent3) / n3, 3)
+            feat["win_rate_3"] = round(sum(1 for g in recent3 if g["gf"] > g["ga"]) / n3, 3)
+
+        updated += 1
+
+    logger.info("Updated features for %d teams with %d WC results", updated, len(wc_played))
+    return features
 
 
 def main():
@@ -123,7 +277,7 @@ def main():
     parser.parse_args()
 
     from backend.db.client import get_supabase
-    from backend.etl.fixtures import load_national_features
+    from backend.etl.fixtures import load_h2h_features, load_national_features
     from backend.ml.config import FEATURES_PATH
     from backend.ml.predict import predict_upcoming
 
@@ -155,8 +309,25 @@ def main():
     team_features["match_date"] = pd.to_datetime(team_features["match_date"])
 
     national_features = load_national_features()
+    h2h_stats = load_h2h_features()
     if national_features:
         logger.info("Loaded national team features for %d teams", len(national_features))
+    if h2h_stats:
+        logger.info("Loaded H2H features for %d pairs", len(h2h_stats))
+
+    wc_played_resp = (
+        client.table("matches")
+        .select("match_date,home_team,away_team,ft_result,ft_home_goals,ft_away_goals")
+        .eq("division", "WC")
+        .not_.is_("ft_result", "null")
+        .order("match_date")
+        .execute()
+    )
+    wc_played = wc_played_resp.data or []
+    logger.info("Loaded %d played WC matches for rest_days calculation", len(wc_played))
+
+    if wc_played and national_features:
+        national_features = _update_features_with_wc_results(national_features, wc_played)
 
     predictions = []
     for _, match in upcoming.iterrows():
@@ -170,7 +341,14 @@ def main():
 
         if use_national or home_feat.empty or away_feat.empty:
             if national_features and (home in national_features or away in national_features):
-                feature_row = _build_feature_row_from_national(national_features, home, away, match)
+                feature_row = _build_feature_row_from_national(
+                    national_features,
+                    home,
+                    away,
+                    match,
+                    h2h_stats=h2h_stats,
+                    wc_played=wc_played,
+                )
                 if not feature_row:
                     logger.warning(
                         "Incomplete national features for %s vs %s, skipping", home, away
@@ -240,6 +418,10 @@ def main():
         preds = predict_upcoming(feature_df, division)
         preds = _apply_host_boost(preds, home, division)
         preds = _apply_wc_draw_boost(preds, division)
+
+        home_elo = match.get("home_elo") or 1500.0
+        away_elo = match.get("away_elo") or 1500.0
+        preds = _apply_draw_zone(preds, division, home_elo - away_elo, home, away)
 
         preds["match_date"] = match["match_date"]
         preds["home_team"] = home

@@ -233,12 +233,45 @@ def _window_stats(matches: list[dict], n: int) -> dict:
     }
 
 
+def _compute_h2h(rows: list[dict], team_names: set[str]) -> dict[tuple[str, str], dict]:
+    """Compute head-to-head stats between all pairs of WC teams."""
+    pair_matches: dict[tuple[str, str], list[dict]] = {}
+
+    for row in rows:
+        if row["home_score"] == "NA" or row["away_score"] == "NA":
+            continue
+        home = _normalize_dataset_name(row["home_team"])
+        away = _normalize_dataset_name(row["away_team"])
+        if home not in team_names or away not in team_names:
+            continue
+
+        hg = int(row["home_score"])
+        ag = int(row["away_score"])
+
+        pair_matches.setdefault((home, away), []).append({"gf": hg, "ga": ag, "date": row["date"]})
+        pair_matches.setdefault((away, home), []).append({"gf": ag, "ga": hg, "date": row["date"]})
+
+    h2h: dict[tuple[str, str], dict] = {}
+    for pair, games in pair_matches.items():
+        n = len(games)
+        wins = sum(1 for g in games if g["gf"] > g["ga"])
+        total_goals = sum(g["gf"] + g["ga"] for g in games)
+        h2h[pair] = {
+            "h2h_matches": n,
+            "h2h_win_rate": round(wins / n, 3) if n else 0.0,
+            "h2h_avg_goals": round(total_goals / n, 3) if n else 0.0,
+        }
+
+    return h2h
+
+
 def build_national_features_from_dataset(
     team_names: set[str], min_date: str = "2022-01-01"
 ) -> dict[str, dict]:
     rows = _download_international_results()
 
     elo_ratings = _compute_elo_ratings(rows, team_names)
+    h2h_stats = _compute_h2h(rows, team_names)
 
     canonical_to_dataset: dict[str, str] = {v: k for k, v in DATASET_TO_CANONICAL.items()}
 
@@ -317,7 +350,10 @@ def build_national_features_from_dataset(
         features[name] = feat
         logger.info("Built features for %s: %d matches, ELO=%.0f", name, n, feat["elo"])
 
-    return features
+    return features, h2h_stats
+
+
+H2H_FEATURES_PATH = NATIONAL_FEATURES_PATH.parent / "national_h2h.json"
 
 
 def save_national_features(features: dict[str, dict], path: Path | None = None) -> None:
@@ -328,12 +364,33 @@ def save_national_features(features: dict[str, dict], path: Path | None = None) 
     logger.info("Saved national team features for %d teams to %s", len(features), path)
 
 
+def save_h2h_features(
+    h2h: dict[tuple[str, str], dict],
+    path: Path | None = None,
+) -> None:
+    if path is None:
+        path = H2H_FEATURES_PATH
+    serializable = {f"{k[0]}|{k[1]}": v for k, v in h2h.items()}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(serializable, indent=2, ensure_ascii=False), encoding="utf-8")
+    logger.info("Saved H2H features for %d pairs to %s", len(h2h), path)
+
+
 def load_national_features(path: Path | None = None) -> dict[str, dict]:
     if path is None:
         path = NATIONAL_FEATURES_PATH
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_h2h_features(path: Path | None = None) -> dict[tuple[str, str], dict]:
+    if path is None:
+        path = H2H_FEATURES_PATH
+    if not path.exists():
+        return {}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return {tuple(k.split("|")): v for k, v in raw.items()}
 
 
 def run_fixtures_sync() -> dict:
@@ -368,8 +425,9 @@ def run_fixtures_sync() -> dict:
     national_features = {}
     if wc_team_names:
         logger.info("Building national team features for %d WC teams", len(wc_team_names))
-        national_features = build_national_features_from_dataset(wc_team_names)
+        national_features, h2h_stats = build_national_features_from_dataset(wc_team_names)
         save_national_features(national_features)
+        save_h2h_features(h2h_stats)
 
     return {
         "total_fixtures": total_fixtures,
