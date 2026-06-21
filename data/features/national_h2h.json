@@ -130,14 +130,14 @@
     "h2h_avg_goals": 3.927
   },
   "Netherlands|Sweden": {
-    "h2h_matches": 25,
-    "h2h_win_rate": 0.44,
-    "h2h_avg_goals": 3.8
+    "h2h_matches": 26,
+    "h2h_win_rate": 0.462,
+    "h2h_avg_goals": 3.885
   },
   "Sweden|Netherlands": {
-    "h2h_matches": 25,
-    "h2h_win_rate": 0.32,
-    "h2h_avg_goals": 3.8
+    "h2h_matches": 26,
+    "h2h_win_rate": 0.308,
+    "h2h_avg_goals": 3.885
   },
   "Belgium|Sweden": {
     "h2h_matches": 17,
@@ -4860,14 +4860,14 @@
     "h2h_avg_goals": 3.0
   },
   "Japan|Tunisia": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.8,
-    "h2h_avg_goals": 1.8
+    "h2h_matches": 6,
+    "h2h_win_rate": 0.833,
+    "h2h_avg_goals": 2.167
   },
   "Tunisia|Japan": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.2,
-    "h2h_avg_goals": 1.8
+    "h2h_matches": 6,
+    "h2h_win_rate": 0.167,
+    "h2h_avg_goals": 2.167
   },
   "South Africa|Congo DR": {
     "h2h_matches": 8,
@@ -6870,14 +6870,14 @@
     "h2h_avg_goals": 2.0
   },
   "Germany|Ivory Coast": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
+    "h2h_matches": 2,
+    "h2h_win_rate": 0.5,
+    "h2h_avg_goals": 3.5
   },
   "Ivory Coast|Germany": {
-    "h2h_matches": 1,
+    "h2h_matches": 2,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
+    "h2h_avg_goals": 3.5
   },
   "Bosnia Herzegovina|Ghana": {
     "h2h_matches": 1,
@@ -8358,5 +8358,15 @@
     "h2h_matches": 1,
     "h2h_win_rate": 1.0,
     "h2h_avg_goals": 1.0
+  },
+  "Ecuador|Curacao": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 0.0
+  },
+  "Curacao|Ecuador": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 0.0
   }
 }
