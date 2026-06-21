@@ -22,70 +22,70 @@ ROLE_LABELS = {"admin": "Administrador", "viewer": "Viewer"}
 
 LOGIN_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
 
 /* ── Hide sidebar on login ── */
 [data-testid="stSidebar"] { display: none; }
 
 /* ── Base ── */
+.stApp { background: #07090c !important; }
 .stMainBlockContainer {
     padding-top: 1rem !important;
     padding-bottom: 0 !important;
-    font-family: 'Inter', -apple-system, sans-serif !important;
+    font-family: 'DM Sans', system-ui, sans-serif !important;
 }
 
 /* ── Login container ── */
 [data-testid="stForm"] {
     max-width: 400px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.02);
+    background: #0c1015;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 20px;
+    border-radius: 18px;
     padding: 2rem 2.5rem;
 }
 
 /* ── Input fields ── */
 [data-testid="stForm"] input {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 10px !important;
-    color: #e0e0e0 !important;
+    background: #11151b !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 11px !important;
+    color: #eef1f5 !important;
     padding: 0.65rem 1rem !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'DM Sans', sans-serif !important;
     transition: all 0.2s ease !important;
 }
 
 [data-testid="stForm"] input:focus {
-    border-color: rgba(76, 175, 80, 0.3) !important;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.08) !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(22, 196, 127, 0.35) !important;
+    box-shadow: 0 0 0 3px rgba(22, 196, 127, 0.08) !important;
+    background: #11151b !important;
 }
 
 /* ── Login button ── */
 [data-testid="stForm"] button[type="submit"] {
-    background: #4CAF50 !important;
-    color: #fff !important;
+    background: linear-gradient(135deg, #16c47f, #0fa268) !important;
+    color: #06140e !important;
     border: none !important;
-    border-radius: 10px !important;
+    border-radius: 11px !important;
     padding: 0.65rem 2rem !important;
     font-weight: 600 !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'DM Sans', sans-serif !important;
     width: 100%;
     transition: all 0.25s ease !important;
-    box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3), 0 4px 16px rgba(76, 175, 80, 0.2) !important;
+    box-shadow: 0 10px 30px rgba(22, 196, 127, 0.30) !important;
 }
 
 [data-testid="stForm"] button[type="submit"]:hover {
-    background: #43A047 !important;
-    box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.5), 0 8px 32px rgba(76, 175, 80, 0.3) !important;
+    box-shadow: 0 8px 26px rgba(22, 196, 127, 0.34) !important;
     transform: translateY(-1px) !important;
 }
 
 /* ── Labels ── */
 [data-testid="stForm"] label {
-    color: #666 !important;
+    color: #8b94a2 !important;
     font-size: 0.8rem !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
 }
@@ -95,7 +95,7 @@ LOGIN_CSS = """
     text-transform: none !important;
     letter-spacing: normal !important;
     font-size: 0.82rem !important;
-    color: #555 !important;
+    color: #6b7382 !important;
 }
 
 /* ── Responsive ── */
@@ -106,29 +106,55 @@ LOGIN_CSS = """
 """
 
 LOGIN_HEADER = """
-<div style="text-align: center; padding: 2rem 0 1.5rem 0; font-family: 'Inter', sans-serif;">
-    <div style="font-size: 2.5rem; margin-bottom: 0.8rem;">⚽</div>
+<div style="text-align:center;padding:2rem 0 1.5rem;
+    background:radial-gradient(120% 90% at 15% 0%, #0f3b2c 0%, #0a1714 38%, #07090c 78%);
+    border-radius:18px;margin-bottom:1rem;">
+    <div style="font-size:12px;font-weight:600;letter-spacing:0.12em;
+        text-transform:uppercase;color:#16c47f;margin-bottom:12px;
+        font-family:'DM Sans',sans-serif;">
+        Inteligencia deportiva &middot; IA
+    </div>
     <h1 style="
-        color: #fff;
-        font-size: 1.8rem;
-        font-weight: 800;
-        margin: 0;
-        letter-spacing: -0.03em;
-    ">Master Prediction</h1>
+        color:#eef1f5;font-size:2.2rem;font-weight:800;margin:0;
+        letter-spacing:-0.02em;font-family:'Sora',sans-serif;
+    ">Predice el partido antes<br>del pitido inicial.</h1>
     <p style="
-        color: #555;
-        font-size: 0.78rem;
-        margin-top: 0.5rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 500;
-    ">Inteligencia Deportiva con IA</p>
+        color:#8b94a2;font-size:0.88rem;margin-top:12px;max-width:480px;
+        margin-left:auto;margin-right:auto;line-height:1.5;
+        font-family:'DM Sans',sans-serif;
+    ">Modelos probabilisticos entrenados sobre miles de encuentros. Probabilidades 1X2, goles esperados y BTTS en tiempo real.</p>
+    <div style="display:flex;justify-content:center;gap:32px;margin-top:20px;">
+        <div>
+            <div style="color:#eef1f5;font-size:1.6rem;font-weight:800;
+                font-family:'Sora',sans-serif;">12.4k</div>
+            <div style="color:#6b7382;font-size:0.72rem;text-transform:uppercase;
+                letter-spacing:0.06em;font-weight:500;">partidos analizados</div>
+        </div>
+        <div>
+            <div style="color:#eef1f5;font-size:1.6rem;font-weight:800;
+                font-family:'Sora',sans-serif;">68%</div>
+            <div style="color:#6b7382;font-size:0.72rem;text-transform:uppercase;
+                letter-spacing:0.06em;font-weight:500;">acierto alta conf.</div>
+        </div>
+        <div>
+            <div style="color:#eef1f5;font-size:1.6rem;font-weight:800;
+                font-family:'Sora',sans-serif;">6</div>
+            <div style="color:#6b7382;font-size:0.72rem;text-transform:uppercase;
+                letter-spacing:0.06em;font-weight:500;">ligas cubiertas</div>
+        </div>
+    </div>
+</div>
+<div style="text-align:center;margin-bottom:8px;">
+    <h2 style="color:#eef1f5;font-size:1.2rem;font-weight:700;margin:0;
+        font-family:'Sora',sans-serif;">Bienvenido de vuelta</h2>
+    <p style="color:#6b7382;font-size:0.82rem;margin:4px 0 0;">
+        Ingresa tus credenciales para acceder al panel.</p>
 </div>
 """
 
 LOGIN_FOOTER = """
-<div style="text-align: center; padding: 1rem 0 0; font-family: 'Inter', sans-serif;">
-    <p style="color: #333; font-size: 0.72rem; letter-spacing: 0.04em;">
+<div style="text-align:center;padding:1rem 0 0;font-family:'DM Sans',sans-serif;">
+    <p style="color:#6b7382;font-size:0.72rem;letter-spacing:0.04em;">
         Powered by AI &middot; v1.0
     </p>
 </div>
@@ -550,8 +576,8 @@ def render_user_menu():
     with col_user:
         with st.popover(f"👤 {user['name']}", use_container_width=True):
             st.markdown(
-                f'<p style="margin:0;color:#e0e0e0;font-weight:600;">{user["name"]}</p>'
-                f'<p style="margin:0.2rem 0 0 0;color:#4CAF50;font-size:0.78rem;'
+                f'<p style="margin:0;color:#eef1f5;font-weight:600;">{user["name"]}</p>'
+                f'<p style="margin:0.2rem 0 0 0;color:#16c47f;font-size:0.78rem;'
                 f' font-weight:500;">'
                 f"{role_label}</p>",
                 unsafe_allow_html=True,

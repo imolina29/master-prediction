@@ -12,14 +12,19 @@ ADVISOR_CSS = """
     border: none !important;
 }
 [data-testid="stChatInput"] textarea {
-    border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    background: rgba(255,255,255,0.02) !important;
+    border-radius: 11px !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+    background: #11151b !important;
     font-size: 0.9rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: #eef1f5 !important;
 }
 [data-testid="stChatInput"] textarea:focus {
-    border-color: rgba(76,175,80,0.3) !important;
-    box-shadow: 0 0 0 1px rgba(76,175,80,0.1) !important;
+    border-color: rgba(22,196,127,0.35) !important;
+    box-shadow: 0 0 0 1px rgba(22,196,127,0.1) !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #6b7382 !important;
 }
 </style>
 """
@@ -27,19 +32,27 @@ st.markdown(ADVISOR_CSS, unsafe_allow_html=True)
 
 st.markdown(
     '<div style="margin-bottom:0.5rem;">'
-    '<span style="font-size:1.4rem;font-weight:700;color:#fff;letter-spacing:-0.02em;">'
-    "⚽ Asesor Virtual</span>"
-    '<span style="color:#555;font-size:0.82rem;margin-left:10px;">Master Prediction</span>'
+    '<div style="font-size:12px;font-weight:600;letter-spacing:0.12em;'
+    "text-transform:uppercase;color:#16c47f;margin-bottom:6px;"
+    "font-family:'DM Sans',sans-serif;\">"
+    "Asistente · IA conversacional</div>"
+    '<span style="font-size:1.4rem;font-weight:700;color:#eef1f5;letter-spacing:-0.02em;'
+    "font-family:'Sora',sans-serif;\">"
+    "Asesor Virtual</span>"
     "</div>",
     unsafe_allow_html=True,
 )
-st.caption("Preguntame sobre partidos, predicciones o recomendaciones de apuestas.")
+st.markdown(
+    '<p style="color:#8b94a2;font-size:0.88rem;margin:0 0 16px 0;">'
+    "Pregunta sobre cualquier partido o equipo...</p>",
+    unsafe_allow_html=True,
+)
 
 WELCOME = (
     "Hola! Soy tu asesor de predicciones. Puedo ayudarte con:\n\n"
     "• **Consultar un partido** — _Argentina vs Algeria_\n"
     "• **Proximos partidos** — _Francia_ o _partidos de hoy_\n"
-    "• **Mejores picks** — _mejores apuestas_\n"
+    "• **Mejores picks** — _mejores predicciones_\n"
     "• **Track record** — _racha del modelo_"
 )
 

@@ -30,10 +30,7 @@ pages: dict[str, list] = {
             "views/3_match_comparator.py", title="Comparador", icon=":material/compare_arrows:"
         ),
     ],
-    "Apuestas": [
-        st.Page("views/5_value_bets.py", title="Value Bets", icon=":material/payments:"),
-    ],
-    "Herramientas": [
+    "Asistente": [
         st.Page("views/asesor.py", title="Asesor Virtual", icon=":material/smart_toy:"),
     ],
 }
