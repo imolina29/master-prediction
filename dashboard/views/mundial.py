@@ -3,7 +3,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-from dashboard.components.theme import page_header
+from dashboard.components.theme import eyebrow, page_title
 from dashboard.data_access import get_supabase_client
 
 WC_GROUPS: dict[str, list[str]] = {
@@ -233,17 +233,17 @@ def _collect_simulated(all_matches: list[dict]) -> dict:
 
 def _group_card_html(letter: str, standings: list[dict]) -> str:
     html = (
-        '<div style="border:1px solid #333;border-radius:8px;padding:10px;'
-        'background:#0e1117;height:100%;">'
-        f'<div style="font-weight:bold;color:#ffa726;margin-bottom:6px;'
+        '<div style="border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:12px;'
+        'background:#0c1015;height:100%;">'
+        f'<div style="font-weight:bold;color:#f5b020;margin-bottom:6px;'
         f'font-size:0.95rem;">Grupo {letter}</div>'
     )
     for i, row in enumerate(standings):
         bg = ""
         if i < 2:
-            bg = "background:rgba(76,175,80,0.12);"
+            bg = "background:rgba(22,196,127,0.12);"
         elif i == 2:
-            bg = "background:rgba(255,193,7,0.08);"
+            bg = "background:rgba(245,176,32,0.10);"
         t = row["team"]
         dif = f"+{row['DIF']}" if row["DIF"] > 0 else str(row["DIF"])
         html += (
@@ -300,9 +300,9 @@ def _standings_html(standings: list[dict]) -> str:
     for i, row in enumerate(standings):
         bg = ""
         if i < 2:
-            bg = "background:rgba(76,175,80,0.12);"
+            bg = "background:rgba(22,196,127,0.12);"
         elif i == 2:
-            bg = "background:rgba(255,193,7,0.08);"
+            bg = "background:rgba(245,176,32,0.10);"
         t = row["team"]
         dif = f"+{row['DIF']}" if row["DIF"] > 0 else str(row["DIF"])
         html += (
@@ -441,7 +441,7 @@ def _build_bracket_html(ko_matches: list[dict]) -> str:
         ko_map[(m["home_team"], m["away_team"])] = m
 
     def _game(t1: str, t2: str, s1: str = "", s2: str = "", hl: bool = False) -> str:
-        border = "border-color:#ffa726;" if hl else ""
+        border = "border-color:#f5b020;" if hl else ""
         return (
             f'<div class="game" style="{border}">'
             f'<div class="tr"><span>{t1}</span><span class="sc">{s1}</span></div>'
@@ -490,7 +490,7 @@ body{{background:transparent;color:#fafafa;font-family:-apple-system,BlinkMacSys
 .game{{border:1px solid #444;border-radius:4px;background:#1a1a2e;width:100%}}
 .tr{{display:flex;justify-content:space-between;padding:3px 6px;font-size:11px}}
 .tr+.tr{{border-top:1px solid #333}}
-.sc{{font-weight:bold;color:#ffa726}}
+.sc{{font-weight:bold;color:#f5b020}}
 .conns{{display:flex;flex-direction:column;width:16px}}
 .cl{{flex:1;position:relative}}
 .cl::before{{content:'';position:absolute;left:0;width:8px;top:25%;height:50%;
@@ -507,7 +507,7 @@ body{{background:transparent;color:#fafafa;font-family:-apple-system,BlinkMacSys
   border-top:1.5px solid #555}}
 .final-col{{display:flex;flex-direction:column;min-width:120px;
   justify-content:center;align-items:center}}
-.fl{{font-size:12px;font-weight:bold;color:#ffa726;text-align:center;margin-bottom:4px}}
+.fl{{font-size:12px;font-weight:bold;color:#f5b020;text-align:center;margin-bottom:4px}}
 .final-col .game{{width:110px}}
 </style></head><body>
 <div class="wrap">
@@ -569,8 +569,13 @@ def _render_bracket(all_matches: list[dict]):
 
 # ── Page ─────────────────────────────────────────────────
 
-st.markdown(page_header("🏆", "FIFA World Cup 2026"), unsafe_allow_html=True)
-st.caption("Estados Unidos · Mexico · Canada  |  11 junio — 19 julio 2026")
+st.markdown(eyebrow("Mundial 2026 · Fase de grupos"), unsafe_allow_html=True)
+st.markdown(page_title("FIFA World Cup 2026"), unsafe_allow_html=True)
+st.markdown(
+    '<p style="color:#6b7382;font-size:0.88rem;margin:-16px 0 16px 0;">'
+    "Estados Unidos · Mexico · Canada  |  11 junio — 19 julio 2026</p>",
+    unsafe_allow_html=True,
+)
 
 all_matches = _load_wc_matches()
 simulated = _collect_simulated(all_matches)

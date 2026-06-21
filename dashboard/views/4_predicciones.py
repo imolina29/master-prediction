@@ -9,14 +9,20 @@ from dashboard.components.metrics import (
     calibration_chart,
     load_backtest_results,
 )
-from dashboard.components.predictions import format_predictions
-from dashboard.components.theme import page_header, section_header, stat_card
+from dashboard.components.theme import (
+    eyebrow,
+    page_title,
+    prediction_card,
+    section_header,
+    stat_card,
+)
 from dashboard.data_access import DIVISION_NAMES, get_supabase_client, get_track_record
 
-st.markdown(page_header("🤖", "Predicciones"), unsafe_allow_html=True)
-
-# --- Section 1: Upcoming predictions ---
-st.markdown(section_header("🔮", "Proximas Predicciones"), unsafe_allow_html=True)
+st.markdown(eyebrow("Analisis · Modelo probabilistico"), unsafe_allow_html=True)
+st.markdown(
+    page_title("Predicciones", "Probabilidades 1X2, goles esperados y BTTS por partido."),
+    unsafe_allow_html=True,
+)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -27,7 +33,7 @@ with col1:
         format_func=lambda x: "Todas las ligas" if x == "Todas" else DIVISION_NAMES.get(x, x),
     )
 with col2:
-    confidence_filter = st.selectbox("Confianza", ["Todas", "alta", "media"])
+    confidence_filter = st.selectbox("Confianza", ["Todas", "alta", "media", "baja"])
 with col3:
     date_range = st.date_input(
         "Rango de fechas",
@@ -51,10 +57,26 @@ except Exception as e:
     preds_df = pd.DataFrame()
 
 if not preds_df.empty:
-    if "confidence" in preds_df.columns:
-        high_conf = len(preds_df[preds_df["confidence"] == "alta"])
-    else:
-        high_conf = 0
+    alta = (
+        len(preds_df[preds_df["confidence"] == "alta"]) if "confidence" in preds_df.columns else 0
+    )
+    media = (
+        len(preds_df[preds_df["confidence"] == "media"]) if "confidence" in preds_df.columns else 0
+    )
+    baja = (
+        len(preds_df[preds_df["confidence"] == "baja"]) if "confidence" in preds_df.columns else 0
+    )
+
+    filter_html = (
+        f'<div class="mp-filter-pills">'
+        f'<span class="mp-filter-pill active">Todas <span class="count">{len(preds_df)}</span></span>'
+        f'<span class="mp-filter-pill">Alta <span class="count">{alta}</span></span>'
+        f'<span class="mp-filter-pill">Media <span class="count">{media}</span></span>'
+        f'<span class="mp-filter-pill">Baja <span class="count">{baja}</span></span>'
+        f"</div>"
+    )
+    st.markdown(filter_html, unsafe_allow_html=True)
+
     m1, m2 = st.columns(2)
     with m1:
         st.markdown(
@@ -63,16 +85,38 @@ if not preds_df.empty:
         )
     with m2:
         st.markdown(
-            stat_card("Alta Confianza", str(high_conf), "predicciones"),
+            stat_card(
+                "Alta Confianza",
+                str(alta),
+                "predicciones",
+                progress=alta / len(preds_df) * 100 if len(preds_df) > 0 else 0,
+            ),
             unsafe_allow_html=True,
         )
 
-    display = format_predictions(preds_df)
-    st.dataframe(display, use_container_width=True, hide_index=True)
+    cols = st.columns(2)
+    for i, (_, p) in enumerate(preds_df.iterrows()):
+        with cols[i % 2]:
+            league = DIVISION_NAMES.get(p.get("division", ""), p.get("division", ""))
+            st.markdown(
+                prediction_card(
+                    home=p["home_team"],
+                    away=p["away_team"],
+                    date=str(p["match_date"]),
+                    league=league,
+                    prob_h=p.get("prob_home", 0),
+                    prob_d=p.get("prob_draw", 0),
+                    prob_a=p.get("prob_away", 0),
+                    predicted=p.get("predicted_result", ""),
+                    confidence=p.get("confidence", "baja"),
+                    prob_over25=p.get("prob_over25"),
+                    prob_btts=p.get("prob_btts"),
+                ),
+                unsafe_allow_html=True,
+            )
 else:
     st.info("No hay predicciones disponibles para el rango seleccionado.")
 
-# --- Section 2: Track Record ---
 st.markdown(section_header("📋", "Track Record"), unsafe_allow_html=True)
 
 try:
@@ -99,12 +143,23 @@ if not track_df.empty:
     m1, m2, m3 = st.columns(3)
     with m1:
         st.markdown(
-            stat_card("Aciertos", f"{hit_rate:.0%}", f"{hits}/{total} predicciones"),
+            stat_card(
+                "Aciertos",
+                f"{hit_rate:.0%}",
+                f"{hits}/{total} predicciones",
+                progress=hit_rate * 100,
+            ),
             unsafe_allow_html=True,
         )
     with m2:
         st.markdown(
-            stat_card("Alta Confianza", f"{alta_rate:.0%}", f"{alta_hits}/{alta_total} aciertos"),
+            stat_card(
+                "Alta Confianza",
+                f"{alta_rate:.0%}",
+                f"{alta_hits}/{alta_total} aciertos",
+                progress=alta_rate * 100,
+                featured=alta_rate > 0.5,
+            ),
             unsafe_allow_html=True,
         )
     with m3:
@@ -129,7 +184,7 @@ if not track_df.empty:
         ]
     ].copy()
 
-    display["result_icon"] = display["correct"].apply(lambda x: "✅" if x else "❌")
+    display[""] = display["correct"].apply(lambda x: "✅" if x else "❌")
     for col in ["prob_home", "prob_draw", "prob_away"]:
         display[col] = display[col].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "-")
     display["division"] = display["division"].map(DIVISION_NAMES).fillna(display["division"])
@@ -145,7 +200,7 @@ if not track_df.empty:
             "prob_away",
             "predicted_label",
             "actual_label",
-            "result_icon",
+            "",
             "confidence",
         ]
     ]
@@ -159,7 +214,7 @@ if not track_df.empty:
         "P(A)",
         "Prediccion",
         "Resultado",
-        "Acierto",
+        "",
         "Confianza",
     ]
 
@@ -167,7 +222,6 @@ if not track_df.empty:
 else:
     st.info("Aun no hay predicciones con resultado para mostrar el track record.")
 
-# --- Section 3: Model metrics ---
 st.markdown(section_header("📊", "Metricas del Modelo"), unsafe_allow_html=True)
 
 results = load_backtest_results(BACKTEST_RESULTS_PATH)
@@ -183,7 +237,12 @@ if results:
     m1, m2, m3 = st.columns(3)
     with m1:
         st.markdown(
-            stat_card("Mejor Accuracy", f"{best_acc:.1%}", "precision del modelo"),
+            stat_card(
+                "Mejor Accuracy",
+                f"{best_acc:.1%}",
+                "precision del modelo",
+                progress=best_acc * 100,
+            ),
             unsafe_allow_html=True,
         )
     with m2:

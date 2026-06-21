@@ -3,7 +3,7 @@ import streamlit as st
 
 from backend.services.features import compute_h2h_features
 from dashboard.components.charts import radar_chart
-from dashboard.components.theme import page_header, section_header, stat_card
+from dashboard.components.theme import eyebrow, page_title, section_header, stat_card
 from dashboard.data_access import (
     DIVISION_NAMES,
     get_seasons,
@@ -12,7 +12,8 @@ from dashboard.data_access import (
     load_matches,
 )
 
-st.markdown(page_header("⚔️", "Comparador"), unsafe_allow_html=True)
+st.markdown(eyebrow("Analisis · Cara a cara"), unsafe_allow_html=True)
+st.markdown(page_title("Comparador de equipos"), unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -40,20 +41,25 @@ if team_a != "Sin datos" and team_b != "Sin datos":
         st.markdown(section_header("🤝", "Cabeza a Cabeza"), unsafe_allow_html=True)
         a_key = f"{team_a.lower().replace(' ', '_')}_wins"
         b_key = f"{team_b.lower().replace(' ', '_')}_wins"
-        h1, h2, h3 = st.columns(3)
+        h1, h2_col, h3 = st.columns(3)
         with h1:
             st.markdown(
-                stat_card(team_a, str(h2h.get(a_key, 0)), "victorias"),
+                stat_card(team_a, str(h2h.get(a_key, 0)), "victorias", color="#16c47f"),
                 unsafe_allow_html=True,
             )
-        with h2:
+        with h2_col:
             st.markdown(
-                stat_card("Empates", str(h2h["draws"]), f"de {h2h['total_matches']} partidos"),
+                stat_card(
+                    "Empates",
+                    str(h2h["draws"]),
+                    f"de {h2h['total_matches']} partidos",
+                    color="#f5b020",
+                ),
                 unsafe_allow_html=True,
             )
         with h3:
             st.markdown(
-                stat_card(team_b, str(h2h.get(b_key, 0)), "victorias"),
+                stat_card(team_b, str(h2h.get(b_key, 0)), "victorias", color="#7fb0ff"),
                 unsafe_allow_html=True,
             )
 
@@ -69,7 +75,40 @@ if team_a != "Sin datos" and team_b != "Sin datos":
                     section_header("📊", "Comparacion de Forma Actual"),
                     unsafe_allow_html=True,
                 )
+
                 compare_cols = [
+                    ("goals_scored_avg", "Ataque"),
+                    ("goals_conceded_avg", "Defensa"),
+                    ("win_rate", "% Victorias"),
+                    ("xg_for_avg", "xG"),
+                    ("shots_target_avg", "Tiros a puerta"),
+                    ("corners_avg", "Corners"),
+                ]
+
+                for col, label in compare_cols:
+                    val_a = float(latest_a.get(col, 0)) if pd.notna(latest_a.get(col)) else 0
+                    val_b = float(latest_b.get(col, 0)) if pd.notna(latest_b.get(col)) else 0
+                    max_val = max(val_a, val_b, 0.01)
+                    pct_a = val_a / max_val * 50
+                    pct_b = val_b / max_val * 50
+
+                    st.markdown(
+                        f'<div class="mp-compare-bar">'
+                        f'<span class="team-val" style="color:#5fe0a6;">{val_a:.2f}</span>'
+                        f'<div class="bar-track">'
+                        f'<div class="bar-a" style="width:{pct_a:.0f}%;"></div>'
+                        f'<div class="bar-b" style="width:{pct_b:.0f}%;"></div>'
+                        f"</div>"
+                        f'<span class="team-val" style="color:#7fb0ff;">{val_b:.2f}</span>'
+                        f"</div>"
+                        f'<div style="text-align:center;font-size:0.72rem;color:#6b7382;'
+                        f'margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;">{label}</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                stats_a = {}
+                stats_b = {}
+                radar_cols = [
                     "goals_scored_avg",
                     "xg_for_avg",
                     "goals_conceded_avg",
@@ -77,11 +116,8 @@ if team_a != "Sin datos" and team_b != "Sin datos":
                     "corners_avg",
                     "win_rate",
                 ]
-                labels = ["Goles", "xG", "Defensa", "Tiros", "Corners", "% Victorias"]
-
-                stats_a = {}
-                stats_b = {}
-                for col, label in zip(compare_cols, labels):
+                radar_labels = ["Goles", "xG", "Defensa", "Tiros", "Corners", "% Victorias"]
+                for col, label in zip(radar_cols, radar_labels):
                     val_a = latest_a.get(col, 0)
                     val_b = latest_b.get(col, 0)
                     stats_a[label] = float(val_a) if pd.notna(val_a) else 0.0
