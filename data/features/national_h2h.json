@@ -5400,14 +5400,14 @@
     "h2h_avg_goals": 2.0
   },
   "Egypt|New Zealand": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.667,
-    "h2h_avg_goals": 1.333
+    "h2h_matches": 4,
+    "h2h_win_rate": 0.75,
+    "h2h_avg_goals": 2.0
   },
   "New Zealand|Egypt": {
-    "h2h_matches": 3,
+    "h2h_matches": 4,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.333
+    "h2h_avg_goals": 2.0
   },
   "New Zealand|United States": {
     "h2h_matches": 3,
@@ -6520,14 +6520,14 @@
     "h2h_avg_goals": 3.2
   },
   "Saudi Arabia|Spain": {
-    "h2h_matches": 3,
+    "h2h_matches": 4,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.667
+    "h2h_avg_goals": 3.75
   },
   "Spain|Saudi Arabia": {
-    "h2h_matches": 3,
+    "h2h_matches": 4,
     "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 3.667
+    "h2h_avg_goals": 3.75
   },
   "Switzerland|South Korea": {
     "h2h_matches": 2,
@@ -8368,5 +8368,25 @@
     "h2h_matches": 1,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 0.0
+  },
+  "Belgium|Iran": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 0.0
+  },
+  "Iran|Belgium": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 0.0
+  },
+  "Uruguay|Cape Verde Islands": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 4.0
+  },
+  "Cape Verde Islands|Uruguay": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 4.0
   }
 }
