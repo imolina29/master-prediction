@@ -119,7 +119,10 @@ h2 {{
     border-bottom: 1px solid rgba(255,255,255,0.06) !important;
     padding-bottom: 8px;
 }}
-h3 {{ color: #c2cad6 !important; font-weight: 600 !important; font-family: 'Sora', sans-serif !important; }}
+h3 {{
+    color: #c2cad6 !important; font-weight: 600 !important;
+    font-family: 'Sora', sans-serif !important;
+}}
 
 /* ── Dataframes ── */
 [data-testid="stDataFrame"] {{
@@ -527,7 +530,8 @@ def confidence_badge(level: str) -> str:
     cls = f"mp-badge-{level}" if level in ("alta", "media", "baja") else "mp-badge-baja"
     return (
         f'<span class="{cls}">'
-        f'<span style="width:6px;height:6px;border-radius:50%;background:{dot};display:inline-block;"></span>'
+        f'<span style="width:6px;height:6px;border-radius:50%;'
+        f'background:{dot};display:inline-block;"></span>'
         f"{level}</span>"
     )
 
@@ -624,7 +628,10 @@ def confidence_gauge(value: float, label: str = "") -> str:
     return (
         f'<div style="display:inline-block;width:100%;">'
         f"{label_html}"
-        f'<div style="height:4px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;margin-top:4px;">'
-        f'<div style="height:100%;border-radius:2px;width:{pct:.0f}%;background:{color};transition:width 0.5s ease;"></div>'
+        f'<div style="height:4px;background:rgba(255,255,255,0.04);'
+        f'border-radius:2px;overflow:hidden;margin-top:4px;">'
+        f'<div style="height:100%;border-radius:2px;'
+        f"width:{pct:.0f}%;background:{color};"
+        f'transition:width 0.5s ease;"></div>'
         f"</div></div>"
     )

@@ -122,7 +122,8 @@ LOGIN_HEADER = """
         color:#8b94a2;font-size:0.88rem;margin-top:12px;max-width:480px;
         margin-left:auto;margin-right:auto;line-height:1.5;
         font-family:'DM Sans',sans-serif;
-    ">Modelos probabilisticos entrenados sobre miles de encuentros. Probabilidades 1X2, goles esperados y BTTS en tiempo real.</p>
+    ">Modelos probabilisticos entrenados sobre miles de encuentros.
+    Probabilidades 1X2, goles esperados y BTTS en tiempo real.</p>
     <div style="display:flex;justify-content:center;gap:32px;margin-top:20px;">
         <div>
             <div style="color:#eef1f5;font-size:1.6rem;font-weight:800;

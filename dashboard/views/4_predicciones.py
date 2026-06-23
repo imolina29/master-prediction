@@ -69,7 +69,8 @@ if not preds_df.empty:
 
     filter_html = (
         f'<div class="mp-filter-pills">'
-        f'<span class="mp-filter-pill active">Todas <span class="count">{len(preds_df)}</span></span>'
+        f'<span class="mp-filter-pill active">'
+        f'Todas <span class="count">{len(preds_df)}</span></span>'
         f'<span class="mp-filter-pill">Alta <span class="count">{alta}</span></span>'
         f'<span class="mp-filter-pill">Media <span class="count">{media}</span></span>'
         f'<span class="mp-filter-pill">Baja <span class="count">{baja}</span></span>'
