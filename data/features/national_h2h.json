@@ -2680,14 +2680,14 @@
     "h2h_avg_goals": 4.333
   },
   "Algeria|Jordan": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 4.0
+    "h2h_matches": 3,
+    "h2h_win_rate": 0.667,
+    "h2h_avg_goals": 3.667
   },
   "Jordan|Algeria": {
-    "h2h_matches": 2,
+    "h2h_matches": 3,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
+    "h2h_avg_goals": 3.667
   },
   "Iraq|Qatar": {
     "h2h_matches": 35,
@@ -3000,14 +3000,14 @@
     "h2h_avg_goals": 3.0
   },
   "Austria|Argentina": {
-    "h2h_matches": 2,
+    "h2h_matches": 3,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
+    "h2h_avg_goals": 3.333
   },
   "Argentina|Austria": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 4.0
+    "h2h_matches": 3,
+    "h2h_win_rate": 0.667,
+    "h2h_avg_goals": 3.333
   },
   "Australia|England": {
     "h2h_matches": 8,
@@ -6340,14 +6340,14 @@
     "h2h_avg_goals": 3.0
   },
   "Senegal|Norway": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 3.0
+    "h2h_matches": 2,
+    "h2h_win_rate": 0.5,
+    "h2h_avg_goals": 4.0
   },
   "Norway|Senegal": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.0
+    "h2h_matches": 2,
+    "h2h_win_rate": 0.5,
+    "h2h_avg_goals": 4.0
   },
   "Spain|Ivory Coast": {
     "h2h_matches": 1,
@@ -8388,5 +8388,15 @@
     "h2h_matches": 1,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 4.0
+  },
+  "France|Iraq": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 1.0,
+    "h2h_avg_goals": 3.0
+  },
+  "Iraq|France": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 3.0
   }
 }
