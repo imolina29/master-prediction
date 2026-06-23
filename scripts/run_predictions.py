@@ -23,6 +23,29 @@ WC_DRAW_ZONE_ELO_MAX = 80
 ENSEMBLE_WEIGHT_XGBOOST = 0.70
 ENSEMBLE_WEIGHT_POISSON = 0.30
 
+TOURNAMENT_FORM_WEIGHT = 0.65
+HISTORICAL_FORM_WEIGHT = 0.35
+
+WC_GROUPS: dict[str, list[str]] = {
+    "A": ["Mexico", "South Korea", "Czechia", "South Africa"],
+    "B": ["Canada", "Bosnia Herzegovina", "Qatar", "Switzerland"],
+    "C": ["Brazil", "Morocco", "Haiti", "Scotland"],
+    "D": ["United States", "Paraguay", "Australia", "Turkey"],
+    "E": ["Germany", "Curacao", "Ivory Coast", "Ecuador"],
+    "F": ["Netherlands", "Japan", "Sweden", "Tunisia"],
+    "G": ["France", "Norway", "Senegal", "Iraq"],
+    "H": ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde Islands"],
+    "I": ["Belgium", "Iran", "Egypt", "New Zealand"],
+    "J": ["Argentina", "Algeria", "Austria", "Jordan"],
+    "K": ["Portugal", "Colombia", "Congo DR", "Uzbekistan"],
+    "L": ["England", "Croatia", "Ghana", "Panama"],
+}
+
+TEAM_TO_GROUP: dict[str, str] = {}
+for _grp, _teams in WC_GROUPS.items():
+    for _t in _teams:
+        TEAM_TO_GROUP[_t] = _grp
+
 
 def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
     if division != "WC" or home not in WC_HOST_COUNTRIES:
@@ -91,6 +114,246 @@ def _apply_draw_zone(
             spread * 100,
             elo_diff,
         )
+    return preds
+
+
+# ---------------------------------------------------------------------------
+# Tournament Form Override (matchday 3)
+# ---------------------------------------------------------------------------
+
+
+def _build_group_standings(
+    wc_played: list[dict],
+) -> dict[str, dict[str, dict]]:
+    """Build group tables from played WC matches. Returns {group: {team: stats}}."""
+    standings: dict[str, dict[str, dict]] = {}
+    for grp, teams in WC_GROUPS.items():
+        standings[grp] = {}
+        for t in teams:
+            standings[grp][t] = {
+                "pts": 0,
+                "gf": 0,
+                "ga": 0,
+                "gd": 0,
+                "w": 0,
+                "d": 0,
+                "l": 0,
+                "played": 0,
+            }
+
+    for m in wc_played:
+        home = m["home_team"]
+        away = m["away_team"]
+        hg = m.get("ft_home_goals")
+        ag = m.get("ft_away_goals")
+        if hg is None or ag is None:
+            continue
+
+        grp = TEAM_TO_GROUP.get(home)
+        if not grp or grp != TEAM_TO_GROUP.get(away):
+            continue
+
+        for team, gf, ga in [(home, hg, ag), (away, ag, hg)]:
+            s = standings[grp][team]
+            s["played"] += 1
+            s["gf"] += gf
+            s["ga"] += ga
+            s["gd"] = s["gf"] - s["ga"]
+            if gf > ga:
+                s["pts"] += 3
+                s["w"] += 1
+            elif gf == ga:
+                s["pts"] += 1
+                s["d"] += 1
+            else:
+                s["l"] += 1
+
+    return standings
+
+
+def _classify_motivation(
+    team: str,
+    standings: dict[str, dict[str, dict]],
+) -> str:
+    """Classify team motivation for matchday 3.
+
+    Returns: 'qualified', 'must_win', 'draw_ok', 'eliminated', 'unknown'.
+    """
+    grp = TEAM_TO_GROUP.get(team)
+    if not grp or grp not in standings:
+        return "unknown"
+
+    table = standings[grp]
+    team_stats = table.get(team)
+    if not team_stats or team_stats["played"] < 2:
+        return "unknown"
+
+    sorted_teams = sorted(
+        table.items(),
+        key=lambda x: (x[1]["pts"], x[1]["gd"], x[1]["gf"]),
+        reverse=True,
+    )
+    rank = next(i for i, (t, _) in enumerate(sorted_teams) if t == team) + 1
+    pts = team_stats["pts"]
+    gd = team_stats["gd"]
+
+    if rank <= 2 and pts >= 6:
+        return "qualified"
+    if rank <= 2 and pts >= 4:
+        return "draw_ok"
+    if rank == 3 and pts >= 3:
+        return "draw_ok"
+    if rank == 4 and pts == 0:
+        return "eliminated"
+    if rank >= 3 and pts <= 1 and gd <= -3:
+        return "eliminated"
+
+    return "must_win"
+
+
+def _build_tournament_form(
+    team: str,
+    wc_played: list[dict],
+) -> dict | None:
+    """Build tournament-specific features from WC matches played by this team."""
+    games: list[dict] = []
+    for m in wc_played:
+        hg = m.get("ft_home_goals")
+        ag = m.get("ft_away_goals")
+        if hg is None or ag is None:
+            continue
+        if m["home_team"] == team:
+            games.append({"gf": hg, "ga": ag})
+        elif m["away_team"] == team:
+            games.append({"gf": ag, "ga": hg})
+
+    if len(games) < 2:
+        return None
+
+    n = len(games)
+    gf_avg = sum(g["gf"] for g in games) / n
+    ga_avg = sum(g["ga"] for g in games) / n
+    wins = sum(1 for g in games if g["gf"] > g["ga"])
+    draws = sum(1 for g in games if g["gf"] == g["ga"])
+    btts = sum(1 for g in games if g["gf"] > 0 and g["ga"] > 0)
+    over25 = sum(1 for g in games if g["gf"] + g["ga"] > 2)
+
+    return {
+        "goals_scored_avg": round(gf_avg, 3),
+        "goals_conceded_avg": round(ga_avg, 3),
+        "win_rate": round(wins / n, 3),
+        "draw_rate": round(draws / n, 3),
+        "btts_rate": round(btts / n, 3),
+        "over25_rate": round(over25 / n, 3),
+        "matches": n,
+    }
+
+
+def _apply_tournament_form_override(
+    features: dict[str, dict],
+    wc_played: list[dict],
+    matchday: int,
+) -> dict[str, dict]:
+    """From matchday 3 onward, blend tournament form (65%) with historical (35%)."""
+    if matchday < 3:
+        return features
+
+    features = {k: dict(v) for k, v in features.items()}
+    blend_keys = [
+        "goals_scored_avg",
+        "goals_conceded_avg",
+        "win_rate",
+        "draw_rate",
+        "btts_rate",
+        "over25_rate",
+    ]
+
+    updated = 0
+    for team in list(features.keys()):
+        tf = _build_tournament_form(team, wc_played)
+        if not tf:
+            continue
+
+        feat = features[team]
+        for key in blend_keys:
+            hist_val = feat.get(key, 0.0)
+            tourn_val = tf.get(key, 0.0)
+            feat[key] = round(
+                TOURNAMENT_FORM_WEIGHT * tourn_val + HISTORICAL_FORM_WEIGHT * hist_val, 3
+            )
+
+        feat["goals_scored_avg_3"] = tf["goals_scored_avg"]
+        feat["goals_conceded_avg_3"] = tf["goals_conceded_avg"]
+        feat["win_rate_3"] = tf["win_rate"]
+        updated += 1
+
+    logger.info("Tournament form override applied to %d teams (matchday %d)", updated, matchday)
+    return features
+
+
+def _apply_draw_context_boost(
+    preds: dict,
+    home: str,
+    away: str,
+    division: str,
+    standings: dict[str, dict[str, dict]],
+    matchday: int,
+) -> dict:
+    """Adjust draw probability based on both teams' motivation in matchday 3."""
+    if division != "WC" or matchday < 3:
+        return preds
+
+    mot_home = _classify_motivation(home, standings)
+    mot_away = _classify_motivation(away, standings)
+
+    boost = 0.0
+    if mot_home == "draw_ok" and mot_away == "draw_ok":
+        boost = 0.12
+    elif mot_home == "qualified" and mot_away == "qualified":
+        boost = 0.10
+    elif (mot_home == "draw_ok" and mot_away == "qualified") or (
+        mot_away == "draw_ok" and mot_home == "qualified"
+    ):
+        boost = 0.08
+    elif mot_home == "eliminated" or mot_away == "eliminated":
+        boost = -0.06
+    elif mot_home == "must_win" and mot_away == "must_win":
+        boost = -0.04
+
+    if abs(boost) < 0.001:
+        return preds
+
+    h = preds["prob_home"]
+    d = preds["prob_draw"]
+    a = preds["prob_away"]
+
+    d_new = min(max(d + boost, 0.05), 0.60)
+    leftover = d_new - d
+    ha_total = h + a
+    if ha_total > 0:
+        h_new = h - leftover * (h / ha_total)
+        a_new = a - leftover * (a / ha_total)
+    else:
+        h_new = h
+        a_new = a
+
+    preds["prob_home"] = round(max(h_new, 0.02), 4)
+    preds["prob_draw"] = round(d_new, 4)
+    preds["prob_away"] = round(max(a_new, 0.02), 4)
+
+    probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
+    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["confidence"] = _classify_confidence_wc(max(probs))
+
+    logger.info(
+        "Draw context boost for %s (%s) vs %s (%s): %.0f%% → D=%.0f%%",
+        home,
+        mot_home,
+        away,
+        mot_away,
+        boost * 100,
+        preds["prob_draw"] * 100,
+    )
     return preds
 
 
@@ -426,20 +689,32 @@ def main():
     if wc_played and national_features:
         national_features = _update_features_with_wc_results(national_features, wc_played)
 
+    wc_standings = _build_group_standings(wc_played) if wc_played else {}
+
     predictions = []
     for _, match in upcoming.iterrows():
         home = match["home_team"]
         away = match["away_team"]
         division = match["division"]
 
-        use_national = division == "WC" and national_features
+        matchday = (
+            _compute_matchday(home, away, str(match["match_date"]), wc_played)
+            if division == "WC" and wc_played
+            else 1
+        )
+
+        match_national = national_features
+        if division == "WC" and national_features and matchday >= 3:
+            match_national = _apply_tournament_form_override(national_features, wc_played, matchday)
+
+        use_national = division == "WC" and match_national
         home_feat = team_features[team_features["team"] == home].sort_values("match_date")
         away_feat = team_features[team_features["team"] == away].sort_values("match_date")
 
         if use_national or home_feat.empty or away_feat.empty:
-            if national_features and (home in national_features or away in national_features):
+            if match_national and (home in match_national or away in match_national):
                 feature_row = _build_feature_row_from_national(
-                    national_features,
+                    match_national,
                     home,
                     away,
                     match,
@@ -516,9 +791,12 @@ def main():
         preds = _apply_host_boost(preds, home, division)
         preds = _apply_wc_draw_boost(preds, division)
 
-        if national_features and division == "WC":
-            poisson_est = _get_poisson_probs(home, away, national_features, division)
+        if match_national and division == "WC":
+            poisson_est = _get_poisson_probs(home, away, match_national, division)
             preds = _apply_ensemble(preds, poisson_est, division)
+
+        if division == "WC" and wc_standings:
+            preds = _apply_draw_context_boost(preds, home, away, division, wc_standings, matchday)
 
         home_elo = match.get("home_elo") or 1500.0
         away_elo = match.get("away_elo") or 1500.0
