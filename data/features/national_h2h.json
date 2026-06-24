@@ -7040,14 +7040,14 @@
     "h2h_avg_goals": 1.75
   },
   "England|Ghana": {
-    "h2h_matches": 1,
+    "h2h_matches": 2,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.0
+    "h2h_avg_goals": 1.0
   },
   "Ghana|England": {
-    "h2h_matches": 1,
+    "h2h_matches": 2,
     "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.0
+    "h2h_avg_goals": 1.0
   },
   "Colombia|Senegal": {
     "h2h_matches": 3,
@@ -8398,5 +8398,35 @@
     "h2h_matches": 1,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 3.0
+  },
+  "Portugal|Uzbekistan": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 1.0,
+    "h2h_avg_goals": 5.0
+  },
+  "Uzbekistan|Portugal": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 5.0
+  },
+  "Colombia|Congo DR": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 1.0,
+    "h2h_avg_goals": 1.0
+  },
+  "Congo DR|Colombia": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 1.0
+  },
+  "Panama|Croatia": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 0.0,
+    "h2h_avg_goals": 1.0
+  },
+  "Croatia|Panama": {
+    "h2h_matches": 1,
+    "h2h_win_rate": 1.0,
+    "h2h_avg_goals": 1.0
   }
 }
