@@ -171,6 +171,27 @@ def _build_group_standings(
     return standings
 
 
+def _get_best_third_place_cutoff(
+    standings: dict[str, dict[str, dict]],
+) -> int:
+    """Estimate the points cutoff to qualify as best 3rd place.
+
+    8 of 12 third-place teams qualify. Returns the current 8th-place pts.
+    """
+    thirds = []
+    for grp, table in standings.items():
+        sorted_t = sorted(
+            table.items(),
+            key=lambda x: (x[1]["pts"], x[1]["gd"], x[1]["gf"]),
+            reverse=True,
+        )
+        if len(sorted_t) >= 3:
+            thirds.append(sorted_t[2][1])
+
+    thirds.sort(key=lambda x: (x["pts"], x["gd"], x["gf"]), reverse=True)
+    return thirds[7]["pts"] if len(thirds) >= 8 else 0
+
+
 def _classify_motivation(
     team: str,
     standings: dict[str, dict[str, dict]],
@@ -178,6 +199,7 @@ def _classify_motivation(
     """Classify team motivation for matchday 3.
 
     Returns: 'qualified', 'must_win', 'draw_ok', 'eliminated', 'unknown'.
+    Accounts for best-third-place qualification (8 of 12 thirds advance).
     """
     grp = TEAM_TO_GROUP.get(team)
     if not grp or grp not in standings:
@@ -203,10 +225,35 @@ def _classify_motivation(
         return "draw_ok"
     if rank == 3 and pts >= 3:
         return "draw_ok"
-    if rank == 4 and pts == 0:
+
+    third_cutoff = _get_best_third_place_cutoff(standings)
+    max_possible_pts = pts + 3
+
+    if rank == 3:
+        if max_possible_pts > third_cutoff:
+            return "must_win"
+        if max_possible_pts == third_cutoff and gd > -4:
+            return "must_win"
         return "eliminated"
-    if rank >= 3 and pts <= 1 and gd <= -3:
-        return "eliminated"
+
+    if rank == 4:
+        can_reach_third = False
+        third_team = sorted_teams[2] if len(sorted_teams) >= 3 else None
+        if third_team:
+            third_pts = third_team[1]["pts"]
+            can_reach_third = max_possible_pts > third_pts or (
+                max_possible_pts == third_pts and gd + 3 > third_team[1]["gd"]
+            )
+
+        if can_reach_third and max_possible_pts >= third_cutoff:
+            return "must_win"
+
+        if pts == 0 and gd <= -4:
+            return "eliminated"
+        if max_possible_pts < third_cutoff:
+            return "eliminated"
+
+        return "must_win"
 
     return "must_win"
 
