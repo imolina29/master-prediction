@@ -879,12 +879,13 @@ def main():
 
     logger.info("Generated %d predictions, uploading to Supabase...", len(predictions))
 
-    # Only delete predictions for matches we're about to regenerate (preserves played match data)
-    for _, match in upcoming.iterrows():
-        client.table("predictions").delete().eq("match_date", str(match["match_date"])).eq(
-            "home_team", match["home_team"]
-        ).eq("away_team", match["away_team"]).execute()
-    logger.info("Cleared stale predictions for %d upcoming matches", len(upcoming))
+    # Delete only predictions for unplayed matches we're about to regenerate
+    # Predictions for played matches (with ft_result) are preserved for track record
+    for pred in predictions:
+        client.table("predictions").delete().eq("match_date", str(pred["match_date"])).eq(
+            "home_team", pred["home_team"]
+        ).eq("away_team", pred["away_team"]).execute()
+    logger.info("Cleared stale predictions for %d upcoming matches", len(predictions))
 
     for pred in predictions:
         row = {
