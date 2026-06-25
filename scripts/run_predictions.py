@@ -198,7 +198,8 @@ def _classify_motivation(
 ) -> str:
     """Classify team motivation for matchday 3.
 
-    Returns: 'qualified', 'must_win', 'draw_ok', 'eliminated', 'unknown'.
+    Returns: 'qualified', 'fight_first', 'must_win', 'draw_ok', 'eliminated', 'unknown'.
+    - fight_first: safe but competing for 1st place (better R16 bracket).
     Accounts for best-third-place qualification (8 of 12 thirds advance).
     """
     grp = TEAM_TO_GROUP.get(team)
@@ -220,8 +221,16 @@ def _classify_motivation(
     gd = team_stats["gd"]
 
     if rank <= 2 and pts >= 6:
+        first_pts = sorted_teams[0][1]["pts"]
+        second_pts = sorted_teams[1][1]["pts"]
+        if first_pts == second_pts:
+            return "fight_first"
         return "qualified"
     if rank <= 2 and pts >= 4:
+        first_pts = sorted_teams[0][1]["pts"]
+        second_pts = sorted_teams[1][1]["pts"]
+        if first_pts == second_pts:
+            return "fight_first"
         return "draw_ok"
     if rank == 3 and pts >= 3:
         return "draw_ok"
@@ -354,14 +363,20 @@ def _apply_draw_context_boost(
     mot_away = _classify_motivation(away, standings)
 
     boost = 0.0
-    if mot_home == "draw_ok" and mot_away == "draw_ok":
-        boost = 0.12
-    elif mot_home == "qualified" and mot_away == "qualified":
+    mots = {mot_home, mot_away}
+
+    if mot_home == "fight_first" and mot_away == "fight_first":
+        boost = -0.05
+    elif "fight_first" in mots and "must_win" in mots:
+        boost = -0.04
+    elif "fight_first" in mots:
+        boost = 0.0
+    elif mot_home == "draw_ok" and mot_away == "draw_ok":
         boost = 0.10
-    elif (mot_home == "draw_ok" and mot_away == "qualified") or (
-        mot_away == "draw_ok" and mot_home == "qualified"
-    ):
+    elif mot_home == "qualified" and mot_away == "qualified":
         boost = 0.08
+    elif "draw_ok" in mots and "qualified" in mots:
+        boost = 0.06
     elif mot_home == "eliminated" or mot_away == "eliminated":
         boost = -0.06
     elif mot_home == "must_win" and mot_away == "must_win":
