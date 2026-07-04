@@ -140,6 +140,13 @@ def _code(team: str) -> str:
     return CODES.get(team, team[:3].upper())
 
 
+def _team_label(team: str) -> str:
+    """Format team as flag + code for bracket display."""
+    if not team:
+        return "---"
+    return f"{_flag(team)} {_code(team)}"
+
+
 # ── Data ─────────────────────────────────────────────────
 
 
@@ -435,44 +442,225 @@ R32_RIGHT = [
 ]
 
 
-def _build_bracket_html(ko_matches: list[dict]) -> str:
-    ko_map: dict[tuple, dict] = {}
-    for m in ko_matches:
-        ko_map[(m["home_team"], m["away_team"])] = m
+def _resolve_bracket_data(all_matches: list[dict], simulated: dict) -> dict:
+    """Resolve all bracket positions to actual teams and scores."""
+
+    # -- group standings & position map --
+    pos_map: dict[str, str] = {}
+    for letter, teams in WC_GROUPS.items():
+        gm = _group_matches(all_matches, teams)
+        standings = _calc_standings(teams, gm, simulated)
+        for i, row in enumerate(standings):
+            pos_map[f"{i + 1}{letter}"] = row["team"]
+
+    # -- knockout match pools by round --
+    ko = _knockout_matches(all_matches)
+
+    def _by_date(lo, hi):
+        return [m for m in ko if lo <= m["match_date"] <= hi]
+
+    r32_pool = [m for m in ko if m["match_date"] <= "2026-07-03"]
+    r16_pool = _by_date("2026-07-04", "2026-07-08")
+    qf_pool = _by_date("2026-07-09", "2026-07-12")
+    sf_pool = _by_date("2026-07-13", "2026-07-16")
+    final_pool = [m for m in ko if m["match_date"] >= "2026-07-17"]
+
+    # -- helpers --
+    def _find(pool, t1, t2):
+        """Find match involving t1 vs t2 (either order)."""
+        if not t1 or not t2:
+            return None
+        pair = {t1, t2}
+        for m in pool:
+            if {m["home_team"], m["away_team"]} == pair:
+                return m
+        return None
+
+    def _find_for(pool, team):
+        """Find first match involving *team*."""
+        if not team:
+            return None
+        for m in pool:
+            if team in (m["home_team"], m["away_team"]):
+                return m
+        return None
+
+    def _winner(match, next_pool):
+        """Return winner of a played match; for draws check next round."""
+        if not match or match["ft_home_goals"] is None:
+            return None
+        h, a = match["home_team"], match["away_team"]
+        hg, ag = match["ft_home_goals"], match["ft_away_goals"]
+        if hg > ag:
+            return h
+        if ag > hg:
+            return a
+        for nm in next_pool:
+            if h in (nm["home_team"], nm["away_team"]):
+                return h
+            if a in (nm["home_team"], nm["away_team"]):
+                return a
+        return None
+
+    def _loser(match, next_pool):
+        w = _winner(match, next_pool)
+        if not w or not match:
+            return None
+        h, a = match["home_team"], match["away_team"]
+        return a if w == h else h
+
+    # -- resolve R32 --
+    def _resolve_r32(template, pool):
+        result = []
+        for pair in template:
+            pair_data = []
+            for t1_tag, t2_tag in pair:
+                t1 = pos_map.get(t1_tag)
+                if t2_tag == "3°":
+                    m = _find_for(pool, t1) if t1 else None
+                    if m and t1:
+                        t2 = m["away_team"] if m["home_team"] == t1 else m["home_team"]
+                    else:
+                        t2 = None
+                else:
+                    t2 = pos_map.get(t2_tag)
+                match = _find(pool, t1, t2)
+                pair_data.append({"t1": t1, "t2": t2, "match": match})
+            result.append(pair_data)
+        return result
+
+    r32_left = _resolve_r32(R32_LEFT, r32_pool)
+    r32_right = _resolve_r32(R32_RIGHT, r32_pool)
+
+    # -- R16: winner of pair[i][0] vs winner of pair[i][1] --
+    r16_left = []
+    for pair in r32_left:
+        w1 = _winner(pair[0]["match"], r16_pool)
+        w2 = _winner(pair[1]["match"], r16_pool)
+        m = _find(r16_pool, w1, w2)
+        r16_left.append({"t1": w1, "t2": w2, "match": m})
+
+    r16_right = []
+    for pair in r32_right:
+        w1 = _winner(pair[0]["match"], r16_pool)
+        w2 = _winner(pair[1]["match"], r16_pool)
+        m = _find(r16_pool, w1, w2)
+        r16_right.append({"t1": w1, "t2": w2, "match": m})
+
+    # -- QF: winner of R16[2j] vs winner of R16[2j+1] --
+    qf_left = []
+    for i in range(0, 4, 2):
+        w1 = _winner(r16_left[i]["match"], qf_pool)
+        w2 = _winner(r16_left[i + 1]["match"], qf_pool)
+        m = _find(qf_pool, w1, w2)
+        qf_left.append({"t1": w1, "t2": w2, "match": m})
+
+    qf_right = []
+    for i in range(0, 4, 2):
+        w1 = _winner(r16_right[i]["match"], qf_pool)
+        w2 = _winner(r16_right[i + 1]["match"], qf_pool)
+        m = _find(qf_pool, w1, w2)
+        qf_right.append({"t1": w1, "t2": w2, "match": m})
+
+    # -- SF --
+    sf_lw1 = _winner(qf_left[0]["match"], sf_pool)
+    sf_lw2 = _winner(qf_left[1]["match"], sf_pool)
+    sf_left_m = _find(sf_pool, sf_lw1, sf_lw2)
+    sf_left = {"t1": sf_lw1, "t2": sf_lw2, "match": sf_left_m}
+
+    sf_rw1 = _winner(qf_right[0]["match"], sf_pool)
+    sf_rw2 = _winner(qf_right[1]["match"], sf_pool)
+    sf_right_m = _find(sf_pool, sf_rw1, sf_rw2)
+    sf_right = {"t1": sf_rw1, "t2": sf_rw2, "match": sf_right_m}
+
+    # For SF penalty resolution, use only the actual final (latest date)
+    # to avoid confusing it with the 3rd-place match.
+    actual_final = max(final_pool, key=lambda m: m["match_date"]) if final_pool else None
+    final_only = [actual_final] if actual_final else []
+
+    # -- Final & 3rd place --
+    final_t1 = _winner(sf_left_m, final_only)
+    final_t2 = _winner(sf_right_m, final_only)
+    final_m = _find(final_pool, final_t1, final_t2)
+    final = {"t1": final_t1, "t2": final_t2, "match": final_m}
+
+    third_t1 = _loser(sf_left_m, final_only)
+    third_t2 = _loser(sf_right_m, final_only)
+    third_m = _find(final_pool, third_t1, third_t2)
+    third = {"t1": third_t1, "t2": third_t2, "match": third_m}
+
+    return {
+        "r32_left": r32_left,
+        "r32_right": r32_right,
+        "r16_left": r16_left,
+        "r16_right": r16_right,
+        "qf_left": qf_left,
+        "qf_right": qf_right,
+        "sf_left": sf_left,
+        "sf_right": sf_right,
+        "final": final,
+        "third": third,
+    }
+
+
+def _build_bracket_html(data: dict) -> str:
+    """Render the knockout bracket HTML from resolved *data*."""
 
     def _game(t1: str, t2: str, s1: str = "", s2: str = "", hl: bool = False) -> str:
         border = "border-color:#f5b020;" if hl else ""
         return (
             f'<div class="game" style="{border}">'
-            f'<div class="tr"><span>{t1}</span><span class="sc">{s1}</span></div>'
-            f'<div class="tr"><span>{t2}</span><span class="sc">{s2}</span></div>'
+            f'<div class="tr"><span>{t1}</span>'
+            f'<span class="sc">{s1}</span></div>'
+            f'<div class="tr"><span>{t2}</span>'
+            f'<span class="sc">{s2}</span></div>'
             "</div>"
         )
 
-    def _pair_html(pair: list[tuple]) -> str:
-        items = ""
-        for t1, t2 in pair:
-            items += _game(t1, t2)
+    def _md_game(md, hl: bool = False) -> str:
+        """Render a match-data dict {t1, t2, match} as a game div."""
+        t1 = _team_label(md["t1"]) if md else "---"
+        t2 = _team_label(md["t2"]) if md else "---"
+        s1, s2 = "", ""
+        if md and md.get("match") and md["match"]["ft_home_goals"] is not None:
+            m = md["match"]
+            if m["home_team"] == md["t1"]:
+                s1 = str(m["ft_home_goals"])
+                s2 = str(m["ft_away_goals"])
+            else:
+                s1 = str(m["ft_away_goals"])
+                s2 = str(m["ft_home_goals"])
+        return _game(t1, t2, s1, s2, hl)
+
+    def _pair_html(pair: list) -> str:
+        items = "".join(_md_game(md) for md in pair)
         return f'<div class="pair">{items}</div>'
 
-    def _slot(t1: str = "---", t2: str = "---", **kw) -> str:
-        return f'<div class="slot">{_game(t1, t2, **kw)}</div>'
+    def _slot(md) -> str:
+        return f'<div class="slot">{_md_game(md)}</div>'
 
     def _conn_col(n: int, cls: str) -> str:
         return '<div class="conns">' + f'<div class="{cls}"></div>' * n + "</div>"
 
-    r32l = "".join(_pair_html(p) for p in R32_LEFT)
-    r32r = "".join(_pair_html(p) for p in R32_RIGHT)
-    slots4 = _slot() * 4
-    slots2 = _slot() * 2
-    slot1 = _slot()
+    # -- build columns --
+    r32l = "".join(_pair_html(p) for p in data["r32_left"])
+    r32r = "".join(_pair_html(p) for p in data["r32_right"])
+
+    r16l = "".join(_slot(md) for md in data["r16_left"])
+    r16r = "".join(_slot(md) for md in data["r16_right"])
+
+    qfl = "".join(_slot(md) for md in data["qf_left"])
+    qfr = "".join(_slot(md) for md in data["qf_right"])
+
+    sfl = _slot(data["sf_left"])
+    sfr = _slot(data["sf_right"])
 
     final_box = (
         '<div class="final-col">'
         '<div class="fl">🏆 Final</div>'
-        + _game("---", "---", hl=True)
+        + _md_game(data["final"], hl=True)
         + '<div style="height:24px;"></div>'
-        '<div class="fl" style="color:#888;">3er Puesto</div>' + _game("---", "---") + "</div>"
+        '<div class="fl" style="color:#888;">3er Puesto</div>' + _md_game(data["third"]) + "</div>"
     )
 
     return f"""<!DOCTYPE html><html><head><style>
@@ -525,19 +713,19 @@ body{{background:transparent;color:#fafafa;font-family:-apple-system,BlinkMacSys
 <div class="bracket">
   <div class="round">{r32l}</div>
   {_conn_col(4, "cl")}
-  <div class="round">{slots4}</div>
+  <div class="round">{r16l}</div>
   {_conn_col(2, "cl")}
-  <div class="round">{slots2}</div>
+  <div class="round">{qfl}</div>
   {_conn_col(1, "cl")}
-  <div class="round">{slot1}</div>
+  <div class="round">{sfl}</div>
   <div class="conns"><div class="hl"></div></div>
   {final_box}
   <div class="conns"><div class="hl"></div></div>
-  <div class="round">{slot1}</div>
+  <div class="round">{sfr}</div>
   {_conn_col(1, "cr")}
-  <div class="round">{slots2}</div>
+  <div class="round">{qfr}</div>
   {_conn_col(2, "cr")}
-  <div class="round">{slots4}</div>
+  <div class="round">{r16r}</div>
   {_conn_col(4, "cr")}
   <div class="round">{r32r}</div>
 </div>
@@ -545,14 +733,15 @@ body{{background:transparent;color:#fafafa;font-family:-apple-system,BlinkMacSys
 </body></html>"""
 
 
-def _render_bracket(all_matches: list[dict]):
+def _render_bracket(all_matches: list[dict], simulated: dict):
     st.markdown("### Fase Eliminatoria")
     st.caption("El bracket se actualiza automaticamente con los resultados de los partidos.")
 
-    ko = _knockout_matches(all_matches)
-    html = _build_bracket_html(ko)
+    data = _resolve_bracket_data(all_matches, simulated)
+    html = _build_bracket_html(data)
     components.html(html, height=620, scrolling=True)
 
+    ko = _knockout_matches(all_matches)
     if ko:
         st.markdown("**Partidos de eliminatoria**")
         for m in ko:
@@ -592,4 +781,4 @@ _render_overview(all_matches, simulated)
 st.divider()
 _render_simulator(all_matches)
 st.divider()
-_render_bracket(all_matches)
+_render_bracket(all_matches, simulated)
