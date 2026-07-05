@@ -26,6 +26,21 @@ ENSEMBLE_WEIGHT_POISSON = 0.30
 TOURNAMENT_FORM_WEIGHT = 0.65
 HISTORICAL_FORM_WEIGHT = 0.35
 
+TIGHT_MARGIN = 0.05
+
+
+def _pick_result(probs: list[float]) -> str:
+    """Pick predicted result; prefer Draw when top two probabilities are within TIGHT_MARGIN."""
+    labels = ["H", "D", "A"]
+    sorted_idx = sorted(range(3), key=lambda i: -probs[i])
+    top, second = sorted_idx[0], sorted_idx[1]
+    if probs[top] - probs[second] < TIGHT_MARGIN and labels[second] == "D":
+        return "D"
+    if probs[top] - probs[second] < TIGHT_MARGIN and labels[top] == "D":
+        return "D"
+    return labels[top]
+
+
 WC_GROUPS: dict[str, list[str]] = {
     "A": ["Mexico", "South Korea", "Czechia", "South Africa"],
     "B": ["Canada", "Bosnia Herzegovina", "Qatar", "Switzerland"],
@@ -60,7 +75,7 @@ def _apply_host_boost(preds: dict, home: str, division: str) -> dict:
     preds["prob_draw"] = round(d - WC_HOST_BOOST * (d / total_da), 4)
     preds["prob_away"] = round(a - WC_HOST_BOOST * (a / total_da), 4)
     probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
-    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["predicted_result"] = _pick_result(probs)
     preds["confidence"] = _classify_confidence_wc(max(probs))
     logger.info("Applied host boost for %s: H=%.0f%%", home, preds["prob_home"] * 100)
     return preds
@@ -78,7 +93,7 @@ def _apply_wc_draw_boost(preds: dict, division: str) -> dict:
     preds["prob_draw"] = round(d_boosted / total, 4)
     preds["prob_away"] = round(a / total, 4)
     probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
-    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["predicted_result"] = _pick_result(probs)
     preds["confidence"] = _classify_confidence_wc(max(probs))
     logger.info("Applied WC draw boost: D=%.0f%%", preds["prob_draw"] * 100)
     return preds
@@ -404,7 +419,7 @@ def _apply_draw_context_boost(
     preds["prob_away"] = round(max(a_new, 0.02), 4)
 
     probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
-    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["predicted_result"] = _pick_result(probs)
     preds["confidence"] = _classify_confidence_wc(max(probs))
 
     logger.info(
@@ -485,7 +500,7 @@ def _apply_ensemble(preds: dict, poisson: dict | None, division: str) -> dict:
     poisson_probs = [poisson["prob_home"], poisson["prob_draw"], poisson["prob_away"]]
     poisson_result = ["H", "D", "A"][int(np.argmax(poisson_probs))]
 
-    preds["predicted_result"] = ["H", "D", "A"][int(np.argmax(probs))]
+    preds["predicted_result"] = _pick_result(probs)
 
     if xgb_result == poisson_result:
         if max_prob > 0.50:
