@@ -1,14 +1,4 @@
 {
-  "United States|Canada": {
-    "h2h_matches": 42,
-    "h2h_win_rate": 0.429,
-    "h2h_avg_goals": 2.833
-  },
-  "Canada|United States": {
-    "h2h_matches": 42,
-    "h2h_win_rate": 0.31,
-    "h2h_avg_goals": 2.833
-  },
   "Belgium|France": {
     "h2h_matches": 78,
     "h2h_win_rate": 0.385,
@@ -59,26 +49,6 @@
     "h2h_win_rate": 0.4,
     "h2h_avg_goals": 4.4
   },
-  "Paraguay|Argentina": {
-    "h2h_matches": 107,
-    "h2h_win_rate": 0.159,
-    "h2h_avg_goals": 3.047
-  },
-  "Argentina|Paraguay": {
-    "h2h_matches": 107,
-    "h2h_win_rate": 0.523,
-    "h2h_avg_goals": 3.047
-  },
-  "Belgium|Canada": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 3.333
-  },
-  "Canada|Belgium": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.333
-  },
   "Belgium|United States": {
     "h2h_matches": 8,
     "h2h_win_rate": 0.875,
@@ -108,16 +78,6 @@
     "h2h_matches": 27,
     "h2h_win_rate": 0.63,
     "h2h_avg_goals": 4.037
-  },
-  "Brazil|Paraguay": {
-    "h2h_matches": 84,
-    "h2h_win_rate": 0.595,
-    "h2h_avg_goals": 2.988
-  },
-  "Paraguay|Brazil": {
-    "h2h_matches": 84,
-    "h2h_win_rate": 0.143,
-    "h2h_avg_goals": 2.988
   },
   "Spain|Portugal": {
     "h2h_matches": 42,
@@ -289,16 +249,6 @@
     "h2h_win_rate": 0.231,
     "h2h_avg_goals": 2.462
   },
-  "Paraguay|United States": {
-    "h2h_matches": 10,
-    "h2h_win_rate": 0.2,
-    "h2h_avg_goals": 2.4
-  },
-  "United States|Paraguay": {
-    "h2h_matches": 10,
-    "h2h_win_rate": 0.6,
-    "h2h_avg_goals": 2.4
-  },
   "Argentina|Mexico": {
     "h2h_matches": 32,
     "h2h_win_rate": 0.5,
@@ -308,16 +258,6 @@
     "h2h_matches": 32,
     "h2h_win_rate": 0.125,
     "h2h_avg_goals": 2.531
-  },
-  "Belgium|Paraguay": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.333,
-    "h2h_avg_goals": 2.0
-  },
-  "Paraguay|Belgium": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.333,
-    "h2h_avg_goals": 2.0
   },
   "Brazil|France": {
     "h2h_matches": 17,
@@ -429,16 +369,6 @@
     "h2h_win_rate": 0.435,
     "h2h_avg_goals": 3.087
   },
-  "Colombia|Paraguay": {
-    "h2h_matches": 51,
-    "h2h_win_rate": 0.451,
-    "h2h_avg_goals": 2.294
-  },
-  "Paraguay|Colombia": {
-    "h2h_matches": 51,
-    "h2h_win_rate": 0.353,
-    "h2h_avg_goals": 2.294
-  },
   "Egypt|Norway": {
     "h2h_matches": 6,
     "h2h_win_rate": 0.0,
@@ -539,26 +469,6 @@
     "h2h_win_rate": 0.444,
     "h2h_avg_goals": 2.148
   },
-  "Mexico|Canada": {
-    "h2h_matches": 35,
-    "h2h_win_rate": 0.629,
-    "h2h_avg_goals": 2.8
-  },
-  "Canada|Mexico": {
-    "h2h_matches": 35,
-    "h2h_win_rate": 0.114,
-    "h2h_avg_goals": 2.8
-  },
-  "France|Paraguay": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.6,
-    "h2h_avg_goals": 3.6
-  },
-  "Paraguay|France": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.6
-  },
   "Mexico|England": {
     "h2h_matches": 10,
     "h2h_win_rate": 0.2,
@@ -598,16 +508,6 @@
     "h2h_matches": 6,
     "h2h_win_rate": 0.5,
     "h2h_avg_goals": 3.167
-  },
-  "Mexico|Paraguay": {
-    "h2h_matches": 21,
-    "h2h_win_rate": 0.476,
-    "h2h_avg_goals": 2.667
-  },
-  "Paraguay|Mexico": {
-    "h2h_matches": 21,
-    "h2h_win_rate": 0.286,
-    "h2h_avg_goals": 2.667
   },
   "Morocco|Spain": {
     "h2h_matches": 4,
@@ -769,26 +669,6 @@
     "h2h_win_rate": 0.25,
     "h2h_avg_goals": 2.0
   },
-  "Morocco|Canada": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.75,
-    "h2h_avg_goals": 3.5
-  },
-  "Canada|Morocco": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.5
-  },
-  "Egypt|Canada": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 2.0
-  },
-  "Canada|Egypt": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.0
-  },
   "Colombia|Switzerland": {
     "h2h_matches": 4,
     "h2h_win_rate": 0.5,
@@ -808,16 +688,6 @@
     "h2h_matches": 4,
     "h2h_win_rate": 0.5,
     "h2h_avg_goals": 3.0
-  },
-  "Canada|Paraguay": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
-  },
-  "Paraguay|Canada": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
   },
   "Egypt|England": {
     "h2h_matches": 3,
@@ -839,26 +709,6 @@
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 2.0
   },
-  "Canada|England": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.0
-  },
-  "England|Canada": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 1.0
-  },
-  "Canada|France": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.5
-  },
-  "France|Canada": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 0.5
-  },
   "England|Morocco": {
     "h2h_matches": 2,
     "h2h_win_rate": 0.5,
@@ -879,16 +729,6 @@
     "h2h_win_rate": 0.667,
     "h2h_avg_goals": 2.0
   },
-  "England|Paraguay": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 2.667
-  },
-  "Paraguay|England": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.667
-  },
   "Egypt|United States": {
     "h2h_matches": 2,
     "h2h_win_rate": 0.5,
@@ -908,16 +748,6 @@
     "h2h_matches": 6,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 3.333
-  },
-  "Colombia|Canada": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.333,
-    "h2h_avg_goals": 1.667
-  },
-  "Canada|Colombia": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.333,
-    "h2h_avg_goals": 1.667
   },
   "Norway|Brazil": {
     "h2h_matches": 4,
@@ -969,26 +799,6 @@
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 2.0
   },
-  "Canada|Brazil": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.0
-  },
-  "Brazil|Canada": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 3.0
-  },
-  "Canada|Spain": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.5
-  },
-  "Spain|Canada": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 2.5
-  },
   "Belgium|Morocco": {
     "h2h_matches": 4,
     "h2h_win_rate": 0.5,
@@ -998,16 +808,6 @@
     "h2h_matches": 4,
     "h2h_win_rate": 0.5,
     "h2h_avg_goals": 3.0
-  },
-  "Canada|Portugal": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.5
-  },
-  "Portugal|Canada": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 3.5
   },
   "Norway|Colombia": {
     "h2h_matches": 1,
@@ -1049,16 +849,6 @@
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 3.0
   },
-  "Spain|Paraguay": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 1.25
-  },
-  "Paraguay|Spain": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.25
-  },
   "Belgium|Egypt": {
     "h2h_matches": 5,
     "h2h_win_rate": 0.2,
@@ -1069,16 +859,6 @@
     "h2h_win_rate": 0.6,
     "h2h_avg_goals": 2.6
   },
-  "Switzerland|Canada": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 3.5
-  },
-  "Canada|Switzerland": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 3.5
-  },
   "France|Egypt": {
     "h2h_matches": 1,
     "h2h_win_rate": 1.0,
@@ -1088,26 +868,6 @@
     "h2h_matches": 1,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 5.0
-  },
-  "Portugal|Paraguay": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
-  },
-  "Paraguay|Portugal": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
-  },
-  "Norway|Paraguay": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
-  },
-  "Paraguay|Norway": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
   },
   "Spain|Egypt": {
     "h2h_matches": 2,
@@ -1128,26 +888,6 @@
     "h2h_matches": 1,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 2.0
-  },
-  "Argentina|Canada": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 3.0
-  },
-  "Canada|Argentina": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.0
-  },
-  "Paraguay|Morocco": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.5
-  },
-  "Morocco|Paraguay": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 1.5
   },
   "Colombia|Portugal": {
     "h2h_matches": 1,
