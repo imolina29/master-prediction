@@ -109,16 +109,6 @@
     "h2h_win_rate": 0.2,
     "h2h_avg_goals": 3.0
   },
-  "Argentina|Egypt": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 4.0
-  },
-  "Egypt|Argentina": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
-  },
   "Spain|England": {
     "h2h_matches": 28,
     "h2h_win_rate": 0.393,
@@ -158,26 +148,6 @@
     "h2h_matches": 12,
     "h2h_win_rate": 0.583,
     "h2h_avg_goals": 2.917
-  },
-  "Argentina|Colombia": {
-    "h2h_matches": 43,
-    "h2h_win_rate": 0.488,
-    "h2h_avg_goals": 2.698
-  },
-  "Colombia|Argentina": {
-    "h2h_matches": 43,
-    "h2h_win_rate": 0.233,
-    "h2h_avg_goals": 2.698
-  },
-  "Egypt|Norway": {
-    "h2h_matches": 6,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.5
-  },
-  "Norway|Egypt": {
-    "h2h_matches": 6,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 1.5
   },
   "England|Argentina": {
     "h2h_matches": 15,
@@ -229,36 +199,6 @@
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 2.571
   },
-  "Colombia|England": {
-    "h2h_matches": 6,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.5
-  },
-  "England|Colombia": {
-    "h2h_matches": 6,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 2.5
-  },
-  "Morocco|Egypt": {
-    "h2h_matches": 22,
-    "h2h_win_rate": 0.409,
-    "h2h_avg_goals": 1.364
-  },
-  "Egypt|Morocco": {
-    "h2h_matches": 22,
-    "h2h_win_rate": 0.182,
-    "h2h_avg_goals": 1.364
-  },
-  "Colombia|France": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.2,
-    "h2h_avg_goals": 3.2
-  },
-  "France|Colombia": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.8,
-    "h2h_avg_goals": 3.2
-  },
   "Norway|Belgium": {
     "h2h_matches": 9,
     "h2h_win_rate": 0.0,
@@ -278,36 +218,6 @@
     "h2h_matches": 10,
     "h2h_win_rate": 0.1,
     "h2h_avg_goals": 2.0
-  },
-  "Colombia|Spain": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.25,
-    "h2h_avg_goals": 2.0
-  },
-  "Spain|Colombia": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.25,
-    "h2h_avg_goals": 2.0
-  },
-  "Colombia|Switzerland": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 3.75
-  },
-  "Switzerland|Colombia": {
-    "h2h_matches": 4,
-    "h2h_win_rate": 0.25,
-    "h2h_avg_goals": 3.75
-  },
-  "Egypt|England": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 3.0
-  },
-  "England|Egypt": {
-    "h2h_matches": 3,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 3.0
   },
   "Norway|Argentina": {
     "h2h_matches": 2,
@@ -339,26 +249,6 @@
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 3.333
   },
-  "Egypt|Switzerland": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 4.0
-  },
-  "Switzerland|Egypt": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 4.0
-  },
-  "Egypt|Colombia": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.0
-  },
-  "Colombia|Egypt": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.0
-  },
   "Argentina|Morocco": {
     "h2h_matches": 3,
     "h2h_win_rate": 1.0,
@@ -379,26 +269,6 @@
     "h2h_win_rate": 0.5,
     "h2h_avg_goals": 3.0
   },
-  "Norway|Colombia": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
-  },
-  "Colombia|Norway": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 0.0
-  },
-  "Belgium|Colombia": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 2.0
-  },
-  "Colombia|Belgium": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 2.0
-  },
   "Morocco|Norway": {
     "h2h_matches": 2,
     "h2h_win_rate": 0.0,
@@ -408,45 +278,5 @@
     "h2h_matches": 2,
     "h2h_win_rate": 0.0,
     "h2h_avg_goals": 3.0
-  },
-  "Belgium|Egypt": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.2,
-    "h2h_avg_goals": 2.6
-  },
-  "Egypt|Belgium": {
-    "h2h_matches": 5,
-    "h2h_win_rate": 0.6,
-    "h2h_avg_goals": 2.6
-  },
-  "France|Egypt": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 5.0
-  },
-  "Egypt|France": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 5.0
-  },
-  "Spain|Egypt": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.5,
-    "h2h_avg_goals": 1.0
-  },
-  "Egypt|Spain": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 1.0
-  },
-  "Colombia|Morocco": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 2.0
-  },
-  "Morocco|Colombia": {
-    "h2h_matches": 1,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.0
   }
 }
