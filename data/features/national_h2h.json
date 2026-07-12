@@ -1,14 +1,4 @@
 {
-  "France|Switzerland": {
-    "h2h_matches": 39,
-    "h2h_win_rate": 0.41,
-    "h2h_avg_goals": 3.41
-  },
-  "Switzerland|France": {
-    "h2h_matches": 39,
-    "h2h_win_rate": 0.308,
-    "h2h_avg_goals": 3.41
-  },
   "France|Spain": {
     "h2h_matches": 38,
     "h2h_win_rate": 0.342,
@@ -19,16 +9,6 @@
     "h2h_win_rate": 0.474,
     "h2h_avg_goals": 3.026
   },
-  "Norway|France": {
-    "h2h_matches": 17,
-    "h2h_win_rate": 0.294,
-    "h2h_avg_goals": 2.882
-  },
-  "France|Norway": {
-    "h2h_matches": 17,
-    "h2h_win_rate": 0.471,
-    "h2h_avg_goals": 2.882
-  },
   "France|England": {
     "h2h_matches": 34,
     "h2h_win_rate": 0.324,
@@ -38,26 +18,6 @@
     "h2h_matches": 34,
     "h2h_win_rate": 0.5,
     "h2h_avg_goals": 3.529
-  },
-  "Norway|Switzerland": {
-    "h2h_matches": 20,
-    "h2h_win_rate": 0.4,
-    "h2h_avg_goals": 2.3
-  },
-  "Switzerland|Norway": {
-    "h2h_matches": 20,
-    "h2h_win_rate": 0.3,
-    "h2h_avg_goals": 2.3
-  },
-  "Switzerland|Spain": {
-    "h2h_matches": 27,
-    "h2h_win_rate": 0.074,
-    "h2h_avg_goals": 3.037
-  },
-  "Spain|Switzerland": {
-    "h2h_matches": 27,
-    "h2h_win_rate": 0.704,
-    "h2h_avg_goals": 3.037
   },
   "Spain|England": {
     "h2h_matches": 28,
@@ -79,26 +39,6 @@
     "h2h_win_rate": 0.231,
     "h2h_avg_goals": 2.462
   },
-  "Switzerland|England": {
-    "h2h_matches": 30,
-    "h2h_win_rate": 0.133,
-    "h2h_avg_goals": 3.0
-  },
-  "England|Switzerland": {
-    "h2h_matches": 30,
-    "h2h_win_rate": 0.633,
-    "h2h_avg_goals": 3.0
-  },
-  "Norway|England": {
-    "h2h_matches": 12,
-    "h2h_win_rate": 0.167,
-    "h2h_avg_goals": 2.917
-  },
-  "England|Norway": {
-    "h2h_matches": 12,
-    "h2h_win_rate": 0.583,
-    "h2h_avg_goals": 2.917
-  },
   "England|Argentina": {
     "h2h_matches": 15,
     "h2h_win_rate": 0.4,
@@ -118,35 +58,5 @@
     "h2h_matches": 14,
     "h2h_win_rate": 0.429,
     "h2h_avg_goals": 2.643
-  },
-  "Argentina|Switzerland": {
-    "h2h_matches": 7,
-    "h2h_win_rate": 0.714,
-    "h2h_avg_goals": 2.571
-  },
-  "Switzerland|Argentina": {
-    "h2h_matches": 7,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.571
-  },
-  "Spain|Norway": {
-    "h2h_matches": 10,
-    "h2h_win_rate": 0.7,
-    "h2h_avg_goals": 2.0
-  },
-  "Norway|Spain": {
-    "h2h_matches": 10,
-    "h2h_win_rate": 0.1,
-    "h2h_avg_goals": 2.0
-  },
-  "Norway|Argentina": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 1.0,
-    "h2h_avg_goals": 2.0
-  },
-  "Argentina|Norway": {
-    "h2h_matches": 2,
-    "h2h_win_rate": 0.0,
-    "h2h_avg_goals": 2.0
   }
 }

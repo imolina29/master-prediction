@@ -70,41 +70,5 @@
     "goals_scored_avg_10": 2.5,
     "goals_conceded_avg_10": 0.7,
     "win_rate_10": 0.9
-  },
-  "Switzerland": {
-    "goals_scored_avg": 2.25,
-    "goals_conceded_avg": 0.9,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.55,
-    "draw_rate": 0.35,
-    "btts_rate": 0.6,
-    "over25_rate": 0.55,
-    "elo": 1921.3,
-    "matches_used": 20,
-    "goals_scored_avg_3": 1.333,
-    "goals_conceded_avg_3": 0.333,
-    "win_rate_3": 0.667,
-    "goals_scored_avg_10": 1.8,
-    "goals_conceded_avg_10": 1.0,
-    "win_rate_10": 0.4
-  },
-  "Norway": {
-    "goals_scored_avg": 3.05,
-    "goals_conceded_avg": 0.95,
-    "shots_target_avg": null,
-    "corners_avg": null,
-    "win_rate": 0.75,
-    "draw_rate": 0.15,
-    "btts_rate": 0.65,
-    "over25_rate": 0.75,
-    "elo": 1946.6,
-    "matches_used": 20,
-    "goals_scored_avg_3": 1.667,
-    "goals_conceded_avg_3": 2.0,
-    "win_rate_3": 0.667,
-    "goals_scored_avg_10": 2.1,
-    "goals_conceded_avg_10": 1.4,
-    "win_rate_10": 0.6
   }
 }
