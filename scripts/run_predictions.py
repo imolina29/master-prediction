@@ -5,6 +5,13 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
+from backend.ml.league_config import LEAGUE_DIVISIONS
+from backend.ml.postprocess import (
+    apply_league_draw_zone,
+    apply_league_ensemble,
+    get_league_poisson_probs,
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -878,6 +885,19 @@ def main():
         home_elo = match.get("home_elo") or 1500.0
         away_elo = match.get("away_elo") or 1500.0
         preds = _apply_draw_zone(preds, division, home_elo - away_elo, home, away)
+
+        if division in LEAGUE_DIVISIONS:
+            league_poisson = get_league_poisson_probs(
+                feature_row.get("home_goals_scored_avg_3"),
+                feature_row.get("home_goals_conceded_avg_3"),
+                feature_row.get("away_goals_scored_avg_3"),
+                feature_row.get("away_goals_conceded_avg_3"),
+                home_elo,
+                away_elo,
+                division,
+            )
+            preds = apply_league_ensemble(preds, league_poisson)
+            preds = apply_league_draw_zone(preds, home_elo - away_elo, home_elo, away_elo)
 
         preds["match_date"] = match["match_date"]
         preds["home_team"] = home
