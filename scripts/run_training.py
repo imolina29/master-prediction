@@ -67,6 +67,18 @@ def main():
         roi = data.get("mean_roi_pct", "N/A")
         logger.info("  %s — accuracy: %s, ROI: %s%%", model_name, acc, roi)
 
+    try:
+        for model_name, model_data in results.items():
+            client.table("backtest_results").upsert(
+                {
+                    "id": model_name,
+                    "results": model_data,
+                }
+            ).execute()
+        logger.info("Uploaded %d model results to Supabase", len(results))
+    except Exception as e:
+        logger.warning("Could not upload to Supabase: %s", e)
+
 
 if __name__ == "__main__":
     main()

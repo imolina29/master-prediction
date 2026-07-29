@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard.auth import check_auth, get_current_user, render_user_menu
-from dashboard.components.theme import apply_theme
+from dashboard.components.theme import apply_theme, sidebar_brand
 
 st.set_page_config(page_title="Master Prediction", page_icon="⚽", layout="wide")
 apply_theme()
@@ -10,6 +10,9 @@ if not check_auth():
     st.stop()
 
 render_user_menu()
+
+with st.sidebar:
+    sidebar_brand()
 
 user = get_current_user()
 is_admin = user and user["role"] == "admin"
@@ -48,4 +51,8 @@ if is_admin:
     ]
 
 nav = st.navigation(pages)
+
+with st.sidebar:
+    st.markdown('<div class="mp-version">v1.2 · Poisson + XGB</div>', unsafe_allow_html=True)
+
 nav.run()
