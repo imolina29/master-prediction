@@ -237,14 +237,14 @@ def render():
                 "background:var(--surface);border:1px solid var(--edge);border-radius:var(--radius)"
             )
         ):
-            STATUS_LABELS = {
+            status_labels = {
                 "pending": "Pendiente",
                 "approved": "Aprobada",
                 "rejected": "Rechazada",
             }
             h_html = '<div style="padding:8px">'
             for r in requests_data:
-                status = STATUS_LABELS.get(r.get("status", "pending"), r.get("status"))
+                status = status_labels.get(r.get("status", "pending"), r.get("status"))
                 h_html += (
                     f'<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--edge)">'
                     f"{r.get('created_at', '')[:10]} · "

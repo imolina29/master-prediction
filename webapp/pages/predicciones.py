@@ -176,7 +176,6 @@ def render():
                     d = str(row["match_date"])
                     if len(d) > 5:
                         d = d[5:]
-                    league = DIVISION_NAMES.get(row.get("division", ""), "")
                     rows_html += (
                         f'<div class="tp-row">'
                         f'<span class="tp-date">{d}</span>'
