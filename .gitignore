@@ -61,3 +61,6 @@ data/baseline_wc_predictions.json
 data/new_wc_predictions.json
 docs/
 .nicegui/
+
+# Nginx runtime config (generated from nginx.conf / nginx-initial.conf during deploy)
+nginx/active.conf

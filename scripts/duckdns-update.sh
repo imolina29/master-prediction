@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# DuckDNS IP update — run via cron every 5 minutes:
-#   */5 * * * * /home/ubuntu/master-prediction/scripts/duckdns-update.sh >> /var/log/duckdns.log 2>&1
+# DuckDNS IP update — run via cron every 5 minutes.
+# cron does not pass shell/env vars to jobs, so DUCKDNS_TOKEN must be
+# inlined directly in the crontab entry:
+#   */5 * * * * DUCKDNS_TOKEN=your_token_here /home/ubuntu/master-prediction/scripts/duckdns-update.sh >> /var/log/duckdns.log 2>&1
 
 DUCKDNS_TOKEN="${DUCKDNS_TOKEN:-}"
 DUCKDNS_DOMAIN="${DUCKDNS_DOMAIN:-masterprediction}"

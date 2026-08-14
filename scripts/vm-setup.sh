@@ -19,6 +19,9 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 echo "=== Adding user to docker group ==="
 sudo usermod -aG docker "$USER"
 
+echo "=== Installing iptables-persistent ==="
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
+
 echo "=== Opening firewall ports ==="
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
@@ -30,6 +33,10 @@ echo "  1. Log out and back in (for docker group)"
 echo "  2. Clone repo: git clone git@github.com:imolina29/master-prediction.git"
 echo "  3. Copy .env to master-prediction/.env"
 echo "  4. Generate features parquet: cd master-prediction && python scripts/run_features.py"
-echo "  5. Start: cd master-prediction && docker compose up -d --build"
-echo "  6. Get SSL cert: docker compose run certbot certonly --webroot -w /var/www/certbot -d masterprediction.duckdns.org"
-echo "  7. Restart nginx: docker compose restart nginx"
+echo "  5. Use the HTTP-only nginx config for first boot (SSL certs don't exist yet):"
+echo "       cp nginx/nginx-initial.conf nginx/active.conf"
+echo "  6. Start: cd master-prediction && docker compose up -d --build"
+echo "  7. Get SSL cert: docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d masterprediction.duckdns.org"
+echo "  8. Switch to the full HTTPS config now that certs exist:"
+echo "       cp nginx/nginx.conf nginx/active.conf"
+echo "  9. Restart nginx: docker compose restart nginx"
