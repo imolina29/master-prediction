@@ -1,0 +1,25 @@
+# Web framework
+nicegui>=3.15.0
+fastapi>=0.115.0
+uvicorn>=0.32.0
+
+# Database
+supabase>=2.10.0
+
+# Data
+pandas>=2.2.0
+duckdb>=1.1.0
+pyarrow>=18.0.0
+
+# Auth
+bcrypt>=4.0.0
+
+# HTTP client
+httpx>=0.28.0
+requests>=2.32.0
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+beautifulsoup4>=4.12.0
