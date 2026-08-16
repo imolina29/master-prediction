@@ -2,7 +2,14 @@ name: ETL Pipeline
 
 on:
   schedule:
+    # 7:00 AM COL — full pipeline (fixtures, features, predictions, odds, notifications)
     - cron: "0 12 * * *"
+    # 3:00 PM COL — results + predictions update
+    - cron: "0 20 * * *"
+    # 7:00 PM COL — results + predictions update
+    - cron: "0 0 * * *"
+    # 11:00 PM COL — results + predictions update (late matches)
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -11,6 +18,9 @@ permissions:
 jobs:
   run-etl:
     runs-on: ubuntu-latest
+
+    env:
+      IS_FULL_RUN: ${{ github.event.schedule == '0 12 * * *' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +34,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # --- Always run: results + fixtures + predictions ---
+
       - name: Run match ETL pipeline
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_etl.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -33,6 +46,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run Understat xG scraper (current season only)
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_understat.py --current
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -59,6 +73,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Generate features
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_features.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -67,6 +82,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Commit updated features
+        if: env.IS_FULL_RUN == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -83,7 +99,10 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      # --- Full run only: odds, notifications, alerts ---
+
       - name: Fetch current odds
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_odds.py
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
@@ -93,6 +112,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Generate value bets
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_value_bets.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -109,6 +129,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Check expired subscriptions
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_check_expirations.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -120,6 +141,7 @@ jobs:
           TELEGRAM_PREMIUM_CHANNEL_ID: ${{ secrets.TELEGRAM_PREMIUM_CHANNEL_ID }}
 
       - name: Send Telegram notifications
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_notifications.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -135,6 +157,7 @@ jobs:
           LANDING_URL: ${{ secrets.LANDING_URL }}
 
       - name: Check and send smart alerts
+        if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_alerts.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
