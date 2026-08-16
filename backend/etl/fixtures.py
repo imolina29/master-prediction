@@ -161,8 +161,31 @@ def load_fixtures(records: list[dict], batch_size: int = 500) -> int:
     from backend.db.client import get_supabase
 
     client = get_supabase()
-    total = 0
 
+    # Remove phantom unplayed matches when a fixture date changes:
+    # for each incoming fixture, delete any unplayed match with same
+    # (division, home_team, away_team) but a different date.
+    phantoms_removed = 0
+    for rec in records:
+        if rec.get("ft_result") is not None:
+            continue
+        resp = (
+            client.table("matches")
+            .delete()
+            .eq("division", rec["division"])
+            .eq("home_team", rec["home_team"])
+            .eq("away_team", rec["away_team"])
+            .neq("match_date", rec["match_date"])
+            .is_("ft_result", "null")
+            .execute()
+        )
+        if resp.data:
+            phantoms_removed += len(resp.data)
+
+    if phantoms_removed:
+        logger.info("Removed %d phantom matches from date changes", phantoms_removed)
+
+    total = 0
     for i in range(0, len(records), batch_size):
         batch = records[i : i + batch_size]
         client.table("matches").upsert(
