@@ -7,6 +7,8 @@ import bcrypt
 from dotenv import load_dotenv
 from nicegui import app, ui
 
+from backend.api.chat import router as chat_router
+from backend.api.performance import router as perf_router
 from webapp.theme import CSS, SIDEBAR_ICONS, render_footer
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -370,11 +372,15 @@ def admin_page():
 
 app.add_static_files("/static", str(Path(__file__).parent / "static"))
 
+app.include_router(chat_router)
+app.include_router(perf_router)
+
 ui.run(
     title="Master Prediction",
     favicon="⚽",
-    port=8080,
+    port=int(os.environ.get("PORT", 8080)),
     dark=True,
     storage_secret=os.environ.get("SUPABASE_KEY", "master-prediction-secret-key"),
     show=False,
+    reload=False,
 )
