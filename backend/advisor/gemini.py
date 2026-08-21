@@ -61,6 +61,7 @@ def enhance_response(
 ) -> str | None:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        logger.warning("GEMINI_API_KEY not set — AI enhancement disabled")
         return None
     if not check_rate_limit(user_id):
         logger.info("Rate limit hit for user %s", user_id)

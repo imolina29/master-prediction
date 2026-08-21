@@ -155,6 +155,10 @@ SCHEDULE_KEYWORDS = [
     "proximos juegos",
     "que hay hoy",
     "que se juega",
+    "partidos para",
+    "partidos del",
+    "juegos de hoy",
+    "juegos del",
 ]
 
 DATE_KEYWORDS = {
@@ -164,6 +168,10 @@ DATE_KEYWORDS = {
     "pasado": 2,
     "semana": 7,
     "esta semana": 7,
+    "fin de semana": 7,
+    "weekend": 7,
+    "sabado": 3,
+    "domingo": 4,
 }
 
 STATS_KEYWORDS = ["racha", "record", "rendimiento", "estadistica", "acierto", "track"]
@@ -1049,10 +1057,13 @@ def get_response(
             data_ctx = _fetch_upcoming_summary(client)
         else:
             data_ctx = template
+        logger.info("Attempting Gemini enhancement for intent=%s", query["intent"])
         ai = enhance_response(text, data_ctx, history, user_id)
         if ai:
+            logger.info("Gemini enhanced response successfully")
             return ai, ctx
+        logger.info("Gemini returned None — using template fallback")
     except Exception as e:
-        logger.debug("AI enhancement skipped: %s", e)
+        logger.warning("AI enhancement failed: %s", e)
 
     return template, ctx
