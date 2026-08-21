@@ -92,7 +92,7 @@ def enhance_response(
         contents.append(types.Content(role="user", parts=[types.Part(text=prompt)]))
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3.6-flash",
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
