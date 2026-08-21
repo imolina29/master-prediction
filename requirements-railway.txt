@@ -18,6 +18,9 @@ bcrypt>=4.0.0
 httpx>=0.28.0
 requests>=2.32.0
 
+# AI advisor
+google-genai>=1.0.0
+
 # Utils
 python-dotenv>=1.0.0
 pydantic>=2.10.0

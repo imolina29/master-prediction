@@ -1,6 +1,6 @@
 """Asesor Virtual — chat interface for prediction queries."""
 
-from nicegui import app, ui
+from nicegui import app, run, ui
 
 from webapp.data import get_supabase_client
 from webapp.theme import render_mini_strip
@@ -89,30 +89,26 @@ def render():
         text_input.value = ""
 
         messages.append({"role": "user", "content": prompt})
+        messages.append({"role": "assistant", "content": "⏳ Analizando..."})
         _render_messages()
 
         try:
-            import os
+            from backend.advisor.engine import get_response
+            from backend.db.client import get_supabase
 
-            import httpx
-
-            api_url = os.environ.get("BACKEND_API_URL", "http://localhost:8081")
-            api_key = os.environ.get("API_KEY_WEBAPP", "")
+            client = get_supabase()
             known_teams = _load_known_teams()
             ctx = app.storage.user.get("advisor_context", {})
-            async with httpx.AsyncClient(timeout=30.0) as http:
-                resp = await http.post(
-                    f"{api_url}/api/chat",
-                    json={"message": prompt, "known_teams": known_teams, "context": ctx},
-                    headers={"X-API-Key": api_key},
-                )
-            resp.raise_for_status()
-            data = resp.json()
-            response = data["response"]
-            app.storage.user["advisor_context"] = data.get("context", {})
-        except Exception as e:
-            response = f"Error al conectar con el servicio: {e}"
+            user_id = app.storage.user.get("username", "anonymous")
 
+            response, new_ctx = await run.io_bound(
+                get_response, client, prompt, known_teams, ctx, user_id, messages[:-1]
+            )
+            app.storage.user["advisor_context"] = new_ctx
+        except Exception as e:
+            response = f"Error: {e}"
+
+        messages.pop()
         messages.append({"role": "assistant", "content": response})
         app.storage.user["advisor_messages"] = messages
         _render_messages()
