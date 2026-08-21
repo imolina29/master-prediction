@@ -96,8 +96,9 @@ def enhance_response(
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
-                max_output_tokens=400,
+                max_output_tokens=4096,
                 temperature=0.7,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
             ),
         )
 
