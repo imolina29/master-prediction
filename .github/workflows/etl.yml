@@ -91,6 +91,14 @@ jobs:
           git pull --rebase origin main
           git push
 
+      - name: Compute league ELO ratings
+        run: PYTHONPATH=. python scripts/run_league_elo.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Generate predictions for upcoming matches
         run: PYTHONPATH=. python scripts/run_predictions.py --upcoming
         env:
