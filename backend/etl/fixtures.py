@@ -158,6 +158,8 @@ def load_fixtures(records: list[dict], batch_size: int = 500) -> int:
     if not records:
         return 0
 
+    from datetime import date, timedelta
+
     from backend.db.client import get_supabase
 
     client = get_supabase()
@@ -166,9 +168,33 @@ def load_fixtures(records: list[dict], batch_size: int = 500) -> int:
     # for each incoming fixture, delete any unplayed match with same
     # (division, home_team, away_team) but a different date.
     phantoms_removed = 0
+    already_played = 0
+    clean_records = []
     for rec in records:
         if rec.get("ft_result") is not None:
+            clean_records.append(rec)
             continue
+
+        # Skip fixture if the same matchup already has a result within ±7 days.
+        # The API sometimes re-reports played matches as SCHEDULED with a shifted date.
+        window_start = (date.fromisoformat(rec["match_date"]) - timedelta(days=7)).isoformat()
+        window_end = (date.fromisoformat(rec["match_date"]) + timedelta(days=7)).isoformat()
+        played_resp = (
+            client.table("matches")
+            .select("id", count="exact")
+            .eq("division", rec["division"])
+            .eq("home_team", rec["home_team"])
+            .eq("away_team", rec["away_team"])
+            .gte("match_date", window_start)
+            .lte("match_date", window_end)
+            .not_.is_("ft_result", "null")
+            .limit(1)
+            .execute()
+        )
+        if played_resp.count and played_resp.count > 0:
+            already_played += 1
+            continue
+
         resp = (
             client.table("matches")
             .delete()
@@ -182,12 +208,16 @@ def load_fixtures(records: list[dict], batch_size: int = 500) -> int:
         if resp.data:
             phantoms_removed += len(resp.data)
 
+        clean_records.append(rec)
+
     if phantoms_removed:
         logger.info("Removed %d phantom matches from date changes", phantoms_removed)
+    if already_played:
+        logger.info("Skipped %d fixtures already played (API ghost)", already_played)
 
     total = 0
-    for i in range(0, len(records), batch_size):
-        batch = records[i : i + batch_size]
+    for i in range(0, len(clean_records), batch_size):
+        batch = clean_records[i : i + batch_size]
         client.table("matches").upsert(
             batch,
             on_conflict="division,match_date,home_team,away_team",
