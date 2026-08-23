@@ -742,7 +742,6 @@ def main():
 
     # Filter out ghost fixtures: matches the API reports as scheduled but
     # that were already played under a slightly different date (±7 days).
-    ghost_ids = []
     window_start = (now - timedelta(days=7)).strftime("%Y-%m-%d")
     played_resp = (
         client.table("matches")
