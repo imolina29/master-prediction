@@ -91,6 +91,14 @@ jobs:
           git pull --rebase origin main
           git push
 
+      - name: Clean ghost fixtures (already-played re-reported by API)
+        run: PYTHONPATH=. python scripts/run_cleanup_ghosts.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Compute league ELO ratings
         run: PYTHONPATH=. python scripts/run_league_elo.py
         env:

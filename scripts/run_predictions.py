@@ -740,6 +740,34 @@ def main():
         logger.info("No upcoming matches found.")
         return
 
+    # Filter out ghost fixtures: matches the API reports as scheduled but
+    # that were already played under a slightly different date (±7 days).
+    ghost_ids = []
+    window_start = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    played_resp = (
+        client.table("matches")
+        .select("division,home_team,away_team,match_date")
+        .gte("match_date", window_start)
+        .lte("match_date", week_ahead)
+        .not_.is_("ft_result", "null")
+        .execute()
+    )
+    played_set = {(r["division"], r["home_team"], r["away_team"]) for r in played_resp.data}
+    before = len(upcoming)
+    upcoming = upcoming[
+        ~upcoming.apply(
+            lambda r: (r["division"], r["home_team"], r["away_team"]) in played_set,
+            axis=1,
+        )
+    ]
+    ghost_count = before - len(upcoming)
+    if ghost_count:
+        logger.warning("Filtered out %d ghost fixtures (already played)", ghost_count)
+
+    if upcoming.empty:
+        logger.info("No upcoming matches after ghost filtering.")
+        return
+
     logger.info("Found %d upcoming matches", len(upcoming))
 
     team_features = pd.read_parquet(FEATURES_PATH)
