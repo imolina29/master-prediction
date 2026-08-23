@@ -20,6 +20,7 @@ lightgbm>=4.5.0
 catboost>=1.2.0
 
 # Dashboard
+nicegui>=3.15.0
 streamlit>=1.40.0
 plotly>=5.24.0
 streamlit-authenticator>=0.4.0
@@ -31,6 +32,9 @@ requests>=2.32.0
 beautifulsoup4>=4.12.0
 httpx>=0.28.0
 
+# AI advisor
+google-genai>=1.0.0
+
 # Utils
 python-dotenv>=1.0.0
 pydantic>=2.10.0
@@ -39,6 +43,3 @@ pydantic-settings>=2.6.0
 # Dev
 pytest>=8.3.0
 ruff>=0.8.0
-
-# Local packages (editable so hot-reload picks up changes)
--e .

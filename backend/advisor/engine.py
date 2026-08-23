@@ -155,6 +155,10 @@ SCHEDULE_KEYWORDS = [
     "proximos juegos",
     "que hay hoy",
     "que se juega",
+    "partidos para",
+    "partidos del",
+    "juegos de hoy",
+    "juegos del",
 ]
 
 DATE_KEYWORDS = {
@@ -164,6 +168,10 @@ DATE_KEYWORDS = {
     "pasado": 2,
     "semana": 7,
     "esta semana": 7,
+    "fin de semana": 7,
+    "weekend": 7,
+    "sabado": 3,
+    "domingo": 4,
 }
 
 STATS_KEYWORDS = ["racha", "record", "rendimiento", "estadistica", "acierto", "track"]
@@ -957,8 +965,74 @@ def _predict_on_demand(home: str, away: str) -> str | None:
     return None
 
 
+def _fetch_upcoming_summary(client) -> str:
+    """Fetch upcoming predictions as plain text for AI context."""
+    today = date.today().isoformat()
+    resp = (
+        client.table("predictions")
+        .select(
+            "home_team,away_team,match_date,division,"
+            "predicted_result,confidence,prob_home,prob_draw,prob_away"
+        )
+        .gte("match_date", today)
+        .order("match_date")
+        .limit(20)
+        .execute()
+    )
+    if not resp.data:
+        return "No hay predicciones próximas disponibles."
+    lines = []
+    for p in resp.data:
+        liga = DIVISION_NAMES.get(p["division"], p["division"])
+        lines.append(
+            f"{p['match_date']} | {p['home_team']} vs {p['away_team']} | {liga} | "
+            f"Pred: {RESULT_LABELS.get(p['predicted_result'], '?')} "
+            f"({p['confidence']}) | "
+            f"H:{p['prob_home']:.0%} D:{p['prob_draw']:.0%} A:{p['prob_away']:.0%}"
+        )
+    return "\n".join(lines)
+
+
+def _handle_intent(client, query: dict, ctx: dict) -> str:
+    """Route intent to the appropriate handler and return the template response."""
+    if query["intent"] == "match":
+        ctx["last_team"] = query["team_a"]
+        ctx["last_teams"] = [query["team_a"], query["team_b"]]
+        return handle_match(client, query["team_a"], query["team_b"])
+    if query["intent"] == "team":
+        ctx["last_team"] = query["team"]
+        return handle_team(client, query["team"])
+    if query["intent"] == "schedule":
+        return handle_schedule(client, query.get("days_ahead", 0))
+    if query["intent"] == "best_picks":
+        return handle_best_picks(client, query.get("days_ahead", 7))
+    if query["intent"] == "stats":
+        return handle_stats(client)
+    if query["intent"] == "unresolved_match":
+        return (
+            f"Detecte que buscas el partido "
+            f"**{query['raw_a']} vs {query['raw_b']}**, "
+            f"pero estos equipos no estan en nuestra base de datos.\n\n"
+            f"Actualmente cubrimos:\n"
+            f"• 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League\n"
+            f"• 🇪🇸 La Liga\n"
+            f"• 🇮🇹 Serie A\n"
+            f"• 🇩🇪 Bundesliga\n"
+            f"• 🇫🇷 Ligue 1\n"
+            f"• 🏆 Champions League\n"
+            f"• 🌍 FIFA World Cup 2026\n\n"
+            f"_Estamos trabajando para agregar mas ligas pronto._"
+        )
+    return handle_unknown()
+
+
 def get_response(
-    client, text: str, known_teams: list[str], context: dict | None = None
+    client,
+    text: str,
+    known_teams: list[str],
+    context: dict | None = None,
+    user_id: str = "default",
+    history: list[dict] | None = None,
 ) -> tuple[str, dict]:
     """Return (response_text, updated_context)."""
     query = parse_query(text, known_teams, context)
@@ -974,38 +1048,22 @@ def get_response(
             "• _Francia_"
         ), ctx
 
-    if query["intent"] == "match":
-        ctx["last_team"] = query["team_a"]
-        ctx["last_teams"] = [query["team_a"], query["team_b"]]
-        return handle_match(client, query["team_a"], query["team_b"]), ctx
+    template = _handle_intent(client, query, ctx)
 
-    if query["intent"] == "team":
-        ctx["last_team"] = query["team"]
-        return handle_team(client, query["team"]), ctx
+    try:
+        from backend.advisor.gemini import enhance_response
 
-    if query["intent"] == "schedule":
-        return handle_schedule(client, query.get("days_ahead", 0)), ctx
+        if query["intent"] == "unknown":
+            data_ctx = _fetch_upcoming_summary(client)
+        else:
+            data_ctx = template
+        logger.info("Attempting Gemini enhancement for intent=%s", query["intent"])
+        ai = enhance_response(text, data_ctx, history, user_id)
+        if ai:
+            logger.info("Gemini enhanced response successfully")
+            return ai, ctx
+        logger.info("Gemini returned None — using template fallback")
+    except Exception as e:
+        logger.warning("AI enhancement failed: %s", e)
 
-    if query["intent"] == "best_picks":
-        return handle_best_picks(client, query.get("days_ahead", 7)), ctx
-
-    if query["intent"] == "stats":
-        return handle_stats(client), ctx
-
-    if query["intent"] == "unresolved_match":
-        return (
-            f"Detecte que buscas el partido "
-            f"**{query['raw_a']} vs {query['raw_b']}**, "
-            f"pero estos equipos no estan en nuestra base de datos.\n\n"
-            f"Actualmente cubrimos:\n"
-            f"• 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League\n"
-            f"• 🇪🇸 La Liga\n"
-            f"• 🇮🇹 Serie A\n"
-            f"• 🇩🇪 Bundesliga\n"
-            f"• 🇫🇷 Ligue 1\n"
-            f"• 🏆 Champions League\n"
-            f"• 🌍 FIFA World Cup 2026\n\n"
-            f"_Estamos trabajando para agregar mas ligas pronto._"
-        ), ctx
-
-    return handle_unknown(), ctx
+    return template, ctx

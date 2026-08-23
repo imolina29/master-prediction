@@ -1,9 +1,12 @@
 [theme]
-primaryColor = "#4CAF50"
-backgroundColor = "#050505"
-secondaryBackgroundColor = "#0c0c0c"
-textColor = "#c8c8c8"
+primaryColor = "#16c47f"
+backgroundColor = "#07090c"
+secondaryBackgroundColor = "#0c1015"
+textColor = "#c2cad6"
 font = "sans serif"
 
 [server]
 headless = true
+
+[browser]
+gatherUsageStats = false

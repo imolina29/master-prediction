@@ -5,13 +5,6 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-from backend.ml.league_config import LEAGUE_DIVISIONS
-from backend.ml.postprocess import (
-    apply_league_draw_zone,
-    apply_league_ensemble,
-    get_league_poisson_probs,
-)
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -747,6 +740,33 @@ def main():
         logger.info("No upcoming matches found.")
         return
 
+    # Filter out ghost fixtures: matches the API reports as scheduled but
+    # that were already played under a slightly different date (±7 days).
+    window_start = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    played_resp = (
+        client.table("matches")
+        .select("division,home_team,away_team,match_date")
+        .gte("match_date", window_start)
+        .lte("match_date", week_ahead)
+        .not_.is_("ft_result", "null")
+        .execute()
+    )
+    played_set = {(r["division"], r["home_team"], r["away_team"]) for r in played_resp.data}
+    before = len(upcoming)
+    upcoming = upcoming[
+        ~upcoming.apply(
+            lambda r: (r["division"], r["home_team"], r["away_team"]) in played_set,
+            axis=1,
+        )
+    ]
+    ghost_count = before - len(upcoming)
+    if ghost_count:
+        logger.warning("Filtered out %d ghost fixtures (already played)", ghost_count)
+
+    if upcoming.empty:
+        logger.info("No upcoming matches after ghost filtering.")
+        return
+
     logger.info("Found %d upcoming matches", len(upcoming))
 
     team_features = pd.read_parquet(FEATURES_PATH)
@@ -886,18 +906,11 @@ def main():
         away_elo = match.get("away_elo") or 1500.0
         preds = _apply_draw_zone(preds, division, home_elo - away_elo, home, away)
 
-        if division in LEAGUE_DIVISIONS:
-            league_poisson = get_league_poisson_probs(
-                feature_row.get("home_goals_scored_avg_3"),
-                feature_row.get("home_goals_conceded_avg_3"),
-                feature_row.get("away_goals_scored_avg_3"),
-                feature_row.get("away_goals_conceded_avg_3"),
-                home_elo,
-                away_elo,
-                division,
-            )
-            preds = apply_league_ensemble(preds, league_poisson)
-            preds = apply_league_draw_zone(preds, home_elo - away_elo, home_elo, away_elo)
+        # League Poisson ensemble disabled until ELO ratings are stable
+        # if division in LEAGUE_DIVISIONS:
+        #     league_poisson = get_league_poisson_probs(...)
+        #     preds = apply_league_ensemble(preds, league_poisson)
+        #     preds = apply_league_draw_zone(preds, ...)
 
         preds["match_date"] = match["match_date"]
         preds["home_team"] = home
