@@ -3,7 +3,7 @@
 Three cleanup passes:
 1. Ghost matches: unplayed match whose same matchup already has a result (±14 days)
 2. Orphan predictions: predictions whose matchup already has a result in matches table
-3. Stale predictions: predictions for dates that already passed (yesterday or older)
+3. Stale predictions: past predictions whose match was never played (keeps track record)
 """
 
 import logging
@@ -104,29 +104,44 @@ def main():
     if orphan_ids:
         logger.info("Deleted %d orphan predictions", len(orphan_ids))
 
-    # --- Pass 3: Delete stale predictions (date already passed) ---
-    stale_resp = (
+    # --- Pass 3: Delete stale predictions WITHOUT a played match ---
+    # Keep past predictions that have a corresponding result (track record).
+    # Only delete those whose match was never played (cancelled, postponed,
+    # or phantom fixtures that slipped through).
+    all_past_preds = (
         client.table("predictions")
-        .select("id", count="exact")
+        .select("id,division,match_date,home_team,away_team")
         .lt("match_date", today.isoformat())
         .execute()
     )
-    stale_count = stale_resp.count or 0
-    if stale_count > 0:
-        # Delete in batches
-        while True:
-            batch = (
-                client.table("predictions")
-                .select("id")
-                .lt("match_date", today.isoformat())
-                .limit(500)
-                .execute()
+    # Build a broad played set covering all historical prediction dates
+    if all_past_preds.data:
+        oldest = min(p["match_date"] for p in all_past_preds.data)
+        hist_played_resp = (
+            client.table("matches")
+            .select("match_date,home_team,away_team")
+            .not_.is_("ft_result", "null")
+            .gte("match_date", oldest)
+            .execute()
+        )
+        hist_played = {
+            (r["match_date"], r["home_team"], r["away_team"]) for r in hist_played_resp.data
+        }
+        stale_ids = []
+        for p in all_past_preds.data:
+            key = (p["match_date"], p["home_team"], p["away_team"])
+            if key not in hist_played:
+                stale_ids.append(p["id"])
+        for sid in stale_ids:
+            client.table("predictions").delete().eq("id", sid).execute()
+        stale_count = len(stale_ids)
+        if stale_count:
+            logger.info(
+                "Deleted %d stale preds (no matching result)",
+                stale_count,
             )
-            if not batch.data:
-                break
-            for row in batch.data:
-                client.table("predictions").delete().eq("id", row["id"]).execute()
-        logger.info("Deleted %d stale predictions (past dates)", stale_count)
+    else:
+        stale_count = 0
 
     total = len(ghost_match_ids) + len(orphan_ids) + stale_count
     if total == 0:
