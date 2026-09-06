@@ -39,7 +39,6 @@ def main():
     client = get_supabase()
 
     today = date.today()
-    yesterday = (today - timedelta(days=1)).isoformat()
     window_start = (today - timedelta(days=14)).isoformat()
     window_end = (today + timedelta(days=30)).isoformat()
 
@@ -134,7 +133,7 @@ def main():
         logger.info("No ghosts, orphans, or stale predictions found. Database clean.")
     else:
         logger.info(
-            "Cleanup complete: %d ghost matches, %d orphan predictions, %d stale predictions deleted",
+            "Cleanup: %d ghosts, %d orphan preds, %d stale preds deleted",
             len(ghost_match_ids),
             len(orphan_ids),
             stale_count,
