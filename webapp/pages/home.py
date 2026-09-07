@@ -260,6 +260,41 @@ def render():
                     lp_html += "</div>"
                     ui.html(lp_html)
 
+    # Weekly report teaser
+    try:
+        from backend.db.client import get_supabase as _get_sb
+
+        _sb = _get_sb()
+        _wr_resp = (
+            _sb.table("weekly_reports")
+            .select("week_start,week_end,hit_rate,narrative")
+            .order("week_start", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if _wr_resp.data:
+            _wr = _wr_resp.data[0]
+            _wr_rate = round(float(_wr.get("hit_rate", 0)) * 100)
+            _narrative = _wr.get("narrative", "") or ""
+            # Extract headline (first line)
+            _headline = _narrative.strip().split("\n")[0].lstrip("#").strip()
+            if len(_headline) > 70:
+                _headline = _headline[:67] + "..."
+            _teaser_html = (
+                f'<a href="/resumen" style="text-decoration:none;color:inherit">'
+                f'<div class="wr-teaser">'
+                f'<div class="wr-teaser-tag">Resumen Semanal</div>'
+                f'<div class="wr-teaser-title">{_headline}</div>'
+                f'<div class="wr-teaser-meta">'
+                f"{_wr['week_start']} al {_wr['week_end']} · "
+                f"Precision: {_wr_rate}%</div>"
+                f'<div class="wr-teaser-link">Leer resumen completo →</div>'
+                f"</div></a>"
+            )
+            ui.html(_teaser_html)
+    except Exception:
+        pass
+
     # Track record
     if track is not None and not track.empty:
         recent = track.head(10)

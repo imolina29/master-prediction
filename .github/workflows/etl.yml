@@ -144,6 +144,16 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      - name: Generate weekly report (Sunday night only)
+        if: github.event.schedule == '0 4 * * *'
+        run: PYTHONPATH=. python scripts/run_weekly_report.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
       - name: Check expired subscriptions
         if: env.IS_FULL_RUN == 'true'
         run: PYTHONPATH=. python scripts/run_check_expirations.py

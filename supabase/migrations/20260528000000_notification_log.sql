@@ -12,6 +12,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_log_unique
 
 ALTER TABLE notification_log ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Service role full access on notification_log"
-    ON notification_log FOR ALL
-    USING (auth.role() = 'service_role');
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE tablename = 'notification_log'
+        AND policyname = 'Service role full access on notification_log'
+    ) THEN
+        CREATE POLICY "Service role full access on notification_log"
+            ON notification_log FOR ALL
+            USING (auth.role() = 'service_role');
+    END IF;
+END $$;
