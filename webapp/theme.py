@@ -150,7 +150,7 @@ nicegui-html { width: 100%; display: block; }
 }
 .f-stripe {
   height: 3px;
-  background: linear-gradient(90deg, var(--flame) 0%, var(--flame) 55%, var(--edge) 55%);
+  background: linear-gradient(90deg, var(--feat-color, var(--flame)) 0%, var(--feat-color, var(--flame)) 55%, var(--edge) 55%);
 }
 .f-label {
   display: flex; justify-content: space-between;
@@ -159,7 +159,7 @@ nicegui-html { width: 100%; display: block; }
 .f-tag {
   font-size: 10px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.10em;
-  color: var(--flame);
+  color: var(--feat-color, var(--flame));
 }
 .f-league {
   font-size: 11px; color: var(--text-3);
