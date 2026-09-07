@@ -97,11 +97,11 @@ def _stats_cards_html(stats: dict) -> str:
         )
     cards += (
         f'<div class="wr-stat">'
-        f'<div class="wr-stat-val" style="color:var(--miss)">'
-        f"{draws.get('missed', 0)}</div>"
-        f'<div class="wr-stat-lbl">Empates fallidos</div>'
+        f'<div class="wr-stat-val" style="color:var(--draw-color)">'
+        f"{draws.get('real', 0)}</div>"
+        f'<div class="wr-stat-lbl">Empates en la jornada</div>'
         f'<div class="wr-stat-sub">'
-        f"{draws.get('real', 0)} empates reales</div>"
+        f"Partidos igualados</div>"
         f"</div>"
     )
     cards += "</div>"
@@ -155,12 +155,11 @@ def _highlights_html(stats: dict) -> str:
     if worst:
         html += (
             f'<div class="wr-highlight miss">'
-            f'<div class="wr-hl-tag">Peor fallo</div>'
+            f'<div class="wr-hl-tag">Partido sorpresa</div>'
             f'<div class="wr-hl-match">{worst["match"]}</div>'
             f'<div class="wr-hl-detail">'
-            f"{worst['score']} · Pred: {worst['prediction']} "
-            f"(Real: {worst['actual']}) · "
-            f"{worst['confidence'].title()} · {worst['league']}</div>"
+            f"{worst['score']} · Resultado: {worst['actual']} · "
+            f"{worst['league']}</div>"
             f"</div>"
         )
     return html
