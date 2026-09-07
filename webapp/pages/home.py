@@ -8,13 +8,13 @@ from webapp.theme import CHECK_SVG, CROSS_SVG, DONUT_JS, SPARK_JS, render_hero_b
 RESULT_LABELS = {"H": "Local", "D": "Empate", "A": "Visitante"}
 
 LEAGUE_COLORS = {
-    "E0": "var(--info)",
-    "SP1": "var(--flame)",
-    "I1": "var(--hit)",
-    "D1": "var(--draw-color)",
-    "F1": "var(--miss)",
-    "EC": "var(--text-2)",
-    "WC": "var(--flame)",
+    "E0": "#3d1d8e",
+    "SP1": "#e8590c",
+    "I1": "#1b7d3a",
+    "D1": "#d32f2f",
+    "F1": "#0d5eaf",
+    "EC": "#1b3c8c",
+    "WC": "#7b1fa2",
 }
 
 
@@ -65,8 +65,9 @@ def _featured_match_html(p: dict) -> str:
     extras.append(f'Confianza: <strong style="color:{conf_color}">{confidence.title()}</strong>')
     extras_html = "".join(f"<span>{e}</span>" for e in extras)
 
+    lc = LEAGUE_COLORS.get(div, "#e8590c")
     return (
-        f'<div class="featured">'
+        f'<div class="featured" style="--feat-color:{lc}">'
         f'<div class="f-stripe"></div>'
         f'<div class="f-label">'
         f'<span class="f-tag">Prediccion destacada</span>'
@@ -98,8 +99,9 @@ def _match_row_html(p: dict) -> str:
     force = _force_bar_html(
         p.get("prob_home", 0.33), p.get("prob_draw", 0.33), p.get("prob_away", 0.34), size="small"
     )
+    lc = LEAGUE_COLORS.get(div, "#484f58")
     return (
-        f'<div class="ml-row">'
+        f'<div class="ml-row" style="border-left:3px solid {lc}">'
         f'<div class="ml-conf {confidence}"></div>'
         f'<div class="ml-info">'
         f'<div class="ml-teams">{p["home_team"]} vs {p["away_team"]}</div>'
@@ -257,6 +259,41 @@ def render():
                         )
                     lp_html += "</div>"
                     ui.html(lp_html)
+
+    # Weekly report teaser
+    try:
+        from backend.db.client import get_supabase as _get_sb
+
+        _sb = _get_sb()
+        _wr_resp = (
+            _sb.table("weekly_reports")
+            .select("week_start,week_end,hit_rate,narrative")
+            .order("week_start", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if _wr_resp.data:
+            _wr = _wr_resp.data[0]
+            _wr_rate = round(float(_wr.get("hit_rate", 0)) * 100)
+            _narrative = _wr.get("narrative", "") or ""
+            # Extract headline (first line)
+            _headline = _narrative.strip().split("\n")[0].lstrip("#").strip()
+            if len(_headline) > 70:
+                _headline = _headline[:67] + "..."
+            _teaser_html = (
+                f'<a href="/resumen" style="text-decoration:none;color:inherit">'
+                f'<div class="wr-teaser">'
+                f'<div class="wr-teaser-tag">Resumen Semanal</div>'
+                f'<div class="wr-teaser-title">{_headline}</div>'
+                f'<div class="wr-teaser-meta">'
+                f"{_wr['week_start']} al {_wr['week_end']} · "
+                f"Precision: {_wr_rate}%</div>"
+                f'<div class="wr-teaser-link">Leer resumen completo →</div>'
+                f"</div></a>"
+            )
+            ui.html(_teaser_html)
+    except Exception:
+        pass
 
     # Track record
     if track is not None and not track.empty:

@@ -31,6 +31,7 @@ NAV = [
     {"icon": "scale", "path": "/comparador", "label": "Comparador"},
     {"sep": True},
     {"icon": "clock", "path": "/predicciones", "label": "Predicciones"},
+    {"icon": "newspaper", "path": "/resumen", "label": "Resumen"},
     {"icon": "chat", "path": "/asesor", "label": "Asesor"},
     {"sep": True},
     {"icon": "target", "path": "/calibracion", "label": "Calibracion"},
@@ -321,6 +322,17 @@ def comparador_page():
         return
     with ui.column().classes("w-full px-6 pb-8").style("max-width: 1200px; margin: 0 auto"):
         from webapp.pages.comparador import render
+
+        render()
+        render_footer()
+
+
+@ui.page("/resumen")
+def resumen_page():
+    if not _page_shell("/resumen"):
+        return
+    with ui.column().classes("w-full px-6 pb-8").style("max-width: 1200px; margin: 0 auto"):
+        from webapp.pages.resumen import render
 
         render()
         render_footer()
