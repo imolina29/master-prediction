@@ -31,8 +31,9 @@ def _pred_card_html(p: dict) -> str:
         extras.append(f"BTTS {p['prob_btts']:.0%}")
     extras_html = " · ".join(extras) if extras else ""
 
+    div_code = p.get("division", "")
     return (
-        f'<div class="pred-card">'
+        f'<div class="pred-card" data-league="{div_code}">'
         f'<div class="pc-top">'
         f'<span class="pc-league">{league}</span>'
         f'<span class="pc-date">{p.get("match_date", "")}</span>'

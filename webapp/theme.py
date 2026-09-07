@@ -492,15 +492,24 @@ nicegui-html { width: 100%; display: block; }
 .pred-card {
   background: var(--surface);
   border: 1px solid var(--edge);
+  border-left: 3px solid var(--league-color, var(--edge));
   border-radius: var(--radius);
   padding: 14px 16px;
 }
+/* League accent colors */
+.pred-card[data-league="E0"]  { --league-color: #3d1d8e; }
+.pred-card[data-league="SP1"] { --league-color: #e8590c; }
+.pred-card[data-league="I1"]  { --league-color: #1b7d3a; }
+.pred-card[data-league="D1"]  { --league-color: #d32f2f; }
+.pred-card[data-league="F1"]  { --league-color: #0d5eaf; }
+.pred-card[data-league="EC"]  { --league-color: #1b3c8c; }
+.pred-card[data-league="WC"]  { --league-color: #7b1fa2; }
 .pc-top {
   display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text-3);
   margin-bottom: 6px;
 }
-.pc-league { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.pc-league { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; color: var(--league-color, var(--text-3)); }
 .pc-date { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .pc-teams {
   display: flex; align-items: baseline; gap: 8px;
