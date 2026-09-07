@@ -276,17 +276,36 @@ def _generate_narrative(stats: dict, prev_rate: float | None) -> str | None:
             "envolvente. Nunca inventas estadísticas."
         )
 
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=[types.Content(role="user", parts=[types.Part(text=prompt)])],
-            config=types.GenerateContentConfig(
-                system_instruction=system,
-                max_output_tokens=4096,
-                temperature=0.8,
-            ),
-        )
+        import time
 
-        return response.text if response.text else None
+        models_to_try = ["gemini-3.6-flash", "gemini-3.6-flash-lite"]
+        for model_name in models_to_try:
+            for attempt in range(3):
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[types.Content(role="user", parts=[types.Part(text=prompt)])],
+                        config=types.GenerateContentConfig(
+                            system_instruction=system,
+                            max_output_tokens=4096,
+                            temperature=0.8,
+                        ),
+                    )
+                    if response.text:
+                        logger.info("Narrative generated with %s", model_name)
+                        return response.text
+                except Exception as e:
+                    wait = (attempt + 1) * 10
+                    logger.warning(
+                        "%s attempt %d failed: %s — retry in %ds",
+                        model_name,
+                        attempt + 1,
+                        e,
+                        wait,
+                    )
+                    time.sleep(wait)
+
+        return None
 
     except Exception as e:
         logger.warning("Gemini narrative generation failed: %s", e)
@@ -316,12 +335,32 @@ def main():
     # Check if report already exists for this week
     existing = (
         client.table("weekly_reports")
-        .select("id", count="exact")
+        .select("id,narrative,stats")
         .eq("week_start", week_start)
         .execute()
     )
-    if existing.count and existing.count > 0:
-        logger.info("Report already exists for week %s, skipping", week_start)
+    if existing.data:
+        row = existing.data[0]
+        if row.get("narrative"):
+            logger.info("Report already exists for week %s, skipping", week_start)
+            return
+        # Report exists but without narrative — regenerate it
+        logger.info("Report exists without narrative, generating...")
+        raw_stats = row.get("stats")
+        if isinstance(raw_stats, str):
+            raw_stats = json.loads(raw_stats)
+        prev_rate = _get_previous_week_rate(client, week_start)
+        narrative = _generate_narrative(raw_stats, prev_rate)
+        if narrative:
+            (
+                client.table("weekly_reports")
+                .update({"narrative": narrative})
+                .eq("id", row["id"])
+                .execute()
+            )
+            logger.info("Narrative added to existing report (%d chars)", len(narrative))
+        else:
+            logger.warning("Still no narrative generated")
         return
 
     stats = _collect_week_stats(client, week_start, week_end)
