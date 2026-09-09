@@ -11,13 +11,25 @@ logging.basicConfig(
 def main():
     from backend.db.client import get_supabase
     from backend.db.helpers import fetch_all
+    from backend.ml.config import TRACKED_DIVISIONS
     from backend.services.features import compute_team_features, save_features
 
     client = get_supabase()
 
     logging.info("Loading matches from Supabase...")
     matches_df = pd.DataFrame(fetch_all(client, "matches"))
-    logging.info("Loaded %d matches", len(matches_df))
+    logging.info("Loaded %d matches (all divisions)", len(matches_df))
+
+    # Filter to tracked divisions only — excludes second divisions
+    # (E1, SP2, D2, I2, F2) whose stats would contaminate features
+    # for promoted teams.
+    before = len(matches_df)
+    matches_df = matches_df[matches_df["division"].isin(TRACKED_DIVISIONS)]
+    logging.info(
+        "Filtered to tracked divisions: %d matches (%d excluded)",
+        len(matches_df),
+        before - len(matches_df),
+    )
 
     logging.info("Loading xG data from Supabase...")
     xg_df = pd.DataFrame(fetch_all(client, "match_xg"))

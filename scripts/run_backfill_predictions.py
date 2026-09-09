@@ -44,13 +44,13 @@ def main():
         args.since = (date.today() - timedelta(days=args.since_days)).isoformat()
 
     from backend.db.client import get_supabase
-    from backend.ml.config import FEATURES_PATH
+    from backend.ml.config import FEATURES_PATH, TRACKED_DIVISIONS
     from backend.ml.predict import predict_upcoming
 
     client = get_supabase()
     today = date.today().isoformat()
 
-    # 1. Get played matches in the window
+    # 1. Get played matches in the window (tracked divisions only)
     played_resp = (
         client.table("matches")
         .select("*")
@@ -65,7 +65,8 @@ def main():
         logger.info("No played matches found since %s", args.since)
         return
 
-    logger.info("Found %d played matches since %s", len(played), args.since)
+    played = played[played["division"].isin(TRACKED_DIVISIONS)]
+    logger.info("Found %d played matches since %s (tracked divisions)", len(played), args.since)
 
     # 2. Get existing predictions so we skip matches that already have one
     existing_resp = (

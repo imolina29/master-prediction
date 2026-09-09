@@ -809,7 +809,7 @@ def main():
 
     from backend.db.client import get_supabase
     from backend.etl.fixtures import load_h2h_features, load_national_features
-    from backend.ml.config import FEATURES_PATH
+    from backend.ml.config import FEATURES_PATH, TRACKED_DIVISIONS
     from backend.ml.predict import predict_upcoming
 
     client = get_supabase()
@@ -832,6 +832,18 @@ def main():
 
     if upcoming.empty:
         logger.info("No upcoming matches found.")
+        return
+
+    # Only predict for tracked divisions (excludes second divisions)
+    before = len(upcoming)
+    upcoming = upcoming[upcoming["division"].isin(TRACKED_DIVISIONS)]
+    if before != len(upcoming):
+        logger.info(
+            "Filtered out %d matches from non-tracked divisions",
+            before - len(upcoming),
+        )
+    if upcoming.empty:
+        logger.info("No upcoming matches in tracked divisions.")
         return
 
     # Filter out ghost fixtures: matches the API reports as scheduled but
