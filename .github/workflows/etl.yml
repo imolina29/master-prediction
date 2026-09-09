@@ -136,6 +136,14 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      - name: Backfill predictions for newly resolved matches
+        run: PYTHONPATH=. python scripts/run_backfill_predictions.py --since-days 3
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Resolve past picks
         run: PYTHONPATH=. python scripts/run_resolve_picks.py
         env:
