@@ -30,7 +30,18 @@ def main():
         default="2026-08-01",
         help="Backfill from this date (default: 2026-08-01)",
     )
+    parser.add_argument(
+        "--since-days",
+        type=int,
+        default=None,
+        help="Backfill last N days (overrides --since)",
+    )
     args = parser.parse_args()
+
+    if args.since_days is not None:
+        from datetime import timedelta
+
+        args.since = (date.today() - timedelta(days=args.since_days)).isoformat()
 
     from backend.db.client import get_supabase
     from backend.ml.config import FEATURES_PATH
