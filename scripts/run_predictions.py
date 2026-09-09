@@ -20,6 +20,14 @@ WC_DRAW_ZONE_THRESHOLD = 0.30
 WC_DRAW_ZONE_SPREAD = 0.12
 WC_DRAW_ZONE_ELO_MAX = 80
 
+# --- Champions League boost parameters ---
+# CL has lower home advantage than domestic leagues (~46% vs ~55% home win)
+# and stronger favorites tend to win more decisively.
+CL_FAVOURITE_BOOST = 0.10  # extra boost when ELO diff > threshold
+CL_FAVOURITE_ELO_THRESHOLD = 120  # ELO diff to trigger favourite boost
+CL_DRAW_REDUCE = 0.06  # reduce draw prob for big mismatches (ELO diff > 250)
+CL_DRAW_REDUCE_ELO_THRESHOLD = 250
+
 ENSEMBLE_WEIGHT_XGBOOST = 0.70
 ENSEMBLE_WEIGHT_POISSON = 0.30
 
@@ -129,6 +137,92 @@ def _apply_draw_zone(
             spread * 100,
             elo_diff,
         )
+    return preds
+
+
+# ---------------------------------------------------------------------------
+# Champions League post-prediction boosts
+# ---------------------------------------------------------------------------
+
+
+def _apply_cl_boost(
+    preds: dict,
+    division: str,
+    elo_diff: float,
+    home: str,
+    away: str,
+) -> dict:
+    """Adjust CL predictions based on ELO mismatch.
+
+    In Champions League, big favourites (high ELO diff) win more often
+    than the domestic-trained model expects, and draws are rarer in
+    mismatched games.
+    """
+    if division != "EC":
+        return preds
+
+    h = preds["prob_home"]
+    d = preds["prob_draw"]
+    a = preds["prob_away"]
+    abs_diff = abs(elo_diff)
+
+    # 1) Favourite boost: when ELO diff is large, push probability
+    #    toward the favourite (reduces model's tendency to flatten CL probs)
+    if abs_diff >= CL_FAVOURITE_ELO_THRESHOLD:
+        boost = CL_FAVOURITE_BOOST * min(abs_diff / 400, 1.0)  # scale up to max
+        if elo_diff > 0:
+            # Home is favourite
+            total_da = d + a
+            if total_da > 0:
+                h += boost
+                d -= boost * (d / total_da)
+                a -= boost * (a / total_da)
+        else:
+            # Away is favourite
+            total_hd = h + d
+            if total_hd > 0:
+                a += boost
+                h -= boost * (h / total_hd)
+                d -= boost * (d / total_hd)
+
+    # 2) Draw reduction for big mismatches: draws are rare when there's
+    #    a clear quality gap in CL
+    if abs_diff >= CL_DRAW_REDUCE_ELO_THRESHOLD and d > 0.15:
+        reduce = CL_DRAW_REDUCE * min(abs_diff / 500, 1.0)
+        d_new = max(d - reduce, 0.10)
+        freed = d - d_new
+        d = d_new
+        if elo_diff > 0:
+            h += freed * 0.7
+            a += freed * 0.3
+        else:
+            a += freed * 0.7
+            h += freed * 0.3
+
+    # Normalize to ensure probabilities sum to 1
+    total = h + d + a
+    if total > 0:
+        preds["prob_home"] = round(h / total, 4)
+        preds["prob_draw"] = round(d / total, 4)
+        preds["prob_away"] = round(a / total, 4)
+
+    probs = [preds["prob_home"], preds["prob_draw"], preds["prob_away"]]
+    preds["predicted_result"] = _pick_result(probs)
+    preds["confidence"] = _classify_confidence_wc(max(probs))
+
+    if abs_diff >= CL_FAVOURITE_ELO_THRESHOLD:
+        fav = home if elo_diff > 0 else away
+        logger.info(
+            "CL boost: %s vs %s — fav=%s diff=%.0f → H=%.0f%% D=%.0f%% A=%.0f%%",
+            home,
+            away,
+            fav,
+            elo_diff,
+            preds["prob_home"] * 100,
+            preds["prob_draw"] * 100,
+            preds["prob_away"] * 100,
+        )
+
     return preds
 
 
@@ -905,6 +999,7 @@ def main():
         home_elo = match.get("home_elo") or 1500.0
         away_elo = match.get("away_elo") or 1500.0
         preds = _apply_draw_zone(preds, division, home_elo - away_elo, home, away)
+        preds = _apply_cl_boost(preds, division, home_elo - away_elo, home, away)
 
         # League Poisson ensemble disabled until ELO ratings are stable
         # if division in LEAGUE_DIVISIONS:
