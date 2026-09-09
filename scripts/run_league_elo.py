@@ -78,6 +78,33 @@ def _lookup_domestic_elo(
     return CL_UNKNOWN_DEFAULT_ELO, None
 
 
+def _resolve_cl_elo(
+    team: str,
+    domestic_elos: dict[str, dict[str, float]],
+    cl_elo: dict[str, float],
+) -> tuple[float, str]:
+    """Resolve a CL team's ELO with fallback chain.
+
+    Priority:
+      1. Domestic league ELO + league strength bonus (most reliable)
+      2. CL match ELO from real CL results (grows with experience)
+      3. Default 1500 (unknown team)
+
+    Returns (elo, source) where source is the division code, "CL", or "default".
+    """
+    # 1. Try domestic league
+    elo, division = _lookup_domestic_elo(team, domestic_elos)
+    if division is not None:
+        return elo, division
+
+    # 2. Try CL match ELO (built from real CL results)
+    if team in cl_elo:
+        return cl_elo[team], "CL"
+
+    # 3. Default
+    return CL_UNKNOWN_DEFAULT_ELO, "default"
+
+
 def main():
     from backend.db.client import get_supabase
     from backend.ml.elo import compute_league_elo, get_team_elo
@@ -127,7 +154,8 @@ def main():
 
         logger.info("%s: updated ELO for %d upcoming matches", division, len(upcoming))
 
-    # --- Phase 2: EC (Champions League) — use domestic ELO + league strength ---
+    # --- Phase 2: EC (Champions League) ---
+    # Priority: domestic ELO + league bonus > CL match ELO > default
     logger.info("Computing adjusted ELO for EC (Champions League)...")
 
     ec_upcoming_resp = (
@@ -142,54 +170,66 @@ def main():
     if not ec_upcoming:
         logger.info("EC: no upcoming matches to update")
     else:
+        # Phase 2a: compute CL-specific ELO from real CL matches only.
+        # The EC division mixes English Conference with Champions League,
+        # so we filter to matches where BOTH teams are actual CL participants.
+        cl_teams = set()
+        for m in ec_upcoming:
+            cl_teams.add(m["home_team"])
+            cl_teams.add(m["away_team"])
+
+        all_ec = _fetch_all(client, "EC")
+        cl_matches = [
+            m for m in all_ec if m["home_team"] in cl_teams and m["away_team"] in cl_teams
+        ]
+        cl_elo = compute_league_elo(cl_matches) if cl_matches else {}
+        logger.info(
+            "EC: computed CL ELO from %d real CL matches (%d teams)",
+            len(cl_matches),
+            len(cl_elo),
+        )
+
+        # Phase 2b: assign ELO to upcoming EC matches
+        # Priority: domestic ELO + league bonus > CL match ELO > default
         found_domestic = 0
+        found_cl_elo = 0
         used_default = 0
 
         for m in ec_upcoming:
-            home_elo, home_div = _lookup_domestic_elo(m["home_team"], domestic_elos)
-            away_elo, away_div = _lookup_domestic_elo(m["away_team"], domestic_elos)
+            home_elo, home_src = _resolve_cl_elo(m["home_team"], domestic_elos, cl_elo)
+            away_elo, away_src = _resolve_cl_elo(m["away_team"], domestic_elos, cl_elo)
 
-            if home_div:
-                found_domestic += 1
-            else:
-                used_default += 1
-                logger.debug(
-                    "  %s: no domestic ELO, using default %.0f",
-                    m["home_team"],
-                    home_elo,
-                )
-            if away_div:
-                found_domestic += 1
-            else:
-                used_default += 1
-                logger.debug(
-                    "  %s: no domestic ELO, using default %.0f",
-                    m["away_team"],
-                    away_elo,
-                )
+            for src in (home_src, away_src):
+                if src and src != "CL" and src != "default":
+                    found_domestic += 1
+                elif src == "CL":
+                    found_cl_elo += 1
+                else:
+                    used_default += 1
 
             client.table("matches").update({"home_elo": home_elo, "away_elo": away_elo}).eq(
                 "id", m["id"]
             ).execute()
 
         logger.info(
-            "EC: updated %d matches (%d teams from domestic leagues, %d using default ELO)",
+            "EC: updated %d matches — %d from domestic leagues, %d from CL results, %d default",
             len(ec_upcoming),
             found_domestic,
+            found_cl_elo,
             used_default,
         )
 
-        # Log the adjusted ELOs for visibility
+        # Log sample adjusted ELOs for visibility
         for m in ec_upcoming[:10]:
-            h_elo, h_div = _lookup_domestic_elo(m["home_team"], domestic_elos)
-            a_elo, a_div = _lookup_domestic_elo(m["away_team"], domestic_elos)
+            h_elo, h_src = _resolve_cl_elo(m["home_team"], domestic_elos, cl_elo)
+            a_elo, a_src = _resolve_cl_elo(m["away_team"], domestic_elos, cl_elo)
             logger.info(
                 "  %s (%s→%.0f) vs %s (%s→%.0f) → diff %.0f",
                 m["home_team"],
-                h_div or "?",
+                h_src or "?",
                 h_elo,
                 m["away_team"],
-                a_div or "?",
+                a_src or "?",
                 a_elo,
                 h_elo - a_elo,
             )
