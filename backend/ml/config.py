@@ -7,6 +7,12 @@ BACKTEST_RESULTS_PATH = PROJECT_ROOT / "data" / "backtest_results.json"
 
 PREMIUM_LEAGUES = ["E0", "SP1", "D1", "I1", "F1"]
 
+# Divisions we actively track: predictions, features, and ELO.
+# Second divisions (E1, SP2, D2, I2, F2) and English Conference
+# are excluded — their historical data stays in the DB but is
+# filtered out of the prediction and feature pipelines.
+TRACKED_DIVISIONS = {"E0", "SP1", "D1", "I1", "F1", "EC", "WC"}
+
 TARGETS = {
     "1x2": {"objective": "multi:softprob", "num_class": 3, "eval_metric": "mlogloss"},
     "over25": {"objective": "binary:logistic", "eval_metric": "logloss"},
