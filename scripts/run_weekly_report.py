@@ -288,7 +288,7 @@ def _generate_narrative(stats: dict, prev_rate: float | None) -> str | None:
 
         import time
 
-        models_to_try = ["gemini-3.6-flash", "gemini-3.6-flash-lite"]
+        models_to_try = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash"]
         for model_name in models_to_try:
             for attempt in range(3):
                 try:
@@ -323,11 +323,18 @@ def _generate_narrative(stats: dict, prev_rate: float | None) -> str | None:
 
 
 def main():
+    from datetime import datetime, timezone
+
     from backend.db.client import get_supabase
 
     client = get_supabase()
 
-    today = date.today()
+    # Use Colombia time (UTC-5) to determine the day, since the cron
+    # fires at 4am UTC Monday which is still Sunday 11pm in Colombia.
+    col_tz = timezone(timedelta(hours=-5))
+    now_col = datetime.now(col_tz)
+    today = now_col.date()
+
     # Only generate on Sundays (or manual runs via --force)
     import sys
 
