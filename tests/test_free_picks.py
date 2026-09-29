@@ -1,124 +1,48 @@
-from backend.notifications.telegram import build_free_picks
+from backend.notifications.telegram import _format_prediction_line
 
 
-def test_build_free_picks_top_two_by_stake():
-    picks = [
-        {
-            "market": "1x2_home",
-            "home_team": "Arsenal",
-            "away_team": "Chelsea",
-            "division": "E0",
-            "stake": 3,
-            "edge": 0.12,
-            "odd": 1.85,
-        },
-        {
-            "market": "over25",
-            "home_team": "Arsenal",
-            "away_team": "Chelsea",
-            "division": "E0",
-            "stake": 2,
-            "edge": 0.10,
-            "odd": 1.90,
-        },
-        {
-            "market": "1x2_away",
-            "home_team": "Liverpool",
-            "away_team": "Man City",
-            "division": "E0",
-            "stake": 2,
-            "edge": 0.09,
-            "odd": 2.50,
-        },
-    ]
-    result = build_free_picks(picks)
-    assert len(result) == 2
-    assert result[0]["stake"] >= result[1]["stake"]
+def _make_pred(
+    home="Arsenal", away="Chelsea", division="E0", result="H", confidence="alta", over25=0.8
+):
+    return {
+        "home_team": home,
+        "away_team": away,
+        "division": division,
+        "predicted_result": result,
+        "confidence": confidence,
+        "prob_over25": over25,
+        "prob_home": 0.6,
+        "prob_draw": 0.2,
+        "prob_away": 0.2,
+        "match_date": "2026-09-28",
+    }
 
 
-def test_build_free_picks_any_division():
-    picks = [
-        {
-            "market": "1x2_home",
-            "home_team": "Arsenal",
-            "away_team": "Chelsea",
-            "division": "E0",
-            "stake": 3,
-            "edge": 0.12,
-            "odd": 1.85,
-        },
-        {
-            "market": "1x2_home",
-            "home_team": "Barcelona",
-            "away_team": "Madrid",
-            "division": "SP1",
-            "stake": 3,
-            "edge": 0.15,
-            "odd": 1.70,
-        },
-    ]
-    result = build_free_picks(picks)
-    assert len(result) == 2
+def test_format_prediction_home_win():
+    line = _format_prediction_line(_make_pred(result="H"))
+    assert "Gana Arsenal" in line
+    assert "Over 2.5" in line
 
 
-def test_build_free_picks_includes_world_cup():
-    picks = [
-        {
-            "market": "1x2_home",
-            "home_team": "Brazil",
-            "away_team": "Germany",
-            "division": "WC",
-            "stake": 3,
-            "edge": 0.12,
-            "odd": 2.10,
-        },
-    ]
-    result = build_free_picks(picks)
-    assert len(result) == 1
+def test_format_prediction_away_win():
+    line = _format_prediction_line(_make_pred(result="A"))
+    assert "Gana Chelsea" in line
 
 
-def test_build_free_picks_max_two():
-    picks = [
-        {
-            "market": "1x2_home",
-            "home_team": f"Team{i}",
-            "away_team": f"Opp{i}",
-            "division": "E0",
-            "stake": 3 - (i % 3),
-            "edge": 0.10 + i * 0.01,
-            "odd": 1.80,
-        }
-        for i in range(5)
-    ]
-    result = build_free_picks(picks)
-    assert len(result) <= 2
+def test_format_prediction_draw():
+    line = _format_prediction_line(_make_pred(result="D"))
+    assert "Empate" in line
 
 
-def test_build_free_picks_sorted_by_stake_then_edge():
-    picks = [
-        {
-            "market": "1x2_home",
-            "home_team": "A",
-            "away_team": "B",
-            "division": "E0",
-            "stake": 1,
-            "edge": 0.20,
-            "odd": 1.80,
-        },
-        {
-            "market": "1x2_home",
-            "home_team": "C",
-            "away_team": "D",
-            "division": "E0",
-            "stake": 3,
-            "edge": 0.08,
-            "odd": 1.90,
-        },
-    ]
-    result = build_free_picks(picks)
-    assert result[0]["home_team"] == "C"
+def test_format_prediction_under_25():
+    line = _format_prediction_line(_make_pred(over25=0.3))
+    assert "Under 2.5" in line
 
 
-def test_build_free_picks_empty():
-    result = build_free_picks([])
-    assert result == []
+def test_format_prediction_confidence_icons():
+    alta = _format_prediction_line(_make_pred(confidence="alta"))
+    media = _format_prediction_line(_make_pred(confidence="media"))
+    baja = _format_prediction_line(_make_pred(confidence="baja"))
+    assert "🟢" in alta
+    assert "🟡" in media
+    assert "🔴" in baja
