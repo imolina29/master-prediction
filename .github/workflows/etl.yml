@@ -153,7 +153,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Generate weekly report (Sunday night only)
-        if: github.event.schedule == '0 4 * * *'
+        if: github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
         run: PYTHONPATH=. python scripts/run_weekly_report.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -161,6 +161,20 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Retry missing narratives (morning run)
+        if: env.IS_FULL_RUN == 'true'
+        run: PYTHONPATH=. python scripts/run_weekly_report.py --retry-narrative
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Check expired subscriptions
         if: env.IS_FULL_RUN == 'true'
