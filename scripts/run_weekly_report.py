@@ -6,6 +6,9 @@ to write a journalistic analysis. Stores the report in Supabase.
 
 Usage:
     PYTHONPATH=. python scripts/run_weekly_report.py
+    PYTHONPATH=. python scripts/run_weekly_report.py --force
+    PYTHONPATH=. python scripts/run_weekly_report.py --retry-narrative
+    PYTHONPATH=. python scripts/run_weekly_report.py --week 2026-09-14
 """
 
 import json
@@ -32,6 +35,33 @@ DIVISION_NAMES = {
 }
 
 RESULT_LABELS = {"H": "Local", "D": "Empate", "A": "Visitante"}
+
+
+def _send_telegram_alert(message: str) -> None:
+    """Send an alert to the admin via Telegram."""
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        logger.warning("Telegram credentials not set — cannot send alert")
+        return
+    try:
+        import httpx
+
+        resp = httpx.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={
+                "chat_id": chat_id,
+                "text": message,
+                "parse_mode": "HTML",
+            },
+            timeout=15,
+        )
+        if resp.status_code == 200:
+            logger.info("Telegram alert sent")
+        else:
+            logger.warning("Telegram alert failed: %s", resp.text)
+    except Exception as e:
+        logger.warning("Could not send Telegram alert: %s", e)
 
 
 def _collect_week_stats(client, week_start: str, week_end: str) -> dict | None:
@@ -322,6 +352,48 @@ def _generate_narrative(stats: dict, prev_rate: float | None) -> str | None:
         return None
 
 
+def _retry_missing_narratives(client) -> None:
+    """Find reports with stats but no narrative and retry generation."""
+    resp = (
+        client.table("weekly_reports")
+        .select("id,week_start,stats,narrative")
+        .is_("narrative", "null")
+        .order("week_start", desc=True)
+        .limit(4)
+        .execute()
+    )
+    if not resp.data:
+        logger.info("No reports with missing narratives")
+        return
+
+    for row in resp.data:
+        logger.info("Retrying narrative for week %s (id=%s)", row["week_start"], row["id"])
+        raw_stats = row.get("stats")
+        if isinstance(raw_stats, str):
+            raw_stats = json.loads(raw_stats)
+        if not raw_stats:
+            logger.warning("No stats for report %s, skipping", row["id"])
+            continue
+
+        prev_rate = _get_previous_week_rate(client, row["week_start"])
+        narrative = _generate_narrative(raw_stats, prev_rate)
+        if narrative:
+            client.table("weekly_reports").update({"narrative": narrative}).eq(
+                "id", row["id"]
+            ).execute()
+            logger.info(
+                "Narrative added to report %s (%d chars)", row["week_start"], len(narrative)
+            )
+        else:
+            logger.warning("Still no narrative for week %s", row["week_start"])
+            _send_telegram_alert(
+                "⚠️ <b>Resumen Semanal: narrativa fallida</b>\n\n"
+                f"Semana: {row['week_start']}\n"
+                "Gemini no pudo generar la crónica después de reintentar.\n"
+                "Revisar logs del pipeline."
+            )
+
+
 def main():
     from datetime import datetime, timezone
 
@@ -329,23 +401,44 @@ def main():
 
     client = get_supabase()
 
+    import sys
+
+    force = "--force" in sys.argv
+    retry_narrative = "--retry-narrative" in sys.argv
+
+    # --retry-narrative: find reports with missing narratives and retry
+    if retry_narrative:
+        _retry_missing_narratives(client)
+        return
+
     # Use Colombia time (UTC-5) to determine the day, since the cron
     # fires at 4am UTC Monday which is still Sunday 11pm in Colombia.
     col_tz = timezone(timedelta(hours=-5))
     now_col = datetime.now(col_tz)
     today = now_col.date()
 
-    # Only generate on Sundays (or manual runs via --force)
-    import sys
+    # --week: generate report for a specific week (uses the given date as week_start Monday)
+    week_arg = None
+    for i, arg in enumerate(sys.argv[1:], 1):
+        if arg == "--week" and i + 1 < len(sys.argv):
+            week_arg = sys.argv[i + 1]
+            break
 
-    force = "--force" in sys.argv
-    if today.weekday() != 6 and not force:
-        logger.info("Not Sunday (day=%d), skipping. Use --force to override.", today.weekday())
-        return
+    if week_arg:
+        week_start_date = date.fromisoformat(week_arg)
+        week_end_date = week_start_date + timedelta(days=6)
+        force = True
+    else:
+        # Only generate on Sundays (or manual runs via --force)
+        if today.weekday() != 6 and not force:
+            logger.info("Not Sunday (day=%d), skipping. Use --force to override.", today.weekday())
+            return
+        # Week = Monday to Sunday
+        week_end_date = today
+        week_start_date = today - timedelta(days=6)
 
-    # Week = Monday to Sunday
-    week_end = today.isoformat()
-    week_start = (today - timedelta(days=6)).isoformat()
+    week_start = week_start_date.isoformat()
+    week_end = week_end_date.isoformat()
 
     logger.info("Generating weekly report for %s to %s", week_start, week_end)
 
@@ -378,6 +471,13 @@ def main():
             logger.info("Narrative added to existing report (%d chars)", len(narrative))
         else:
             logger.warning("Still no narrative generated")
+            _send_telegram_alert(
+                "⚠️ <b>Resumen Semanal: narrativa fallida</b>\n\n"
+                f"Semana: {week_start} a {week_end}\n"
+                "Gemini no pudo generar la crónica.\n"
+                "Se guardaron las estadísticas sin narrativa.\n"
+                "El pipeline reintentará mañana a las 7am."
+            )
         return
 
     stats = _collect_week_stats(client, week_start, week_end)
@@ -399,6 +499,14 @@ def main():
         logger.info("Narrative generated (%d chars)", len(narrative))
     else:
         logger.warning("No narrative generated — storing stats only")
+        _send_telegram_alert(
+            "⚠️ <b>Resumen Semanal: narrativa fallida</b>\n\n"
+            f"Semana: {week_start} a {week_end}\n"
+            f"Stats: {stats['hits']}/{stats['total']} = {stats['rate']:.1%}\n"
+            "Gemini no pudo generar la crónica.\n"
+            "Se guardarán las estadísticas sin narrativa.\n"
+            "El pipeline reintentará mañana a las 7am."
+        )
 
     # Store report
     row = {
