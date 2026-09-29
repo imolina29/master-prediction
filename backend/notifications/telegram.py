@@ -2,20 +2,23 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 
 import httpx
 
 logger = logging.getLogger(__name__)
 
-MARKET_LABELS = {
-    "1x2_home": "Victoria Local",
-    "1x2_draw": "Empate",
-    "1x2_away": "Victoria Visitante",
-    "over25": "Over 2.5",
-    "under25": "Under 2.5",
+RESULT_LABELS = {
+    "H": "Gana {home}",
+    "D": "Empate",
+    "A": "Gana {away}",
 }
 
-STAKE_ICONS = {3: "🟢🟢🟢", 2: "🟢🟢", 1: "🟡"}
+CONFIDENCE_ICON = {
+    "alta": "🟢",
+    "media": "🟡",
+    "baja": "🔴",
+}
 
 DIVISION_FLAGS = {
     "E0": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
@@ -27,6 +30,18 @@ DIVISION_FLAGS = {
     "WC": "🌍",
 }
 
+DIVISION_NAMES = {
+    "E0": "Premier League",
+    "SP1": "La Liga",
+    "I1": "Serie A",
+    "D1": "Bundesliga",
+    "F1": "Ligue 1",
+    "EC": "Champions League",
+    "WC": "FIFA World Cup",
+}
+
+DIVISION_ORDER = ["EC", "E0", "SP1", "I1", "D1", "F1", "WC"]
+
 
 def _get_chat_ids() -> list[str]:
     authorized = os.environ.get("TELEGRAM_AUTHORIZED_CHATS", "")
@@ -34,6 +49,21 @@ def _get_chat_ids() -> list[str]:
         return [cid.strip() for cid in authorized.split(",") if cid.strip()]
     single = os.environ.get("TELEGRAM_CHAT_ID", "")
     return [single] if single else []
+
+
+def _format_prediction_line(p: dict) -> str:
+    """Format a single prediction into a readable line."""
+    home = p["home_team"]
+    away = p["away_team"]
+    conf_icon = CONFIDENCE_ICON.get(p.get("confidence", "baja"), "🔴")
+
+    result_label = RESULT_LABELS.get(p["predicted_result"], "?")
+    result_text = result_label.format(home=home, away=away)
+
+    over25 = p.get("prob_over25", 0) or 0
+    goals_text = "Over 2.5 ⬆️" if over25 > 0.5 else "Under 2.5 ⬇️"
+
+    return f"{conf_icon} <b>{home} vs {away}</b>\n   → {result_text} · {goals_text}"
 
 
 class TelegramNotifier:
@@ -81,50 +111,111 @@ class TelegramNotifier:
             ]
         }
 
-    def send_daily_picks(self, picks: list[dict], performance: dict | None = None) -> list[dict]:
-        if not picks:
-            logger.info("No picks to notify")
+    def send_daily_predictions(
+        self,
+        predictions: list[dict],
+        accuracy: float | None = None,
+    ) -> list[dict]:
+        """Send all predictions for today to premium channel, grouped by league."""
+        if not predictions:
             return []
 
-        sorted_picks = sorted(picks, key=lambda p: (-p["stake"], -p["edge"]))
-        top5 = sorted_picks[:5]
+        match_date = predictions[0].get("match_date", "")
+        try:
+            date_display = datetime.fromisoformat(match_date).strftime("%d %b %Y")
+        except (ValueError, TypeError):
+            date_display = match_date
 
         lines = [
             "⚽ <b>Master Prediction</b>",
-            f"📅 Top {len(top5)} Picks del Dia",
+            f"📅 Predicciones — {date_display}",
             "",
         ]
 
-        for i, p in enumerate(top5, 1):
-            icon = STAKE_ICONS.get(p["stake"], "🟡")
-            market = MARKET_LABELS.get(p["market"], p["market"])
-            flag = DIVISION_FLAGS.get(p.get("division", ""), "")
-            conf_bar = "█" * p["stake"] + "░" * (3 - p["stake"])
+        by_div = {}
+        for p in predictions:
+            div = p.get("division", "?")
+            by_div.setdefault(div, []).append(p)
 
-            lines.append(f"<b>{i}.</b> {flag} <b>{p['home_team']} vs {p['away_team']}</b>")
-            lines.append(
-                f"   {icon} {market} · Cuota: <b>{p['odd']:.2f}</b> · Edge: <b>{p['edge']:+.1%}</b>"
-            )
-            lines.append(f"   Confianza: [{conf_bar}] {p['stake']}u")
+        for div in DIVISION_ORDER:
+            if div not in by_div:
+                continue
+            flag = DIVISION_FLAGS.get(div, "")
+            name = DIVISION_NAMES.get(div, div)
+            lines.append(f"{flag} <b>{name}</b>")
+            lines.append("")
+            for p in by_div[div]:
+                lines.append(_format_prediction_line(p))
             lines.append("")
 
-        if len(sorted_picks) > 5:
-            lines.append(f"📋 +{len(sorted_picks) - 5} picks mas en el dashboard")
+        for div in sorted(by_div.keys()):
+            if div in DIVISION_ORDER:
+                continue
+            flag = DIVISION_FLAGS.get(div, "")
+            name = DIVISION_NAMES.get(div, div)
+            lines.append(f"{flag} <b>{name}</b>")
+            lines.append("")
+            for p in by_div[div]:
+                lines.append(_format_prediction_line(p))
             lines.append("")
 
-        if performance:
-            profit = performance.get("profit", 0)
-            roi = performance.get("roi", 0)
-            wins = performance.get("wins", 0)
-            total = performance.get("total_picks", 0)
-            hit_rate = performance.get("hit_rate", 0)
-            emoji = "📈" if profit >= 0 else "📉"
-            lines.append("━━━━━━━━━━━━━━━━━━━━")
-            lines.append(f"{emoji} <b>Rendimiento Acumulado</b>")
-            lines.append(f"   Profit: <b>{profit:+.1f}u</b> · ROI: <b>{roi:.1f}%</b>")
-            lines.append(f"   Record: {wins}/{total} ({hit_rate:.0%} acierto)")
+        lines.append("━━━━━━━━━━━━━━━━")
+        alta = sum(1 for p in predictions if p.get("confidence") == "alta")
+        media = sum(1 for p in predictions if p.get("confidence") == "media")
+        baja = sum(1 for p in predictions if p.get("confidence") == "baja")
+        lines.append(f"📊 {len(predictions)} predicciones · 🟢 {alta} · 🟡 {media} · 🔴 {baja}")
+
+        if accuracy is not None:
+            lines.append(f"📈 Precisión reciente: <b>{accuracy:.0%}</b>")
+
+        lines.append("")
+        lines.append("🟢 Alta · 🟡 Media · 🔴 Baja")
 
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
+
+    def send_free_predictions(
+        self,
+        predictions: list[dict],
+        chat_id: str | None = None,
+        landing_url: str = "",
+        accuracy: float | None = None,
+    ) -> list[dict]:
+        """Send top 2 predictions to free channel with CTA."""
+        if not predictions:
+            return []
+
+        top2 = predictions[:2]
+
+        match_date = top2[0].get("match_date", "")
+        try:
+            date_display = datetime.fromisoformat(match_date).strftime("%d %b %Y")
+        except (ValueError, TypeError):
+            date_display = match_date
+
+        lines = [
+            "⚽ <b>Master Prediction — Canal Gratuito</b>",
+            f"📅 Predicciones — {date_display}",
+            "",
+        ]
+
+        for p in top2:
+            flag = DIVISION_FLAGS.get(p.get("division", ""), "")
+            name = DIVISION_NAMES.get(p.get("division", ""), "")
+            lines.append(f"{flag} <b>{name}</b>")
+            lines.append(_format_prediction_line(p))
+            lines.append("")
+
+        if accuracy is not None:
+            lines.append(f"📈 Precisión reciente: <b>{accuracy:.0%}</b>")
+            lines.append("")
+
+        remaining = max(len(predictions) - 2, 0)
+        cta = landing_url or "https://masterprediction.com"
+        lines.append(f"🔒 +{remaining} predicciones completas en Premium")
+        lines.append(f"👉 {cta}")
+
+        target = chat_id or (self.chat_ids[0] if self.chat_ids else "")
+        return [self.send_message("\n".join(lines), chat_id=target)]
 
     def send_training_summary(self, results: dict) -> list[dict]:
         lines = ["📊 <b>Modelos re-entrenados</b>", ""]
@@ -139,59 +230,3 @@ class TelegramNotifier:
                 line += f" | DD <b>{dd:.1f}u</b>"
             lines.append(line)
         return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
-
-    def send_resolved_summary(self, resolved_today: list[dict]) -> list[dict]:
-        if not resolved_today:
-            return []
-
-        wins = sum(1 for p in resolved_today if p.get("result") == "win")
-        losses = len(resolved_today) - wins
-        profit = sum(p.get("profit", 0) for p in resolved_today)
-
-        emoji = "🎉" if profit >= 0 else "😔"
-        lines = [
-            f"{emoji} <b>Resultados del Dia</b>",
-            f"✅ {wins} ganados · ❌ {losses} perdidos · Profit: <b>{profit:+.2f}u</b>",
-            "",
-        ]
-
-        for p in resolved_today:
-            icon = "✅" if p.get("result") == "win" else "❌"
-            lines.append(
-                f"{icon} {p['home_team']} vs {p['away_team']} · <b>{p['profit']:+.2f}u</b>"
-            )
-
-        return self.send_to_all("\n".join(lines), reply_markup=self._dashboard_markup())
-
-    def send_free_picks(
-        self, picks: list[dict], chat_id: str | None = None, landing_url: str = ""
-    ) -> list[dict]:
-        free = build_free_picks(picks)
-        if not free:
-            return []
-
-        lines = [
-            "⚽ <b>Master Prediction — Free Picks</b>",
-            f"📅 {len(free)} Pick{'s' if len(free) > 1 else ''} del Dia",
-            "",
-        ]
-        for i, p in enumerate(free, 1):
-            flag = DIVISION_FLAGS.get(p.get("division", ""), "")
-            market = MARKET_LABELS.get(p["market"], p["market"])
-            lines.append(f"<b>{i}.</b> {flag} <b>{p['home_team']} vs {p['away_team']}</b>")
-            lines.append(f"   📊 {market}")
-            lines.append("")
-
-        cta = landing_url or "https://masterprediction.com"
-        lines.append(
-            f"🔒 +{max(len(picks) - len(free), 0)} picks con odds, edge y confianza → Premium"
-        )
-        lines.append(f"👉 {cta}")
-
-        target = chat_id or (self.chat_ids[0] if self.chat_ids else "")
-        return [self.send_message("\n".join(lines), chat_id=target)]
-
-
-def build_free_picks(picks: list[dict]) -> list[dict]:
-    sorted_picks = sorted(picks, key=lambda p: (-p.get("stake", 0), -p.get("edge", 0)))
-    return sorted_picks[:2]
