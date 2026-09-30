@@ -1,7 +1,15 @@
 import logging
 from datetime import date, timedelta
 
-from backend.notifications.telegram import MARKET_LABELS, TelegramNotifier
+from backend.notifications.telegram import TelegramNotifier
+
+MARKET_LABELS = {
+    "1x2_home": "Victoria Local",
+    "1x2_draw": "Empate",
+    "1x2_away": "Victoria Visitante",
+    "over25": "Over 2.5",
+    "under25": "Under 2.5",
+}
 
 logger = logging.getLogger(__name__)
 
