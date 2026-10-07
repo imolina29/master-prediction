@@ -1,13 +1,10 @@
 """Generate weekly performance report with Gemini AI narrative.
 
-Runs Sunday at 11pm after the last results pipeline. Collects the
-week's predictions vs results, calculates stats, and asks Gemini
-to write a journalistic analysis. Stores the report in Supabase.
-
 Usage:
     PYTHONPATH=. python scripts/run_weekly_report.py
     PYTHONPATH=. python scripts/run_weekly_report.py --force
     PYTHONPATH=. python scripts/run_weekly_report.py --retry-narrative
+    PYTHONPATH=. python scripts/run_weekly_report.py --health-check
     PYTHONPATH=. python scripts/run_weekly_report.py --week 2026-09-14
 """
 
@@ -384,6 +381,11 @@ def _retry_missing_narratives(client) -> None:
             logger.info(
                 "Narrative added to report %s (%d chars)", row["week_start"], len(narrative)
             )
+            _send_telegram_alert(
+                "✅ <b>Narrativa recuperada</b>\n\n"
+                f"Semana: {row['week_start']}\n"
+                f"Narrativa generada en reintento ({len(narrative)} chars)."
+            )
         else:
             logger.warning("Still no narrative for week %s", row["week_start"])
             _send_telegram_alert(
@@ -392,6 +394,53 @@ def _retry_missing_narratives(client) -> None:
                 "Gemini no pudo generar la crónica después de reintentar.\n"
                 "Revisar logs del pipeline."
             )
+
+
+def _health_check(client) -> None:
+    """Verify last week's report is complete. Alert if missing or incomplete."""
+    from datetime import datetime, timezone
+
+    col_tz = timezone(timedelta(hours=-5))
+    today = datetime.now(col_tz).date()
+    last_sunday = today - timedelta(days=(today.weekday() + 1) % 7)
+    if last_sunday == today:
+        last_sunday -= timedelta(days=7)
+    last_monday = last_sunday - timedelta(days=6)
+
+    week_start = last_monday.isoformat()
+    week_end = last_sunday.isoformat()
+
+    resp = (
+        client.table("weekly_reports")
+        .select("id,week_start,narrative,total_predictions,hit_rate")
+        .eq("week_start", week_start)
+        .limit(1)
+        .execute()
+    )
+
+    if not resp.data:
+        _send_telegram_alert(
+            "🚨 <b>Health Check: reporte semanal AUSENTE</b>\n\n"
+            f"Semana: {week_start} a {week_end}\n"
+            "No existe ningún registro en la DB.\n"
+            "El pipeline del domingo probablemente falló.\n\n"
+            "💡 Puedes generarlo manualmente desde Actions → ETL Pipeline → "
+            f"Run workflow con week: <code>{week_start}</code>"
+        )
+        return
+
+    row = resp.data[0]
+    if not row.get("narrative"):
+        _send_telegram_alert(
+            "⚠️ <b>Health Check: narrativa pendiente</b>\n\n"
+            f"Semana: {week_start} a {week_end}\n"
+            f"Stats: {row.get('total_predictions', '?')} predicciones, "
+            f"precisión {row.get('hit_rate', 0):.1%}\n"
+            "La narrativa no se ha generado aún.\n"
+            "El retry automático lo intentará en el próximo pipeline."
+        )
+    else:
+        logger.info("Health check OK: report for %s exists with narrative", week_start)
 
 
 def main():
@@ -405,6 +454,11 @@ def main():
 
     force = "--force" in sys.argv
     retry_narrative = "--retry-narrative" in sys.argv
+    health_check = "--health-check" in sys.argv
+
+    if health_check:
+        _health_check(client)
+        return
 
     # --retry-narrative: find reports with missing narratives and retry
     if retry_narrative:
@@ -482,7 +536,13 @@ def main():
 
     stats = _collect_week_stats(client, week_start, week_end)
     if not stats:
-        logger.info("No resolved predictions for week %s", week_start)
+        logger.warning("No resolved predictions for week %s", week_start)
+        _send_telegram_alert(
+            "🚨 <b>Resumen Semanal: sin datos</b>\n\n"
+            f"Semana: {week_start} a {week_end}\n"
+            "No se encontraron predicciones resueltas para esta semana.\n"
+            "Verificar que el pipeline de resultados esté funcionando."
+        )
         return
 
     logger.info(
@@ -497,6 +557,12 @@ def main():
 
     if narrative:
         logger.info("Narrative generated (%d chars)", len(narrative))
+        _send_telegram_alert(
+            "✅ <b>Resumen Semanal generado</b>\n\n"
+            f"Semana: {week_start} a {week_end}\n"
+            f"Precisión: <b>{stats['hits']}/{stats['total']} = {stats['rate']:.1%}</b>\n"
+            "Narrativa generada correctamente."
+        )
     else:
         logger.warning("No narrative generated — storing stats only")
         _send_telegram_alert(
