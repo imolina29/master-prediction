@@ -146,7 +146,7 @@ nicegui-html { width: 100%; display: block; }
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
-  overflow: hidden; margin-bottom: 24px;
+  overflow: hidden; margin-bottom: 16px;
 }
 .f-stripe {
   height: 3px;
@@ -224,8 +224,8 @@ nicegui-html { width: 100%; display: block; }
 /* ── GRID ── */
 .mp-grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px; align-items: start;
+  grid-template-columns: 1fr 300px;
+  gap: 16px; align-items: start;
 }
 @media (max-width: 860px) { .mp-grid { grid-template-columns: 1fr; } }
 
@@ -250,7 +250,7 @@ nicegui-html { width: 100%; display: block; }
 }
 .ml-row {
   display: grid;
-  grid-template-columns: 3px 1fr 160px;
+  grid-template-columns: 3px 1fr 140px;
   border-bottom: 1px solid var(--edge);
   transition: background 0.1s;
 }
@@ -261,7 +261,7 @@ nicegui-html { width: 100%; display: block; }
 .ml-conf.media { background: var(--draw-color); }
 .ml-conf.baja { background: var(--miss); }
 .ml-info {
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex; flex-direction: column; gap: 2px;
 }
 .ml-teams {
@@ -277,7 +277,7 @@ nicegui-html { width: 100%; display: block; }
   border-radius: 50%; display: inline-block;
 }
 .ml-force {
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex; flex-direction: column;
   justify-content: center; gap: 3px;
 }
@@ -342,11 +342,11 @@ nicegui-html { width: 100%; display: block; }
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
-  margin-top: 20px;
+  margin-top: 16px;
 }
 .tp-head {
   display: flex; justify-content: space-between;
-  align-items: center; padding: 12px 16px;
+  align-items: center; padding: 10px 12px;
   border-bottom: 1px solid var(--edge);
 }
 .tp-head h2 { font-size: 13px; font-weight: 700; margin: 0; }
@@ -361,11 +361,12 @@ nicegui-html { width: 100%; display: block; }
 .streak .dot.l { background: var(--miss); }
 .tp-row {
   display: grid;
-  grid-template-columns: 70px 1fr 50px 60px 28px;
+  grid-template-columns: 48px 1fr 42px 52px 24px;
   align-items: center;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-bottom: 1px solid var(--edge);
   font-size: 12px;
+  gap: 0 6px;
 }
 .tp-row:last-child { border-bottom: none; }
 .tp-row:hover { background: rgba(255,255,255,0.015); }
@@ -391,11 +392,12 @@ nicegui-html { width: 100%; display: block; }
 /* ── LEAGUES ── */
 .lp-row {
   display: grid;
-  grid-template-columns: 1fr 60px 80px;
+  grid-template-columns: 1fr 48px 44px;
   align-items: center;
-  padding: 9px 16px;
+  padding: 7px 14px;
   border-bottom: 1px solid var(--edge);
   font-size: 12px;
+  gap: 0 8px;
 }
 .lp-row:last-child { border-bottom: none; }
 .lp-name { font-weight: 500; }
@@ -701,8 +703,8 @@ nicegui-html { width: 100%; display: block; }
 .mp-footer {
   width: 100%;
   border-top: 1px solid var(--edge);
-  margin-top: 48px;
-  padding: 24px 0 16px;
+  margin-top: 32px;
+  padding: 20px 0 16px;
   display: flex; flex-direction: column;
   align-items: center; gap: 12px;
   text-align: center;
@@ -781,7 +783,7 @@ nicegui-html { width: 100%; display: block; }
   min-height: 200px;
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   background-color: var(--surface);
 }
 .mp-hero-img, .mp-hero-img img {
@@ -999,7 +1001,8 @@ nicegui-html { width: 100%; display: block; }
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
-  padding: 18px 20px;
+  padding: 16px 20px;
+  margin-top: 16px;
   cursor: pointer;
   transition: border-color 0.15s;
 }
@@ -1131,7 +1134,7 @@ def render_footer():
     with (
         ui.column()
         .classes("w-full items-center")
-        .style("border-top:1px solid var(--edge);margin-top:48px;padding:24px 0 16px;gap:12px")
+        .style("border-top:1px solid var(--edge);margin-top:32px;padding:20px 0 16px;gap:12px")
     ):
         with ui.row().classes("items-center gap-2"):
             ui.html('<div class="ft-logo">MP</div>')

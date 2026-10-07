@@ -189,7 +189,7 @@ def render():
             ui.html(rows_html)
 
         # RIGHT: donut + sparkline + leagues
-        with ui.element("div").style("display:flex;flex-direction:column;gap:16px"):
+        with ui.element("div").style("display:flex;flex-direction:column;gap:12px"):
             # Donut
             donut_html = (
                 f'<div class="donut-panel">'
