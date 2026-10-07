@@ -11,6 +11,11 @@ on:
     # 11:00 PM COL — results + predictions update (late matches)
     - cron: "0 4 * * *"
   workflow_dispatch:
+    inputs:
+      week:
+        description: "Generate weekly report for specific week (YYYY-MM-DD, e.g. 2026-09-22)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -154,7 +159,12 @@ jobs:
 
       - name: Generate weekly report (Sunday night only)
         if: github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
-        run: PYTHONPATH=. python scripts/run_weekly_report.py
+        run: |
+          if [ -n "${{ inputs.week }}" ]; then
+            PYTHONPATH=. python scripts/run_weekly_report.py --week "${{ inputs.week }}"
+          else
+            PYTHONPATH=. python scripts/run_weekly_report.py
+          fi
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
