@@ -188,6 +188,42 @@ def render():
             rows_html += "</div>"
             ui.html(rows_html)
 
+            # Track record — inside left column to fill space next to right col
+            if track is not None and not track.empty:
+                recent = track.head(10)
+                streak_html = '<div class="streak">'
+                for _, row in recent.iterrows():
+                    hit = row["predicted_result"] == row["ft_result"]
+                    cls = "w" if hit else "l"
+                    lbl = "W" if hit else "L"
+                    streak_html += f'<div class="dot {cls}">{lbl}</div>'
+                streak_html += "</div>"
+
+                tp_html = (
+                    f'<div class="track-panel">'
+                    f'<div class="tp-head"><h2>Ultimos resultados</h2>{streak_html}</div>'
+                )
+                for _, row in recent.iterrows():
+                    hit = row["predicted_result"] == row["ft_result"]
+                    score = f"{int(row['ft_home_goals'])}–{int(row['ft_away_goals'])}"
+                    pred = RESULT_LABELS.get(row["predicted_result"], "?")
+                    check_cls = "ok" if hit else "no"
+                    check_icon = CHECK_SVG if hit else CROSS_SVG
+                    date_str = str(row["match_date"])
+                    if len(date_str) > 5:
+                        date_str = date_str[5:]
+                    tp_html += (
+                        f'<div class="tp-row">'
+                        f'<span class="tp-date">{date_str}</span>'
+                        f'<span class="tp-match">{row["home_team"]} vs {row["away_team"]}</span>'
+                        f'<span class="tp-score">{score}</span>'
+                        f'<span class="tp-pred">{pred}</span>'
+                        f'<span class="tp-icon"><span class="tp-check {check_cls}">{check_icon}</span></span>'
+                        f"</div>"
+                    )
+                tp_html += "</div>"
+                ui.html(tp_html)
+
         # RIGHT: donut + sparkline + leagues + weekly teaser
         with ui.element("div").classes("mp-right-col"):
             donut_html = (
@@ -289,39 +325,3 @@ def render():
                     )
             except Exception:
                 pass
-
-    # Track record
-    if track is not None and not track.empty:
-        recent = track.head(10)
-        streak_html = '<div class="streak">'
-        for _, row in recent.iterrows():
-            hit = row["predicted_result"] == row["ft_result"]
-            cls = "w" if hit else "l"
-            lbl = "W" if hit else "L"
-            streak_html += f'<div class="dot {cls}">{lbl}</div>'
-        streak_html += "</div>"
-
-        tp_html = (
-            f'<div class="track-panel">'
-            f'<div class="tp-head"><h2>Ultimos resultados</h2>{streak_html}</div>'
-        )
-        for _, row in recent.iterrows():
-            hit = row["predicted_result"] == row["ft_result"]
-            score = f"{int(row['ft_home_goals'])}–{int(row['ft_away_goals'])}"
-            pred = RESULT_LABELS.get(row["predicted_result"], "?")
-            check_cls = "ok" if hit else "no"
-            check_icon = CHECK_SVG if hit else CROSS_SVG
-            date_str = str(row["match_date"])
-            if len(date_str) > 5:
-                date_str = date_str[5:]
-            tp_html += (
-                f'<div class="tp-row">'
-                f'<span class="tp-date">{date_str}</span>'
-                f'<span class="tp-match">{row["home_team"]} vs {row["away_team"]}</span>'
-                f'<span class="tp-score">{score}</span>'
-                f'<span class="tp-pred">{pred}</span>'
-                f'<span class="tp-icon"><span class="tp-check {check_cls}">{check_icon}</span></span>'
-                f"</div>"
-            )
-        tp_html += "</div>"
-        ui.html(tp_html)
