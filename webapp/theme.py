@@ -345,6 +345,7 @@ nicegui-html { width: 100%; display: block; }
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
+  margin-top: 10px;
 }
 .tp-head {
   display: flex; justify-content: space-between;
