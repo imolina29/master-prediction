@@ -228,6 +228,9 @@ nicegui-html { width: 100%; display: block; }
   gap: 16px; align-items: start;
 }
 @media (max-width: 860px) { .mp-grid { grid-template-columns: 1fr; } }
+.mp-right-col {
+  display: flex; flex-direction: column; gap: 10px;
+}
 
 /* ── MATCH LIST ── */
 .match-list {
@@ -261,8 +264,8 @@ nicegui-html { width: 100%; display: block; }
 .ml-conf.media { background: var(--draw-color); }
 .ml-conf.baja { background: var(--miss); }
 .ml-info {
-  padding: 8px 12px;
-  display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 10px;
+  display: flex; flex-direction: column; gap: 1px;
 }
 .ml-teams {
   font-size: 13px; font-weight: 600;
@@ -277,9 +280,9 @@ nicegui-html { width: 100%; display: block; }
   border-radius: 50%; display: inline-block;
 }
 .ml-force {
-  padding: 8px 12px;
+  padding: 6px 10px;
   display: flex; flex-direction: column;
-  justify-content: center; gap: 3px;
+  justify-content: center; gap: 2px;
 }
 .ml-force-track {
   display: flex; height: 14px;
@@ -307,7 +310,7 @@ nicegui-html { width: 100%; display: block; }
   border: 1px solid var(--edge);
   border-radius: var(--radius);
 }
-.donut-panel { padding: 16px; }
+.donut-panel { padding: 14px; }
 .donut-panel h3, .spark-panel h3 {
   font-size: 12px; font-weight: 700;
   letter-spacing: -0.01em; margin: 0 0 12px;
@@ -329,8 +332,8 @@ nicegui-html { width: 100%; display: block; }
   font-variant-numeric: tabular-nums;
 }
 
-.spark-panel { padding: 16px; }
-.sp-sub { font-size: 11px; color: var(--text-3); margin-bottom: 12px; }
+.spark-panel { padding: 14px; }
+.sp-sub { font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
 .spark-big {
   font-size: 32px; font-weight: 900;
   letter-spacing: -0.04em; line-height: 1; margin-bottom: 2px;
@@ -361,12 +364,12 @@ nicegui-html { width: 100%; display: block; }
 .streak .dot.l { background: var(--miss); }
 .tp-row {
   display: grid;
-  grid-template-columns: 48px 1fr 42px 52px 24px;
+  grid-template-columns: 44px 1fr 40px 52px 22px;
   align-items: center;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-bottom: 1px solid var(--edge);
   font-size: 12px;
-  gap: 0 6px;
+  gap: 0 4px;
 }
 .tp-row:last-child { border-bottom: none; }
 .tp-row:hover { background: rgba(255,255,255,0.015); }
@@ -392,12 +395,12 @@ nicegui-html { width: 100%; display: block; }
 /* ── LEAGUES ── */
 .lp-row {
   display: grid;
-  grid-template-columns: 1fr 48px 44px;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  padding: 7px 14px;
+  padding: 6px 14px;
   border-bottom: 1px solid var(--edge);
   font-size: 12px;
-  gap: 0 8px;
+  gap: 0 12px;
 }
 .lp-row:last-child { border-bottom: none; }
 .lp-name { font-weight: 500; }
@@ -1001,8 +1004,7 @@ nicegui-html { width: 100%; display: block; }
   background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
-  padding: 16px 20px;
-  margin-top: 16px;
+  padding: 14px 18px;
   cursor: pointer;
   transition: border-color 0.15s;
 }
