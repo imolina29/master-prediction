@@ -483,10 +483,19 @@ def main():
         week_end_date = week_start_date + timedelta(days=6)
         force = True
     else:
-        # Only generate on Sundays (or manual runs via --force)
-        if today.weekday() != 6 and not force:
-            logger.info("Not Sunday (day=%d), skipping. Use --force to override.", today.weekday())
+        # Accept Sunday (6) or Monday before 6 AM COL (GitHub Actions delay tolerance).
+        is_sunday = today.weekday() == 6
+        is_monday_early = today.weekday() == 0 and now_col.hour < 6
+        if not is_sunday and not is_monday_early and not force:
+            logger.info(
+                "Not Sunday/Monday-early (day=%d, hour=%d), skipping.",
+                today.weekday(),
+                now_col.hour,
+            )
             return
+        if is_monday_early:
+            today = today - timedelta(days=1)
+            logger.info("Monday early — treating as Sunday %s", today)
         # Week = Monday to Sunday
         week_end_date = today
         week_start_date = today - timedelta(days=6)
