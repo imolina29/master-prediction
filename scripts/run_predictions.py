@@ -819,19 +819,54 @@ def main():
     today = now.strftime("%Y-%m-%d")
     week_ahead = (now + timedelta(days=21)).strftime("%Y-%m-%d")
 
+    tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
     logger.info("Finding matches from %s to %s", today, week_ahead)
-    resp = (
+
+    # Future matches (tomorrow+): only unplayed
+    future_resp = (
         client.table("matches")
         .select("*")
-        .gte("match_date", today)
+        .gte("match_date", tomorrow)
         .lte("match_date", week_ahead)
         .is_("ft_result", "null")
         .execute()
     )
-    upcoming = pd.DataFrame(resp.data)
+    # Today's matches: include ALL (even played) so we don't miss predictions
+    # when results load before the prediction step runs.
+    today_resp = client.table("matches").select("*").eq("match_date", today).execute()
+    all_rows = (today_resp.data or []) + (future_resp.data or [])
+    upcoming = pd.DataFrame(all_rows)
 
     if upcoming.empty:
         logger.info("No upcoming matches found.")
+        return
+
+    # Drop today's matches that already have a prediction (avoid overwriting)
+    existing_preds_resp = (
+        client.table("predictions")
+        .select("match_date,home_team,away_team")
+        .eq("match_date", today)
+        .execute()
+    )
+    existing_pred_set = {
+        (r["match_date"], r["home_team"], r["away_team"]) for r in (existing_preds_resp.data or [])
+    }
+    if existing_pred_set:
+        before = len(upcoming)
+        upcoming = upcoming[
+            ~upcoming.apply(
+                lambda r: (
+                    (str(r["match_date"]), r["home_team"], r["away_team"]) in existing_pred_set
+                ),
+                axis=1,
+            )
+        ]
+        skipped = before - len(upcoming)
+        if skipped:
+            logger.info("Skipped %d today's matches that already have predictions", skipped)
+
+    if upcoming.empty:
+        logger.info("No upcoming matches to predict.")
         return
 
     # Only predict for tracked divisions (excludes second divisions)
@@ -847,7 +882,8 @@ def main():
         return
 
     # Filter out ghost fixtures: matches the API reports as scheduled but
-    # that were already played under a slightly different date (±7 days).
+    # that were already played under a DIFFERENT date (±7 days).
+    # Today's matches are excluded from ghost filtering — they're real.
     window_start = (now - timedelta(days=7)).strftime("%Y-%m-%d")
     played_resp = (
         client.table("matches")
@@ -857,7 +893,11 @@ def main():
         .not_.is_("ft_result", "null")
         .execute()
     )
-    played_set = {(r["division"], r["home_team"], r["away_team"]) for r in played_resp.data}
+    played_set = {
+        (r["division"], r["home_team"], r["away_team"])
+        for r in played_resp.data
+        if r["match_date"] != today
+    }
     before = len(upcoming)
     upcoming = upcoming[
         ~upcoming.apply(
