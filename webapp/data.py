@@ -152,8 +152,13 @@ def get_upcoming_predictions() -> pd.DataFrame:
 
 def get_track_record(limit: int = 100) -> pd.DataFrame:
     client = get_supabase_client()
+    db_limit = max(limit, 500)
     preds_resp = (
-        client.table("predictions").select("*").order("match_date", desc=True).limit(500).execute()
+        client.table("predictions")
+        .select("*")
+        .order("match_date", desc=True)
+        .limit(db_limit)
+        .execute()
     )
     if not preds_resp.data:
         return pd.DataFrame()
