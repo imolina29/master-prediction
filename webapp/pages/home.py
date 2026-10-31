@@ -120,7 +120,7 @@ def render():
         preds_df = None
 
     try:
-        track = get_track_record(limit=200)
+        track = get_track_record(limit=1000)
     except Exception:
         track = None
 
@@ -224,10 +224,59 @@ def render():
                 tp_html += "</div>"
                 ui.html(tp_html)
 
-        # RIGHT: donut + sparkline + leagues + weekly teaser
+        # RIGHT: donut (flip card) + sparkline + leagues + weekly teaser
         with ui.element("div").classes("mp-right-col"):
+            # Build back-face: breakdown by confidence and league
+            media_hits = media_total = baja_hits = baja_total = 0
+            if track is not None and not track.empty:
+                mt = track[track["confidence"] == "media"]
+                if not mt.empty:
+                    media_hits = int(mt["hit"].sum())
+                    media_total = len(mt)
+                bt = track[track["confidence"] == "baja"]
+                if not bt.empty:
+                    baja_hits = int(bt["hit"].sum())
+                    baja_total = len(bt)
+
+            def _conf_row(label, hits, total, color):
+                rate = round(hits / total * 100) if total else 0
+                bar_w = rate
+                return (
+                    f'<div class="flip-conf-row">'
+                    f'<span class="flip-conf-label">{label}</span>'
+                    f'<span class="flip-conf-bar"><span style="width:{bar_w}%;background:{color}"></span></span>'
+                    f'<span class="flip-conf-val" style="color:{color}">{hits}/{total} ({rate}%)</span>'
+                    f"</div>"
+                )
+
+            back_conf = (
+                _conf_row("Alta", alta_hits, alta_total, "var(--hit)")
+                + _conf_row("Media", media_hits, media_total, "var(--draw-color)")
+                + _conf_row("Baja", baja_hits, baja_total, "var(--miss)")
+            )
+
+            back_leagues = ""
+            if track is not None and not track.empty:
+                by_div = track.groupby("division")["hit"].agg(["sum", "count"])
+                for div_code in by_div.index:
+                    dh = int(by_div.loc[div_code, "sum"])
+                    dt = int(by_div.loc[div_code, "count"])
+                    dr = round(dh / dt * 100) if dt else 0
+                    name = DIVISION_NAMES.get(div_code, div_code)
+                    lc = LEAGUE_COLORS.get(div_code, "var(--text-2)")
+                    back_leagues += (
+                        f'<div class="flip-league-row">'
+                        f'<span style="color:{lc}">{name}</span>'
+                        f"<span>{dh}/{dt}</span>"
+                        f'<span style="color:{"var(--hit)" if dr >= 55 else "var(--draw-color)" if dr >= 40 else "var(--miss)"}">{dr}%</span>'
+                        f"</div>"
+                    )
+
             donut_html = (
-                f'<div class="donut-panel">'
+                f'<div class="flip-card" onclick="this.classList.toggle(\'flipped\')">'
+                f'<div class="flip-inner">'
+                # Front face
+                f'<div class="flip-front donut-panel">'
                 f"<h3>Precision del modelo</h3>"
                 f'<div class="donut-wrap">'
                 f'<canvas id="donut-chart" width="100" height="100" data-hit="{hit_rate:.2f}"></canvas>'
@@ -235,7 +284,19 @@ def render():
                 f'<div class="donut-stat"><span class="ds-label"><span class="ds-dot" style="background:var(--hit)"></span> Aciertos</span><span class="ds-val">{total_hits}</span></div>'
                 f'<div class="donut-stat"><span class="ds-label"><span class="ds-dot" style="background:var(--miss)"></span> Fallos</span><span class="ds-val">{total_resolved - total_hits}</span></div>'
                 f'<div class="donut-stat"><span class="ds-label"><span class="ds-dot" style="background:var(--edge)"></span> Total</span><span class="ds-val">{total_resolved}</span></div>'
-                f"</div></div></div>"
+                f"</div></div>"
+                f'<div class="flip-hint">Toca para ver detalles</div>'
+                f"</div>"
+                # Back face
+                f'<div class="flip-back donut-panel">'
+                f"<h3>Desglose de precision</h3>"
+                f'<div class="flip-section-title">Por confianza</div>'
+                f"{back_conf}"
+                f'<div class="flip-section-title" style="margin-top:10px">Por liga</div>'
+                f"{back_leagues}"
+                f'<div class="flip-hint">Toca para volver</div>'
+                f"</div>"
+                f"</div></div>"
             )
             ui.html(donut_html)
             ui.run_javascript(DONUT_JS)

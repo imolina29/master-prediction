@@ -310,6 +310,58 @@ nicegui-html { width: 100%; display: block; }
   border: 1px solid var(--edge);
   border-radius: var(--radius);
 }
+/* Flip card */
+.flip-card {
+  perspective: 800px; cursor: pointer;
+}
+.flip-inner {
+  position: relative;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-inner { transform: rotateY(180deg); }
+.flip-front, .flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  position: absolute; inset: 0;
+  transform: rotateY(180deg);
+  overflow-y: auto;
+}
+.flip-hint {
+  font-size: 10px; color: var(--text-3);
+  text-align: center; margin-top: 8px;
+  letter-spacing: 0.03em;
+}
+.flip-section-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3); margin-bottom: 6px;
+}
+.flip-conf-row {
+  display: grid; grid-template-columns: 50px 1fr 90px;
+  align-items: center; gap: 8px;
+  font-size: 11px; margin-bottom: 4px;
+}
+.flip-conf-label { font-weight: 600; color: var(--text-2); }
+.flip-conf-bar {
+  height: 6px; background: var(--edge); border-radius: 3px; overflow: hidden;
+}
+.flip-conf-bar span {
+  display: block; height: 100%; border-radius: 3px;
+}
+.flip-conf-val {
+  font-family: var(--mono); font-size: 10px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.flip-league-row {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 0 10px; font-size: 11px; padding: 2px 0;
+}
+.flip-league-row span:nth-child(2) { font-family: var(--mono); color: var(--text-2); font-variant-numeric: tabular-nums; }
+.flip-league-row span:nth-child(3) { font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums; }
+
 .donut-panel { padding: 14px; }
 .donut-panel h3, .spark-panel h3 {
   font-size: 12px; font-weight: 700;
