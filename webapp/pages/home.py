@@ -273,7 +273,7 @@ def render():
                     )
 
             donut_html = (
-                f'<div class="flip-card" onclick="this.classList.toggle(\'flipped\')">'
+                f'<div class="flip-card" id="precision-flip">'
                 f'<div class="flip-inner">'
                 # Front face
                 f'<div class="flip-front donut-panel">'
@@ -300,6 +300,10 @@ def render():
             )
             ui.html(donut_html)
             ui.run_javascript(DONUT_JS)
+            ui.run_javascript(
+                "document.getElementById('precision-flip')"
+                ".addEventListener('click',function(){this.classList.toggle('flipped')})"
+            )
 
             spark_points = ""
             if track is not None and not track.empty:
