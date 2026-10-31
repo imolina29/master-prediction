@@ -387,6 +387,14 @@ app.add_static_files("/static", str(Path(__file__).parent / "static"))
 app.include_router(chat_router)
 app.include_router(perf_router)
 
+APP_VERSION = "2.1.0-flipcard"
+
+
+@app.get("/api/version")
+def _api_version():
+    return {"version": APP_VERSION}
+
+
 ui.run(
     title="Master Prediction",
     favicon="⚽",
