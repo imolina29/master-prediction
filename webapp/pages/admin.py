@@ -1,5 +1,6 @@
 """Admin — user management and access requests."""
 
+import logging
 import secrets
 import string
 from datetime import datetime, timezone
@@ -9,6 +10,8 @@ from nicegui import app, ui
 
 from webapp.data import get_supabase_client
 from webapp.theme import render_mini_strip
+
+logger = logging.getLogger(__name__)
 
 
 def _gen_password() -> str:
@@ -99,8 +102,9 @@ def render():
                             ).eq("id", r["id"]).execute()
                             ui.notify(f"Usuario {base} creado. Password: {pwd}", type="positive")
                             ui.navigate.to("/admin")
-                        except Exception as e:
-                            ui.notify(f"Error: {e}", type="negative")
+                        except Exception:
+                            logger.exception("Failed to approve access request")
+                            ui.notify("Error al aprobar solicitud", type="negative")
 
                     def _reject(r=req):
                         try:
@@ -114,8 +118,9 @@ def render():
                             ).eq("id", r["id"]).execute()
                             ui.notify("Solicitud rechazada", type="warning")
                             ui.navigate.to("/admin")
-                        except Exception as e:
-                            ui.notify(f"Error: {e}", type="negative")
+                        except Exception:
+                            logger.exception("Failed to reject access request")
+                            ui.notify("Error al rechazar solicitud", type="negative")
 
                     ui.button("Aprobar", on_click=_approve).props(
                         'unelevated dense color="positive" size="sm"'
@@ -198,8 +203,9 @@ def render():
                         f"Usuario {cr_user.value} creado. Password temporal: {pwd}", type="positive"
                     )
                     ui.navigate.to("/admin")
-                except Exception as e:
-                    ui.notify(f"Error: {e}", type="negative")
+                except Exception:
+                    logger.exception("Failed to create user")
+                    ui.notify("Error al crear usuario", type="negative")
 
             ui.button("Crear usuario", on_click=_create_user).props('unelevated color="orange-8"')
 
@@ -282,8 +288,9 @@ def _render_user_row(u: dict, client):
                     client.table("app_users").update({"role": nr}).eq("id", uid).execute()
                     ui.notify(f"Rol cambiado a {nr}", type="info")
                     ui.navigate.to("/admin")
-                except Exception as e:
-                    ui.notify(f"Error: {e}", type="negative")
+                except Exception:
+                    logger.exception("Failed to toggle role")
+                    ui.notify("Error al cambiar rol", type="negative")
 
             def _toggle_active(uid=u["id"], current=is_active):
                 try:
@@ -293,8 +300,9 @@ def _render_user_row(u: dict, client):
                     state = "desactivado" if current else "activado"
                     ui.notify(f"Usuario {state}", type="info")
                     ui.navigate.to("/admin")
-                except Exception as e:
-                    ui.notify(f"Error: {e}", type="negative")
+                except Exception:
+                    logger.exception("Failed to toggle active status")
+                    ui.notify("Error al cambiar estado", type="negative")
 
             def _reset_pw(uid=u["id"], uname=u["username"]):
                 pwd = _gen_password()
@@ -307,8 +315,9 @@ def _render_user_row(u: dict, client):
                         }
                     ).eq("id", uid).execute()
                     ui.notify(f"Password de {uname}: {pwd}", type="positive")
-                except Exception as e:
-                    ui.notify(f"Error: {e}", type="negative")
+                except Exception:
+                    logger.exception("Failed to reset password")
+                    ui.notify("Error al resetear password", type="negative")
 
             def _delete(uid=u["id"], uname=u["username"]):
                 confirm_dialog = ui.dialog()
@@ -325,8 +334,9 @@ def _render_user_row(u: dict, client):
                                 ui.notify(f"Usuario {uname} eliminado", type="warning")
                                 confirm_dialog.close()
                                 ui.navigate.to("/admin")
-                            except Exception as e:
-                                ui.notify(f"Error: {e}", type="negative")
+                            except Exception:
+                                logger.exception("Failed to delete user")
+                                ui.notify("Error al eliminar usuario", type="negative")
 
                         ui.button("Eliminar", on_click=_do_delete).props(
                             'unelevated dense color="negative" size="sm"'

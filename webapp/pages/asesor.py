@@ -1,9 +1,13 @@
 """Asesor Virtual — chat interface for prediction queries."""
 
+import logging
+
 from nicegui import app, run, ui
 
 from webapp.data import get_supabase_client
 from webapp.theme import render_mini_strip
+
+logger = logging.getLogger(__name__)
 
 WELCOME = (
     "Hola! Soy tu asesor de predicciones. Puedo ayudarte con:\n\n"
@@ -105,8 +109,9 @@ def render():
                 get_response, client, prompt, known_teams, ctx, user_id, messages[:-1]
             )
             app.storage.user["advisor_context"] = new_ctx
-        except Exception as e:
-            response = f"Error: {e}"
+        except Exception:
+            logger.exception("Advisor query failed")
+            response = "Error al procesar tu consulta. Intenta de nuevo."
 
         messages.pop()
         messages.append({"role": "assistant", "content": response})

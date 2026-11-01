@@ -1,6 +1,9 @@
 """Master Prediction — NiceGUI app with V3 broadcast design."""
 
+import logging
 import os
+import time
+from collections import defaultdict
 from pathlib import Path
 
 import bcrypt
@@ -10,6 +13,12 @@ from nicegui import app, ui
 from backend.api.chat import router as chat_router
 from backend.api.performance import router as perf_router
 from webapp.theme import CSS, SIDEBAR_ICONS, render_footer
+
+logger = logging.getLogger(__name__)
+
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+_MAX_ATTEMPTS = 5
+_WINDOW_SECONDS = 300
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(_PROJECT_ROOT / ".env")
@@ -136,8 +145,9 @@ def _show_password_change_dialog():
         err.set_visibility(False)
 
         def save_password():
-            if len(new_pw.value) < 6:
-                err.text = "Minimo 6 caracteres"
+            pw = new_pw.value
+            if len(pw) < 8 or not any(c.isupper() for c in pw) or not any(c.isdigit() for c in pw):
+                err.text = "Minimo 8 caracteres, 1 mayuscula y 1 numero"
                 err.set_visibility(True)
                 return
             if new_pw.value != confirm_pw.value:
@@ -158,8 +168,9 @@ def _show_password_change_dialog():
                 del app.storage.user["must_change_password"]
                 dialog.close()
                 ui.notify("Contrasena actualizada", type="positive")
-            except Exception as e:
-                err.text = f"Error: {e}"
+            except Exception:
+                logger.exception("Password change failed")
+                err.text = "Error al guardar. Intenta de nuevo."
                 err.set_visibility(True)
 
         ui.button("Guardar", on_click=save_password).props('unelevated color="orange-8"').classes(
@@ -199,6 +210,15 @@ def login_page():
                 error_label = ui.label("").classes("text-red-400 text-xs mb-2")
                 error_label.set_visibility(False)
 
+                def _is_rate_limited(user: str) -> bool:
+                    now = time.time()
+                    attempts = _login_attempts[user]
+                    _login_attempts[user] = [t for t in attempts if now - t < _WINDOW_SECONDS]
+                    return len(_login_attempts[user]) >= _MAX_ATTEMPTS
+
+                def _record_failed_attempt(user: str):
+                    _login_attempts[user].append(time.time())
+
                 def do_login():
                     u = username.value.strip()
                     p = password.value
@@ -207,9 +227,15 @@ def login_page():
                         error_label.set_visibility(True)
                         return
 
+                    if _is_rate_limited(u):
+                        error_label.text = "Demasiados intentos. Espera 5 minutos."
+                        error_label.set_visibility(True)
+                        return
+
                     user_data = USERS.get(u)
                     if user_data:
                         if not _verify_password(p, user_data["password_hash"]):
+                            _record_failed_attempt(u)
                             error_label.text = "Usuario o contrasena incorrectos"
                             error_label.set_visibility(True)
                             return
@@ -226,6 +252,7 @@ def login_page():
                         client = get_supabase_client()
                         resp = client.table("app_users").select("*").eq("username", u).execute()
                         if not resp.data:
+                            _record_failed_attempt(u)
                             error_label.text = "Usuario o contrasena incorrectos"
                             error_label.set_visibility(True)
                             return
@@ -235,6 +262,7 @@ def login_page():
                             error_label.set_visibility(True)
                             return
                         if not _verify_password(p, db_user["password_hash"]):
+                            _record_failed_attempt(u)
                             error_label.text = "Usuario o contrasena incorrectos"
                             error_label.set_visibility(True)
                             return
@@ -387,7 +415,7 @@ app.add_static_files("/static", str(Path(__file__).parent / "static"))
 app.include_router(chat_router)
 app.include_router(perf_router)
 
-APP_VERSION = "2.1.0-flipcard"
+APP_VERSION = "2.2.0-security"
 
 
 @app.get("/api/version")
@@ -400,7 +428,7 @@ ui.run(
     favicon="⚽",
     port=int(os.environ.get("PORT", 8080)),
     dark=True,
-    storage_secret=os.environ.get("SUPABASE_KEY", "master-prediction-secret-key"),
+    storage_secret=os.environ["SUPABASE_KEY"],
     show=False,
     reload=False,
 )
