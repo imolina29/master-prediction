@@ -52,6 +52,7 @@ jobs:
 
       - name: Run Understat xG scraper (current season only)
         if: env.IS_FULL_RUN == 'true'
+        continue-on-error: true
         run: PYTHONPATH=. python scripts/run_understat.py --current
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
