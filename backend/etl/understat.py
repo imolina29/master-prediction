@@ -32,6 +32,13 @@ def fetch_league_season(league: str, season: int) -> dict[str, Any]:
         follow_redirects=True,
         timeout=30.0,
     )
+    content_type = response.headers.get("content-type", "")
+    if "json" not in content_type and "javascript" not in content_type:
+        raise ValueError(
+            f"Understat {league}/{season}: respuesta vacía o no-JSON (content-type: {content_type})"
+        )
+    if not response.text or not response.text.strip():
+        raise ValueError(f"Understat {league}/{season}: respuesta vacía o no-JSON (body vacío)")
     return response.json()
 
 

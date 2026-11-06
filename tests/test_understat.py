@@ -83,6 +83,8 @@ def test_parse_matches_skips_unplayed():
 def test_fetch_league_season():
     mock_response = MagicMock()
     mock_response.status_code = 200
+    mock_response.headers = {"content-type": "application/json"}
+    mock_response.text = '{"dates": []}'
     mock_response.json.return_value = SAMPLE_API_RESPONSE
 
     with patch("backend.etl.understat.get_with_retry", return_value=mock_response) as mock_get:
@@ -92,3 +94,27 @@ def test_fetch_league_season():
     mock_get.assert_called_once()
     call_args = mock_get.call_args
     assert "getLeagueData/EPL/2024" in call_args[0][0]
+
+
+def test_fetch_league_season_empty_body_raises():
+    """Understat a veces devuelve 200 OK con body vacío — debe lanzar error."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.headers = {"content-type": "text/html"}
+    mock_response.text = ""
+
+    with patch("backend.etl.understat.get_with_retry", return_value=mock_response):
+        with pytest.raises(ValueError, match="respuesta vacía o no-JSON"):
+            fetch_league_season("EPL", 2024)
+
+
+def test_fetch_league_season_html_body_raises():
+    """Understat a veces devuelve HTML en vez de JSON — debe lanzar error."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.headers = {"content-type": "text/html; charset=utf-8"}
+    mock_response.text = "<!DOCTYPE html><html><body>Blocked</body></html>"
+
+    with patch("backend.etl.understat.get_with_retry", return_value=mock_response):
+        with pytest.raises(ValueError, match="respuesta vacía o no-JSON"):
+            fetch_league_season("EPL", 2024)

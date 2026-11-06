@@ -18,7 +18,11 @@ def main():
 
     logging.info("Understat scrape result: %s", result)
     if result["loaded"] == 0:
-        sys.exit(1)
+        logging.warning(
+            "Understat no cargó datos (posible bloqueo temporal). "
+            "El pipeline continúa sin datos de xG actualizados."
+        )
+        sys.exit(0)
 
 
 if __name__ == "__main__":
