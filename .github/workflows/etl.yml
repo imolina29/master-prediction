@@ -158,8 +158,7 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Generate weekly report (Sunday night only)
-        if: github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
+      - name: Generate weekly report (script checks day internally)
         run: |
           if [ -n "${{ inputs.week }}" ]; then
             PYTHONPATH=. python scripts/run_weekly_report.py --week "${{ inputs.week }}"
