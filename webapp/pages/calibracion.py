@@ -26,7 +26,7 @@ def _load_results() -> dict:
 
 
 def render():
-    from webapp.theme import render_mini_strip
+    from webapp.theme import PH_BARCHART, render_mini_strip
 
     render_mini_strip("Calibracion del Modelo", "Rendimiento", "target")
 
@@ -34,7 +34,7 @@ def render():
     if not results:
         ui.html(
             '<div class="placeholder-box">'
-            '<div class="ph-icon">📊</div>'
+            f'<div class="ph-icon">{PH_BARCHART}</div>'
             '<div class="ph-title">No hay resultados de backtesting disponibles.</div>'
             '<div class="ph-sub">Ejecuta el entrenamiento primero.</div>'
             "</div>"

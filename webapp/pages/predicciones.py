@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from nicegui import ui
 
 from webapp.data import DIVISION_NAMES, get_filtered_predictions, get_track_record
-from webapp.theme import CHECK_SVG, CROSS_SVG, render_mini_strip
+from webapp.theme import CHECK_SVG, CROSS_SVG, PH_INBOX, render_mini_strip
 
 RESULT_LABELS = {"H": "Local", "D": "Empate", "A": "Visitante"}
 
@@ -144,7 +144,7 @@ def render():
             else:
                 ui.html(
                     '<div class="placeholder-box">'
-                    '<div class="ph-icon">📭</div>'
+                    f'<div class="ph-icon">{PH_INBOX}</div>'
                     '<div class="ph-title">No hay predicciones para el rango seleccionado.</div>'
                     "</div>"
                 )

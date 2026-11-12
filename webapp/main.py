@@ -280,13 +280,32 @@ def login_page():
                 ui.button("Iniciar sesion", on_click=do_login).classes("w-full").props("unelevated")
                 password.on("keydown.enter", do_login)
 
-            ui.html(
-                '<div class="login-stats">'
-                '<div class="login-stat"><div class="val">12.4k</div><div class="lbl">Partidos analizados</div></div>'
-                '<div class="login-stat"><div class="val">68%</div><div class="lbl">Acierto alta conf.</div></div>'
-                '<div class="login-stat"><div class="val">6</div><div class="lbl">Ligas cubiertas</div></div>'
-                "</div>"
-            )
+            try:
+                from webapp.data import get_track_record
+
+                _tr = get_track_record(limit=5000)
+                if _tr is not None and not _tr.empty:
+                    _tr_total = len(_tr)
+                    _tr_alta = _tr[_tr["confidence"] == "alta"]
+                    _tr_alta_rate = (
+                        f"{int((_tr_alta['predicted_result'] == _tr_alta['ft_result']).sum() / len(_tr_alta) * 100)}%"
+                        if not _tr_alta.empty
+                        else "—"
+                    )
+                    _tr_leagues = _tr["division"].nunique()
+                else:
+                    _tr_total, _tr_alta_rate, _tr_leagues = 0, "—", 0
+            except Exception:
+                _tr_total, _tr_alta_rate, _tr_leagues = 0, "—", 0
+
+            if _tr_total > 0:
+                ui.html(
+                    '<div class="login-stats">'
+                    f'<div class="login-stat"><div class="val">{_tr_total:,}</div><div class="lbl">Partidos resueltos</div></div>'
+                    f'<div class="login-stat"><div class="val">{_tr_alta_rate}</div><div class="lbl">Acierto alta conf.</div></div>'
+                    f'<div class="login-stat"><div class="val">{_tr_leagues}</div><div class="lbl">Ligas cubiertas</div></div>'
+                    "</div>"
+                )
 
 
 @ui.page("/")

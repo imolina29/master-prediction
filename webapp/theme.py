@@ -61,13 +61,13 @@ nicegui-html { width: 100%; display: block; }
   background: var(--flame);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 14px; color: #fff;
-  letter-spacing: -0.04em;
+  font-weight: 700; font-size: 14px; color: #fff;
+  letter-spacing: -0.02em;
   font-family: var(--sans);
 }
 .s-brand-text {
-  font-size: 14px; font-weight: 800; color: var(--text-1);
-  letter-spacing: -0.03em; line-height: 1.1;
+  font-size: 14px; font-weight: 600; color: var(--text-1);
+  letter-spacing: -0.02em; line-height: 1.1;
 }
 .s-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .s-item {
@@ -130,8 +130,8 @@ nicegui-html { width: 100%; display: block; }
   width: 100%;
 }
 .topbar h1 {
-  font-size: 20px; font-weight: 800;
-  letter-spacing: -0.03em; color: var(--text-1);
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--text-1);
   font-family: var(--sans); margin: 0;
 }
 .topbar h1 span { color: var(--flame); }
@@ -157,8 +157,8 @@ nicegui-html { width: 100%; display: block; }
   align-items: center; padding: 12px 20px 0;
 }
 .f-tag {
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.10em;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--feat-color, var(--flame));
 }
 .f-league {
@@ -174,8 +174,8 @@ nicegui-html { width: 100%; display: block; }
 .f-team { display: flex; flex-direction: column; gap: 4px; }
 .f-team.away { text-align: right; }
 .f-team-name {
-  font-size: 22px; font-weight: 800;
-  letter-spacing: -0.03em; line-height: 1.1;
+  font-size: 22px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1.1;
 }
 .f-team-sub { font-size: 11px; color: var(--text-3); }
 .f-vs {
@@ -184,7 +184,7 @@ nicegui-html { width: 100%; display: block; }
 }
 .f-vs-label {
   font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+  letter-spacing: 0.02em; font-weight: 500;
 }
 .f-vs-date {
   font-size: 12px; color: var(--text-2);
@@ -211,7 +211,7 @@ nicegui-html { width: 100%; display: block; }
 .force-labels {
   display: flex; justify-content: space-between;
   margin-top: 6px; font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+  letter-spacing: 0.02em; font-weight: 500;
 }
 .force-labels .pick { color: var(--flame); font-weight: 700; }
 .f-extras {
@@ -335,8 +335,8 @@ nicegui-html { width: 100%; display: block; }
   letter-spacing: 0.03em;
 }
 .flip-section-title {
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--text-3); margin-bottom: 6px;
 }
 .flip-conf-row {
@@ -387,8 +387,8 @@ nicegui-html { width: 100%; display: block; }
 .spark-panel { padding: 14px; }
 .sp-sub { font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
 .spark-big {
-  font-size: 32px; font-weight: 900;
-  letter-spacing: -0.04em; line-height: 1; margin-bottom: 2px;
+  font-size: 32px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1; margin-bottom: 2px;
 }
 .spark-big .unit { font-size: 18px; color: var(--text-2); font-weight: 700; }
 
@@ -483,7 +483,7 @@ nicegui-html { width: 100%; display: block; }
   font-family: var(--sans);
 }
 .login-header h1 {
-  font-size: 22px; font-weight: 800;
+  font-size: 22px; font-weight: 600;
   letter-spacing: -0.02em; margin: 0 0 4px;
 }
 .login-header h1 span { color: var(--flame); }
@@ -511,12 +511,12 @@ nicegui-html { width: 100%; display: block; }
 }
 .login-stat { text-align: center; }
 .login-stat .val {
-  font-size: 20px; font-weight: 800;
+  font-size: 20px; font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .login-stat .lbl {
   font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px;
+  letter-spacing: 0.02em; margin-top: 2px;
 }
 
 /* ── KPI ROW ── */
@@ -530,13 +530,13 @@ nicegui-html { width: 100%; display: block; }
   padding: 14px 20px; flex: 1; min-width: 0;
 }
 .kpi-val {
-  font-size: 24px; font-weight: 900;
-  letter-spacing: -0.04em; line-height: 1;
+  font-size: 24px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .kpi-lbl {
   font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   margin-top: 4px;
 }
 
@@ -566,7 +566,7 @@ nicegui-html { width: 100%; display: block; }
   font-size: 10px; color: var(--text-3);
   margin-bottom: 6px;
 }
-.pc-league { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; color: var(--league-color, var(--text-3)); }
+.pc-league { letter-spacing: 0.02em; font-weight: 600; color: var(--league-color, var(--text-3)); }
 .pc-date { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .pc-teams {
   display: flex; align-items: baseline; gap: 8px;
@@ -593,9 +593,9 @@ nicegui-html { width: 100%; display: block; }
   padding: 10px 12px;
 }
 .wc-group-title {
-  font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 600;
   color: var(--flame); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
 }
 .wc-row {
   display: flex; justify-content: space-between;
@@ -622,7 +622,7 @@ nicegui-html { width: 100%; display: block; }
 .bk-labels span {
   min-width: 110px; text-align: center;
   font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
 }
 .bk-bracket {
   display: flex; align-items: stretch; min-height: 520px;
@@ -750,7 +750,7 @@ nicegui-html { width: 100%; display: block; }
 }
 .cmp-label {
   text-align: center; font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   margin-bottom: 10px;
 }
 
@@ -797,12 +797,8 @@ nicegui-html { width: 100%; display: block; }
 .mp-footer-badge {
   display: flex; align-items: center; gap: 5px;
   font-size: 10px; color: var(--text-3);
-  padding: 4px 10px;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 .mp-footer-badge svg { width: 12px; height: 12px; }
 
@@ -814,7 +810,8 @@ nicegui-html { width: 100%; display: block; }
   text-align: center; padding: 48px 24px;
   margin-top: 24px;
 }
-.placeholder-box .ph-icon { font-size: 48px; margin-bottom: 16px; }
+.placeholder-box .ph-icon { margin-bottom: 16px; color: var(--text-3); }
+.placeholder-box .ph-icon svg { width: 40px; height: 40px; }
 .placeholder-box .ph-title {
   color: var(--text-2); font-size: 15px; font-weight: 500;
 }
@@ -822,13 +819,13 @@ nicegui-html { width: 100%; display: block; }
   color: var(--text-3); font-size: 13px; margin-top: 8px;
 }
 .page-eyebrow {
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.10em;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--flame); margin-bottom: 4px;
 }
 .page-title {
-  font-size: 20px; font-weight: 800;
-  letter-spacing: -0.03em;
+  font-size: 20px; font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 /* ── HERO BANNER ── */
@@ -854,8 +851,8 @@ nicegui-html { width: 100%; display: block; }
   justify-content: center; padding: 32px 36px;
 }
 .mp-hero h1 {
-  font-size: 28px; font-weight: 800;
-  letter-spacing: -0.03em; margin: 0;
+  font-size: 28px; font-weight: 600;
+  letter-spacing: -0.02em; margin: 0;
   font-family: var(--sans);
 }
 .mp-hero h1 span { color: var(--flame); }
@@ -874,16 +871,16 @@ nicegui-html { width: 100%; display: block; }
 .mp-hero-kpi {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 8px; padding: 10px 18px;
+  border-radius: var(--radius); padding: 10px 18px;
   text-align: center; min-width: 90px;
 }
 .mp-hero-kpi .kpi-v {
-  font-size: 20px; font-weight: 800;
+  font-size: 20px; font-weight: 600;
   color: var(--text-1); font-variant-numeric: tabular-nums;
 }
 .mp-hero-kpi .kpi-l {
   font-size: 10px; color: var(--text-3);
-  text-transform: uppercase; letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   margin-top: 2px;
 }
 
@@ -915,7 +912,7 @@ nicegui-html { width: 100%; display: block; }
 }
 .mp-strip-eyebrow {
   font-size: 10px; color: var(--flame);
-  text-transform: uppercase; letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   font-weight: 600;
 }
 .mp-strip-title {
@@ -936,7 +933,7 @@ nicegui-html { width: 100%; display: block; }
 .wr-week {
   font-size: 12px; color: var(--text-3);
   font-family: var(--mono); font-variant-numeric: tabular-nums;
-  text-transform: uppercase; letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
 }
 .wr-stats {
   display: grid;
@@ -950,13 +947,13 @@ nicegui-html { width: 100%; display: block; }
   padding: 16px; text-align: center;
 }
 .wr-stat-val {
-  font-size: 28px; font-weight: 800;
-  letter-spacing: -0.03em; line-height: 1;
+  font-size: 28px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1;
 }
 .wr-stat-lbl {
   font-size: 11px; color: var(--text-3);
-  margin-top: 6px; text-transform: uppercase;
-  letter-spacing: 0.04em;
+  margin-top: 6px;
+  letter-spacing: 0.02em;
 }
 .wr-stat-sub {
   font-size: 11px; color: var(--text-3);
@@ -972,15 +969,15 @@ nicegui-html { width: 100%; display: block; }
   margin-bottom: 20px;
 }
 .wr-headline {
-  font-size: 22px; font-weight: 800;
-  letter-spacing: -0.03em; line-height: 1.2;
+  font-size: 22px; font-weight: 600;
+  letter-spacing: -0.02em; line-height: 1.2;
   margin: 0 0 20px; color: var(--text-1);
   border-bottom: 2px solid var(--flame);
   padding-bottom: 12px;
 }
 .wr-section {
-  font-size: 14px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--flame); margin: 20px 0 10px;
 }
 .wr-para {
@@ -1007,8 +1004,8 @@ nicegui-html { width: 100%; display: block; }
 .wr-highlight.ok { border-left-color: var(--hit); }
 .wr-highlight.miss { border-left-color: var(--miss); }
 .wr-hl-tag {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
 .wr-highlight.ok .wr-hl-tag { color: var(--hit); }
@@ -1062,8 +1059,8 @@ nicegui-html { width: 100%; display: block; }
 }
 .wr-teaser:hover { border-color: var(--flame); }
 .wr-teaser-tag {
-  font-size: 9px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--flame); margin-bottom: 6px;
 }
 .wr-teaser-title {
@@ -1106,7 +1103,7 @@ def render_topbar():
     now_str = datetime.now(col_tz).strftime("%b %d %Y · %H:%M COT").lower()
     with ui.row().classes("w-full justify-between items-baseline mb-6"):
         ui.html(
-            '<h1 style="font-size:20px;font-weight:800;letter-spacing:-0.03em;margin:0;font-family:var(--sans)">Master <span style="color:var(--flame)">Prediction</span></h1>'
+            '<h1 style="font-size:20px;font-weight:600;letter-spacing:-0.02em;margin:0;font-family:var(--sans)">Master <span style="color:var(--flame)">Prediction</span></h1>'
         )
         ui.label(now_str).style(
             "font-size:12px;color:var(--text-3);font-family:var(--mono);"
@@ -1129,7 +1126,7 @@ def render_hero_banner(stats: dict):
         ui.image("/static/hero-stadium.jpg").classes("mp-hero-img")
         with ui.element("div").classes("mp-hero-overlay"):
             ui.html("<h1>Master <span>Prediction</span></h1>")
-            ui.label("Inteligencia deportiva potenciada con IA").style(
+            ui.label("Predicciones de futbol basadas en datos").style(
                 "font-size:13px;color:var(--text-2);margin-top:4px"
             )
             ui.label(now_str).style(
@@ -1193,28 +1190,27 @@ def render_footer():
         with ui.row().classes("items-center gap-2"):
             ui.html('<div class="ft-logo">MP</div>')
             ui.html(
-                '<span style="font-size:13px;font-weight:700;color:var(--text-2)">Master <span style="color:var(--flame)">Prediction</span></span>'
+                '<span style="font-size:13px;font-weight:600;color:var(--text-2)">Master <span style="color:var(--flame)">Prediction</span></span>'
             )
-        with ui.row().classes("gap-4 items-center").style("margin-top:4px"):
-            ui.html(f'<div class="mp-footer-badge">{_AI_ICON} AI-Powered</div>')
-            ui.html(f'<div class="mp-footer-badge">{_SHIELD_ICON} Datos protegidos</div>')
         ui.html(
             f'<div style="text-align:center;font-size:10px;color:var(--text-3);line-height:1.8;max-width:520px">'
             f"&copy; {year} Master Prediction. Todos los derechos reservados.<br>"
-            f"Plataforma de inteligencia deportiva potenciada por inteligencia artificial.<br>"
             f"Las predicciones son de caracter informativo y no constituyen asesoria financiera ni incentivo a apuestas.<br>"
             f"El uso de esta plataforma implica la aceptacion de los "
             f'<a href="#" style="color:var(--text-3);text-decoration:underline">Terminos de Servicio</a> y la '
             f'<a href="#" style="color:var(--text-3);text-decoration:underline">Politica de Privacidad</a>.'
             f"</div>"
         )
-        ui.label(
-            "Master Prediction v2.0 · Modelo Poisson + XGBoost · Datos actualizados en tiempo real"
-        ).style("font-size:10px;color:var(--text-3);margin-top:2px")
 
 
 CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
 CROSS_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+
+PH_INBOX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>'
+PH_NEWSPAPER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/></svg>'
+PH_BARCHART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'
+PH_TRENDING = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+PH_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
 
 DONUT_JS = """
 (function() {
@@ -1237,12 +1233,12 @@ DONUT_JS = """
     start += sweep;
   });
   ctx.fillStyle = '#e6edf3';
-  ctx.font = '900 22px Inter, -apple-system, sans-serif';
+  ctx.font = '600 22px Inter, -apple-system, sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(Math.round(hitPct * 100) + '%', cx, cy - 2);
   ctx.fillStyle = '#484f58';
   ctx.font = '600 8px Inter, -apple-system, sans-serif';
-  ctx.fillText('ACIERTO', cx, cy + 12);
+  ctx.fillText('Acierto', cx, cy + 12);
 })();
 """
 
