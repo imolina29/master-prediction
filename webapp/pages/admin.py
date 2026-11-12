@@ -9,7 +9,7 @@ import bcrypt
 from nicegui import app, ui
 
 from webapp.data import get_supabase_client
-from webapp.theme import render_mini_strip
+from webapp.theme import PH_LOCK, render_mini_strip
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def render():
     if role != "admin":
         ui.html(
             '<div class="placeholder-box">'
-            '<div class="ph-icon">🔒</div>'
+            f'<div class="ph-icon">{PH_LOCK}</div>'
             '<div class="ph-title">Acceso restringido a administradores.</div>'
             "</div>"
         )

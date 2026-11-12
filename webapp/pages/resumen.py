@@ -5,7 +5,7 @@ import re
 
 from nicegui import ui
 
-from webapp.theme import render_mini_strip
+from webapp.theme import PH_NEWSPAPER, render_mini_strip
 
 RESULT_LABELS = {"H": "Local", "D": "Empate", "A": "Visitante"}
 
@@ -184,7 +184,7 @@ def render():
     if not reports_resp.data:
         ui.html(
             '<div class="placeholder-box">'
-            '<div class="ph-icon">📰</div>'
+            f'<div class="ph-icon">{PH_NEWSPAPER}</div>'
             '<div class="ph-title">Aun no hay resumenes semanales.</div>'
             '<div class="ph-sub">El primer reporte se genera automaticamente '
             "el domingo a las 11pm.</div>"

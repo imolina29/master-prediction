@@ -93,7 +93,7 @@ def render():
         text_input.value = ""
 
         messages.append({"role": "user", "content": prompt})
-        messages.append({"role": "assistant", "content": "⏳ Analizando..."})
+        messages.append({"role": "assistant", "content": "Analizando..."})
         _render_messages()
 
         try:

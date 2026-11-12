@@ -3,7 +3,7 @@
 from nicegui import ui
 
 from webapp.data import DIVISION_NAMES, get_supabase_client
-from webapp.theme import render_mini_strip
+from webapp.theme import PH_TRENDING, render_mini_strip
 
 
 def _load_resolved() -> list[dict]:
@@ -28,7 +28,7 @@ def render():
     if not resolved:
         ui.html(
             '<div class="placeholder-box">'
-            '<div class="ph-icon">📈</div>'
+            f'<div class="ph-icon">{PH_TRENDING}</div>'
             '<div class="ph-title">No hay suficientes datos para analizar tendencias.</div>'
             '<div class="ph-sub">Las tendencias se generan a medida que los picks se resuelven.</div>'
             "</div>"
