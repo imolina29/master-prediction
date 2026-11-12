@@ -59,15 +59,15 @@ def load_matches(division: str | None = None, season: str | None = None) -> pd.D
     features = load_features()
     if features.empty:
         return pd.DataFrame()
-    home = features[features["venue"] == "home"].copy()
+    home = features[(features["venue"] == "home") & (features["ft_result"].notna())].copy()
     df = pd.DataFrame(
         {
             "division": home["division"],
             "match_date": pd.to_datetime(home["match_date"]),
             "home_team": home["team"],
             "away_team": home["opponent"],
-            "ft_home_goals": home["goals_scored"],
-            "ft_away_goals": home["goals_conceded"],
+            "ft_home_goals": home["goals_scored"].astype(int),
+            "ft_away_goals": home["goals_conceded"].astype(int),
             "ft_result": home["ft_result"],
         }
     )
