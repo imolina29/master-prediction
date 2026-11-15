@@ -434,6 +434,10 @@ app.add_static_files("/static", str(Path(__file__).parent / "static"))
 app.include_router(chat_router)
 app.include_router(perf_router)
 
+from backend.api.public.router import router as public_router
+
+app.include_router(public_router)
+
 APP_VERSION = "2.2.0-security"
 
 
