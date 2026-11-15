@@ -28,9 +28,12 @@ _INTERNAL_KEY = os.environ.get("INTERNAL_API_KEY", "")
 _RATE_COUNTS: dict[str, list[float]] = {}
 _RATE_LIMIT = 60
 _RATE_WINDOW = 60.0
+_CLEANUP_EVERY = 100
+_CLEANUP_COUNTER = 0
 
 
 def _check_rate_limit(request: Request) -> bool:
+    global _CLEANUP_COUNTER
     if _INTERNAL_KEY and request.headers.get("X-Internal-Key") == _INTERNAL_KEY:
         return True
     ip = request.client.host if request.client else "unknown"
@@ -41,6 +44,12 @@ def _check_rate_limit(request: Request) -> bool:
         return False
     hits.append(now)
     _RATE_COUNTS[ip] = hits
+    _CLEANUP_COUNTER += 1
+    if _CLEANUP_COUNTER >= _CLEANUP_EVERY:
+        _CLEANUP_COUNTER = 0
+        stale = [k for k, v in _RATE_COUNTS.items() if all(now - t >= _RATE_WINDOW for t in v)]
+        for k in stale:
+            del _RATE_COUNTS[k]
     return True
 
 
@@ -151,8 +160,8 @@ async def match_detail(request: Request, date: str, slug: str, division: str | N
     prediction = pred_resp.data[0]
     div = prediction.get("division", division or "")
 
-    home_features = get_team_features(home_name, div)
-    away_features = get_team_features(away_name, div)
+    home_features = get_team_features(home_name, div, venue="home")
+    away_features = get_team_features(away_name, div, venue="away")
     elo = get_match_elo(date, home_name, away_name)
     h2h = get_h2h(home_name, away_name)
 
@@ -163,7 +172,17 @@ async def match_detail(request: Request, date: str, slug: str, division: str | N
         "home_features": home_features,
         "away_features": away_features,
         "elo": {"home": elo[0], "away": elo[1]} if elo else None,
-        "h2h": h2h,
+        "h2h": [
+            {
+                "date": m.get("match_date", ""),
+                "home_team": m.get("home_team", ""),
+                "away_team": m.get("away_team", ""),
+                "home_goals": m.get("ft_home_goals"),
+                "away_goals": m.get("ft_away_goals"),
+                "result": m.get("ft_result", ""),
+            }
+            for m in h2h
+        ],
         "ventajas": ventajas,
         "league_name": DIVISION_DISPLAY.get(div, ""),
         "league_flag": DIVISION_FLAGS.get(div, ""),

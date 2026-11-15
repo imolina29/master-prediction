@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const apiBase = process.env.API_BASE_URL || "http://localhost:8080";
     const res = await fetch(`${apiBase}/api/public/predictions/upcoming`, {
+      headers: { "X-Internal-Key": process.env.INTERNAL_API_KEY || "" },
       next: { revalidate: 300 },
     });
     if (res.ok) {

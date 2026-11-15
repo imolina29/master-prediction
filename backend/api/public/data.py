@@ -30,14 +30,14 @@ _FEATURE_COLS = [
 ]
 
 
-def get_team_features(team: str, division: str) -> dict | None:
+def get_team_features(team: str, division: str, venue: str = "home") -> dict | None:
     features = load_features()
     if features.empty:
         return None
     mask = (
         (features["team"] == team)
         & (features["division"] == division)
-        & (features["venue"] == "home")
+        & (features["venue"] == venue)
     )
     subset = features[mask].sort_values("match_date")
     if subset.empty:
