@@ -77,7 +77,10 @@ export default function RootLayout({
           <div className="mx-auto max-w-6xl px-4 text-center text-xs text-gray-500">
             <p className="mb-2">
               Análisis informativo. Las decisiones de apuesta son
-              responsabilidad exclusiva del usuario.
+              responsabilidad exclusiva del usuario.{" "}
+              <a href="/aviso-legal" className="underline hover:text-gray-300">
+                Aviso Legal
+              </a>
             </p>
             <p>© {new Date().getFullYear()} Master Prediction</p>
             <div id="ad-slot-footer" />
