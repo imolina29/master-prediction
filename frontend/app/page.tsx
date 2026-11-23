@@ -36,7 +36,7 @@ export default async function Home() {
             "@context": "https://schema.org",
             "@type": "WebSite",
             name: "Master Prediction",
-            url: "https://master-prediction.com",
+            url: process.env.SITE_URL || "https://masterprediction.up.railway.app",
             description:
               "Predicciones de fútbol europeo basadas en inteligencia artificial",
           }),
